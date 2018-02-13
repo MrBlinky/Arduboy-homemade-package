@@ -1,0 +1,38 @@
+{
+  "packages": [
+    {
+      "name": "arduboy-homebrew",
+      "maintainer": "Mr.Blinky",
+      "websiteURL": "https://github.com/MrBlinky/Arduboy-homebrew-package",
+      "email": "mstr.blinky@gmail.com",
+      "help": {
+	    "string": "community help",
+        "online": "http://community.arduboy.com/"
+      },
+      "platforms": [
+        {
+          "name": "Arduboy homebrew package",
+          "architecture": "avr",
+          "version": "1.1.1",
+          "category": "Contributed",
+          "help": {
+            "online": "http://community.arduboy.com/"
+          },
+          "url": "https://github.com/MrBlinky/Arduboy-homebrew-package/raw/master/board-package/arduboy-homebrew-1.2.0.zip",
+          "archiveFileName": "arduboy-homebrew-1.2.0.zip",
+          "checksum": "SHA-256:0ac9ba429cd8ce01807a34b16f8b09513b6d83d42eaaedc75ec8320163e9c445",
+          "size": "798690",
+          "boards": [
+            {"name": "Arduboy production"},
+            {"name": "Arduboy DevKit"},
+            {"name": "Arduino Leonardo"},
+            {"name": "Arduino / Genuino Micro"},
+            {"name": "sparkFun ProMicro 5V"}
+          ],
+          "toolsDependencies": [
+		  ]
+        }      ],
+      "tools":[]
+    }
+  ]
+}
