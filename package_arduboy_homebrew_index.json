@@ -13,7 +13,7 @@
         {
           "name": "Arduboy homebrew package",
           "architecture": "avr",
-          "version": "1.1.1",
+          "version": "1.2.0",
           "category": "Contributed",
           "help": {
             "online": "http://community.arduboy.com/"
@@ -27,7 +27,7 @@
             {"name": "Arduboy DevKit"},
             {"name": "Arduino Leonardo"},
             {"name": "Arduino / Genuino Micro"},
-            {"name": "sparkFun ProMicro 5V"}
+            {"name": "SparkFun ProMicro 5V"}
           ],
           "toolsDependencies": [
 		  ]
