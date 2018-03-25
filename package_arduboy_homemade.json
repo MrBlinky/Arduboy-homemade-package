@@ -62,7 +62,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.2.2.zip",
+          "url": "https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/board-package/arduboy-homemade-1.2.2.zip",
           "archiveFileName": "arduboy-homemade-1.2.2.zip",
           "checksum": "SHA-256:28a09f2367364d3323fe03a45bfb9b0d509676a39ecba3681c1eabf8626d3116",
           "size": "819569",
