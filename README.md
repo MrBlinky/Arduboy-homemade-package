@@ -14,10 +14,10 @@ https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/packa
 ![preferences](https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/images/preferences.png)
 After this:
 * Go to **Tools > Boards > Board manager**
-* In the text box type **Arduboy homemade**
-* Click on the **Arduboy Hombrew package** and click the **Install** button.
+* In the text box type **homemade** or **Arduboy homemade**
+* Click on the **Arduboy Homemade package** and click the **Install** button.
 
-You can now select **Arduboy, Arduboy DevKit** and **Arduboy homemade boards** from the Tools menu.
+You can now select **Arduboy, Arduboy DevKit** and **Homemade Arduboy boards** from the Tools menu.
 
 ![menu](https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/images/menu.gif)
 
