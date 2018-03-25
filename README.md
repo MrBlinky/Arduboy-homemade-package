@@ -1,4 +1,4 @@
-# Arduboy-homemade-package
+# Arduboy homemade package
 Arduino IDE board package for Arduboy and homemade versions with the following advantages:
 * Single install
 * Includes all Arduboy libraries with support for alternate displays and wiring
