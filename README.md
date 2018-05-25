@@ -32,13 +32,13 @@ This package contains all the currently available Arduboy libraries with changes
 | OLED CS          | 12 PORTD6              |  6 PORTD7   |    GND                             |  1/TXO PORTD3*                    |
 | OLED DC          |  4 PORTD4              |  4 PORTD4   |  4 PORTD4                          |  4 PORTD4                         |
 | OLED RST         |  6 PORTD7              | 12 PORTD6   |  6 PORTD7                          |  2 PORTD1*                        |
-| SPI SCK          | 15 PORTB1              | 15 PORTB1   |    PORTB                   1       |    PORTB1                         |
-| SPI MOSI         | 16 PORTB2              | 16 PORTB2   |    PORTB2                          |    PORTB2                         |
+| SPI SCK          | 15 PORTB1              | 15 PORTB1   | 15 PORTB                   1       | 15 PORTB1                         |
+| SPI MOSI         | 16 PORTB2              | 16 PORTB2   | 16 PORTB2                          | 16 PORTB2                         |
 | RGB LED RED      | 10 PORTB6              |    _        | 10 PORTB6                          | 10 PORTB6                         |
 | RGB LED GREEN    | 11 PORTB7              |    _        |    -                               |  3 PORTD0*                        |
 | RGB LED BLUE     |  9 PORTB5              | 17 PORTB0   |  9 PORTB5                          |  9 PORTB5                         |
-| RxLED            |    PORTB0              |    _        |    PORTB0                          |    PORTB0                         |
-| TxLED            |    PORTD5              |    _        |    PORTD5                          |    PORTD5                         |
+| RxLED            | 17 PORTB0              |    _        | 17 PORTB0                          | 17 PORTB0                         |
+| TxLED            | 30 PORTD5              |    _        | 30 PORTD5                          | 30 PORTD5                         |
 | BUTTON UP        | A0 PORTF7              |  8 PORTB4   | A0 PORTF7                          | A0 PORTF7                         |
 | BUTTON RIGHT     | A1 PORTF6              |  5 PORTC6   | A1 PORTF6                          | A1 PORTF6                         |
 | BUTTON LEFT      | A2 PORTF5              |  9 PORTB5   | A2 PORTF5                          | A2 PORTF5                         |
@@ -48,7 +48,7 @@ This package contains all the currently available Arduboy libraries with changes
 | SPEAKER PIN 1    |  5 PORTC6              | A2 PORTF5   |  5 PORTC6                          |  5 PORTC6                         |
 | SPEAKER PIN 2    | 13 PORTC7              | A3 PORTF4** |    GND                             |  6 PORTD7*                        |
 |----------------- | ---------------------- | ----------- | ---------------------------------- | --------------------------------- |
-| CARD_CS          |  0 PORTD2***           |    -        |    -                               |  0 PORTD2***                      |
+| CART_CS          |  0 PORTD2***           |    -        |    -                               |  0 PORTD2***                      |
 | SPI MISO         | 14 PORTB3***           |    -        |    -                               | 14 PORTB3***                      |
 
 Numbers before the portnames are Arduino assigned pin numbers.
@@ -69,3 +69,36 @@ configured as an output.
 Future  Flash cart support:
 * 0 PORTD2 Future flash cart chip select
 * 14 PORTB3 flash cart data in (MISO)
+
+## (future) expansion connector
+
+An expansion connector can be added to modified or Homemade Arduboy in the form of a 12 pin female header with 0.1"pitch. which can be used for: 
+* ICSP header for easy in circuit programming (updating bootloader)
+* flash cart slot
+* SD card adapter
+* infrared communications
+* multiplayer link
+* sensors
+
+### Expansion connector pinout
+
+( (Homemade) Arduboy facing top - front view female pinheader)
+
+|  12 |  11 |  10 |  9  |  8  |  7  |  6  |  5  |  4  |  3  |  2  |  1  |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|  TX |  RX | SCL | SDA |  NC | KEY | MISO| MOSI| CLK | RST | GND | Vcc |
+```text
+TX*  - Serial Transmitter output
+RX   - Serial Receiver input / Flash cart chip select
+SCL* - I2C/TWI serial clock I/O
+SDA* - I2C/TWI serial data I/O
+NC   - Not connected (reserved for future use)
+KEY  - Key pin. should be filled to block pin insertion (reverse insert protection)
+MISO - SPI/ICSP Master Input, Slave Output
+MOSI - SPI/ICSP Master Output, Slave Input
+CLK  - SPI/ICSP clock
+RST  - MCU/ICSP reset
+GND  - Ground (0V)
+Vcc  - 5V (~3.0V to ~4.1V on Arduboy)
+(*) Not available when using Pro Micro with Alternate Wiring
+```
