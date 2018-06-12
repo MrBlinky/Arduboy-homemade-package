@@ -97,6 +97,28 @@
           ],
           "toolsDependencies": [
 		  ]
+        },
+        {
+          "name": "Arduboy homemade package",
+          "architecture": "avr",
+          "version": "1.2.4",
+          "category": "Contributed",
+          "help": {
+            "online": "http://community.arduboy.com/"
+          },
+          "url": "https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/board-package/arduboy-homemade-1.2.4.zip",
+          "archiveFileName": "arduboy-homemade-1.2.4.zip",
+          "checksum": "SHA-256:bd6c98a9ce96fd2a5faae9746ec96eba2ca7b1c052365ee9822f0209698d6665",
+          "size": "834885",
+          "boards": [
+            {"name": "Arduboy production"},
+            {"name": "Arduboy DevKit"},
+            {"name": "Arduino Leonardo"},
+            {"name": "Arduino / Genuino Micro"},
+            {"name": "SparkFun ProMicro 5V"}
+          ],
+          "toolsDependencies": [
+		  ]
         }        ],
       "tools":[]
     }
