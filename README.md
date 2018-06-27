@@ -72,7 +72,7 @@ Future  Flash cart support:
 
 ## (future) expansion connector
 
-An expansion connector can be added to modified or Homemade Arduboy in the form of a 12 pin female header with 0.1"pitch. which can be used for: 
+An expansion connector can be added to a modified or Homemade Arduboy in the form of a 12 pin male header with 0.1"pitch. which can be used for: 
 * ICSP header for easy in circuit programming (updating bootloader)
 * flash cart slot
 * SD card adapter
