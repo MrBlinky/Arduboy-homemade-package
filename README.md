@@ -29,7 +29,7 @@ This package contains all the currently available Arduboy libraries with changes
 
 | Arduboy function | Arduboy <BR>Leonardo/Micro |   DevelopmentKit    | ProMicro 5V <br>(standard wiring) | ProMicro 5V <br>(alternate wiring) |
 | ---------------- | ---------------------- | ----------- | ---------------------------------- | --------------------------------- |
-| OLED CS          | 12 PORTD6              |  6 PORTD7   |    GND                             |  1/TXO PORTD3*                    |
+| OLED CS          | 12 PORTD6              |  6 PORTD7   |    GND****                         |  1/TXO PORTD3*                    |
 | OLED DC          |  4 PORTD4              |  4 PORTD4   |  4 PORTD4                          |  4 PORTD4                         |
 | OLED RST         |  6 PORTD7              | 12 PORTD6   |  6 PORTD7                          |  2 PORTD1*                        |
 | SPI SCK          | 15 PORTB1              | 15 PORTB1   | 15 PORTB                   1       | 15 PORTB1                         |
@@ -66,9 +66,15 @@ prevent the IO pins from possible damage, speaker pin 2 should *NOT* be
 configured as an output.
 	
 (***)
-Future  Flash cart support:
-* 0 PORTD2 Future flash cart chip select
+Flash cart support:
+* 0 PORTD2 flash cart chip select
 * 14 PORTB3 flash cart data in (MISO)
+
+(****)
+When using serial flash with the Pro Micro standard wiring, OLED_CS (chip select) cannot be grounded (always active).
+In this case a simple circuit with a general purpose PNP transistor and two resistors can be used to deactive OLED_CS while CART_CS is active.
+
+**TODO** add schematic
 
 ## (future) expansion connector
 
