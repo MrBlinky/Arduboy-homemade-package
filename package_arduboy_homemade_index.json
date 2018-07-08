@@ -128,7 +128,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/board-package/arduboy-homemade-1.2.4.zip",
+          "url": "https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/board-package/arduboy-homemade-1.2.5.zip",
           "archiveFileName": "arduboy-homemade-1.2.5.zip",
           "checksum": "SHA-256:56105973de4089bdce2b9ce04a271dac3d26ff731d75c63bf3332c58031b5691",
           "size": "905977",
