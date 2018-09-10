@@ -1,0 +1,377 @@
+# Board definitions for Arduboy production v1.0, DevkKit and homemade versions
+# using Leonardo, Micro and Sparkfun Pro Micro boards.
+
+menu.based_on=Based on
+menu.core=Core
+menu.display=Display
+menu.boot=Bootloader
+
+################################################################################
+# Arduboy homemade board
+################################################################################
+
+arduboy-homemade.name=Homemade Arduboy
+
+#Arduino Leonardo
+arduboy-homemade.vid.0=0x2341
+arduboy-homemade.pid.0=0x0036
+arduboy-homemade.vid.1=0x2341
+arduboy-homemade.pid.1=0x8036
+arduboy-homemade.vid.2=0x2A03
+arduboy-homemade.pid.2=0x0036
+arduboy-homemade.vid.3=0x2A03
+arduboy-homemade.pid.3=0x8036
+#Arduino Micro
+arduboy-homemade.vid.4=0x2341
+arduboy-homemade.pid.4=0x0037
+arduboy-homemade.vid.5=0x2341
+arduboy-homemade.pid.5=0x8037
+arduboy-homemade.vid.6=0x2A03
+arduboy-homemade.pid.6=0x0037
+arduboy-homemade.vid.7=0x2A03
+arduboy-homemade.pid.7=0x8037
+#Genuino Micro
+arduboy-homemade.vid.8=0x2341
+arduboy-homemade.pid.8=0x8237
+#Sparkfun Pro Micro 5V
+arduboy-homemade.vid.7=0x1b4f
+arduboy-homemade.pid.7=0x9205
+arduboy-homemade.vid.8=0x1b4f
+arduboy-homemade.pid.8=0x9206
+
+arduboy-homemade.upload.tool=arduino:avrdude
+arduboy-homemade.upload.protocol=avr109
+arduboy-homemade.upload.maximum_size=28672
+arduboy-homemade.upload.maximum_data_size=2560
+arduboy-homemade.upload.speed=57600
+arduboy-homemade.upload.disable_flushing=true
+arduboy-homemade.upload.use_1200bps_touch=true
+arduboy-homemade.upload.wait_for_upload_port=true
+
+arduboy-homemade.bootloader.tool=arduino:avrdude
+arduboy-homemade.bootloader.low_fuses=0xff
+arduboy-homemade.bootloader.high_fuses=0xd0
+arduboy-homemade.bootloader.extended_fuses=0xcb
+arduboy-homemade.bootloader.unlock_bits=0xFF
+arduboy-homemade.bootloader.lock_bits=0xEF
+
+arduboy-homemade.build.mcu=atmega32u4
+arduboy-homemade.build.f_cpu=16000000L
+arduboy-homemade.build.board=AVR_ARDUBOY_HOMEMADE
+
+## Arduboy homemade based on boards ###########################################
+
+# Leonardo #
+arduboy-homemade.menu.based_on.leonardo=Arduino Leonardo
+arduboy-homemade.menu.based_on.leonardo.build.board=AVR_LEONARDO
+arduboy-homemade.menu.based_on.leonardo.build.vid=0x2341
+arduboy-homemade.menu.based_on.leonardo.build.pid=0x8036
+arduboy-homemade.menu.based_on.leonardo.build.variant=arduboy-leonardo
+arduboy-homemade.menu.based_on.leonardo.build.usb_product="ABL{usb_product_postfix}"
+arduboy-homemade.menu.based_on.leonardo.org_bootloader_file=caterina/Caterina-Leonardo.hex
+arduboy-homemade.menu.based_on.leonardo.c3k_bootloader_file=cathy3k/arduboy3k-bootloader{bootloader_display}.hex
+arduboy-homemade.menu.based_on.leonardo.c2k_bootloader_file=cathy2k/arduboy2k-bootloader.hex
+
+# micro #
+arduboy-homemade.menu.based_on.micro=Arduino/Genuino Micro
+arduboy-homemade.menu.based_on.micro.build.board=AVR_MICRO
+arduboy-homemade.menu.based_on.micro.build.vid=0x2341
+arduboy-homemade.menu.based_on.micro.build.pid=0x8037
+arduboy-homemade.menu.based_on.micro.build.variant=arduboy-micro
+arduboy-homemade.menu.based_on.micro.build.usb_product="ABM{usb_product_postfix}"
+arduboy-homemade.menu.based_on.micro.org_bootloader_file=caterina/Caterina-Micro.hex
+arduboy-homemade.menu.based_on.micro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-micro{bootloader_display}.hex
+arduboy-homemade.menu.based_on.micro.c2k_bootloader_file=cathy2k/arduboy2k-bootloader-micro.hex
+
+# SparkFun Pro Micro 5V #
+arduboy-homemade.menu.based_on.promicro=SparkFun Pro Micro 5V - Standard wiring
+#arduboy-homemade.menu.based_on.promicro.build.vid=0x1b4f
+#arduboy-homemade.menu.based_on.promicro.build.pid=0x9206
+#using Leonardo vid,pid for driver simplicity
+arduboy-homemade.menu.based_on.promicro.build.vid=0x2341
+arduboy-homemade.menu.based_on.promicro.build.pid=0x8036
+arduboy-homemade.menu.based_on.promicro.build.variant=arduboy-promicro
+arduboy-homemade.menu.based_on.promicro.build.usb_product="ABP{usb_product_postfix}"
+arduboy-homemade.menu.based_on.promicro.build.board=AVR_PROMICRO
+arduboy-homemade.menu.based_on.promicro.org_bootloader_file=caterina/Caterina-promicro16.hex
+arduboy-homemade.menu.based_on.promicro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader{bootloader_display}.hex
+arduboy-homemade.menu.based_on.promicro.c2k_bootloader_file=cathy2k/arduboy2k-bootloader.hex
+
+arduboy-homemade.menu.based_on.promicro_alt=SparkFun Pro Micro 5V - Alternate wiring
+#arduboy-homemade.menu.based_on.promicro_alt.build.vid=0x1b4f
+#arduboy-homemade.menu.based_on.promicro_alt.build.pid=0x9206
+#using Leonardo vid,pid for driver simplicity
+arduboy-homemade.menu.based_on.promicro_alt.build.vid=0x2341
+arduboy-homemade.menu.based_on.promicro_alt.build.pid=0x8036
+arduboy-homemade.menu.based_on.promicro_alt.build.variant=arduboy-promicro-alt
+arduboy-homemade.menu.based_on.promicro_alt.build.usb_product="ABA{usb_product_postfix}"
+arduboy-homemade.menu.based_on.promicro_alt.build.board=AVR_PROMICRO -DAB_ALTERNATE_WIRING
+arduboy-homemade.menu.based_on.promicro_alt.org_bootloader_file=caterina/Caterina-promicro16.hex
+arduboy-homemade.menu.based_on.promicro_alt.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-promicro{bootloader_display}.hex
+arduboy-homemade.menu.based_on.promicro_alt.c2k_bootloader_file=cathy2k/arduboy-bootloader-promicro.hex
+
+# bootloader #
+arduboy-homemade.menu.boot.org=original (Caterina)
+arduboy-homemade.menu.boot.org.upload.maximum_size=28672
+arduboy-homemade.menu.boot.org.bootloader.high_fuses=0xd0
+arduboy-homemade.menu.boot.org.bootloader.file={org_bootloader_file}
+
+arduboy-homemade.menu.boot.cathy3k=Cathy3K
+arduboy-homemade.menu.boot.cathy3k.upload.maximum_size=29696
+arduboy-homemade.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+arduboy-homemade.menu.boot.cathy3k.bootloader.file={c3k_bootloader_file}
+
+arduboy-homemade.menu.boot.cathy2k=Cathy2K
+arduboy-homemade.menu.boot.cathy2k.upload.maximum_size=30720
+arduboy-homemade.menu.boot.cathy2k.bootloader.high_fuses=0xd2
+arduboy-homemade.menu.boot.cathy2k.bootloader.file={c2k_bootloader_file}
+
+# core #
+arduboy-homemade.menu.core.arduboy-core=Arduboy optimized core
+arduboy-homemade.menu.core.arduboy-core.build.core=arduboy
+
+arduboy-homemade.menu.core.arduino-core=Standard Arduino core
+arduboy-homemade.menu.core.arduino-core.build.core=arduino:arduino
+
+# display #
+arduboy-homemade.menu.display.sh1106=SH1106
+arduboy-homemade.menu.display.sh1106.build.display=-sh1106
+arduboy-homemade.menu.display.sh1106.usb_product_postfix=1106
+arduboy-homemade.menu.display.sh1106.bootloader_display=-sh1106
+arduboy-homemade.menu.display.sh1106.build.extra_flags=-DARDUBOY_10 -DOLED_SH1106 {build.usb_flags}
+
+arduboy-homemade.menu.display.ssd1306=SSD1306
+arduboy-homemade.menu.display.ssd1306.build.display=-ssd1306
+arduboy-homemade.menu.display.ssd1306.usb_product_postfix=1306
+arduboy-homemade.menu.display.ssd1306.bootloader_display=
+arduboy-homemade.menu.display.ssd1306.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1306 {build.usb_flags}
+
+arduboy-homemade.menu.display.ssd1309=SSD1309
+arduboy-homemade.menu.display.ssd1309.build.display=-ssd1309
+arduboy-homemade.menu.display.ssd1309.usb_product_postfix=1309
+arduboy-homemade.menu.display.ssd1309.bootloader_display=
+arduboy-homemade.menu.display.ssd1309.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1309 {build.usb_flags}
+
+arduboy-homemade.menu.display.64x128on96x96=SSD1327/29 (128x64 on 96x96)
+arduboy-homemade.menu.display.64x128on96x96.build.display=-128x64-on-96x96
+arduboy-homemade.menu.display.64x128on96x96.usb_product_postfix=9696
+arduboy-homemade.menu.display.64x128on96x96.bootloader_display=-ssd132x-96x96
+arduboy-homemade.menu.display.64x128on96x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_96X96 {build.usb_flags}
+
+arduboy-homemade.menu.display.64x128on128x96=SSD1327/29 (128x64 on 128x96)
+arduboy-homemade.menu.display.64x128on128x96.build.display=-128x64-on-128x96
+arduboy-homemade.menu.display.64x128on128x96.usb_product_postfix=12896
+arduboy-homemade.menu.display.64x128on128x96.bootloader_display=-ssd132x-128x96
+arduboy-homemade.menu.display.64x128on128x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_128X96 {build.usb_flags}
+
+arduboy-homemade.menu.display.64x128on128x128=SSD1327/29 (128x64 on 128x128)
+arduboy-homemade.menu.display.64x128on128x128.build.display=-128x64-on-128x128
+arduboy-homemade.menu.display.64x128on128x128.usb_product_postfix=128128
+arduboy-homemade.menu.display.64x128on128x128.bootloader_display=-ssd132x-128x128
+arduboy-homemade.menu.display.64x128on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_128X128 {build.usb_flags}
+
+arduboy-homemade.menu.display.128x64on128x128=SSD1327/29 (64x128 on 128x128)
+arduboy-homemade.menu.display.128x64on128x128.build.display=-64x128-on-128x128
+arduboy-homemade.menu.display.128x64on128x128.usb_product_postfix=64128
+arduboy-homemade.menu.display.128x64on128x128.bootloader_display=-ssd132x-128x128
+arduboy-homemade.menu.display.128x64on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_64X128_ON_128X128 {build.usb_flags}
+
+arduboy-homemade.menu.display.96x96=SSD1327/29 (96x96)
+arduboy-homemade.menu.display.96x96.build.display=-96x96
+arduboy-homemade.menu.display.96x96.usb_product_postfix=9696
+arduboy-homemade.menu.display.96x96.bootloader_display=-ssd132x-96x96
+arduboy-homemade.menu.display.96x96.build.extra_flags=-DARDUBOY_10 -DOLED_96X96 {build.usb_flags}
+
+arduboy-homemade.menu.display.96x96on128x128=SSD1327/29 (96x96 on 128x128)
+arduboy-homemade.menu.display.96x96on128x128.build.display=-96x96-on-128x128
+arduboy-homemade.menu.display.96x96on128x128.usb_product_postfix=128128
+arduboy-homemade.menu.display.96x96on128x128.bootloader_display=-ssd132x-128x128
+arduboy-homemade.menu.display.96x96on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_96X96_ON_128X128 {build.usb_flags}
+
+arduboy-homemade.menu.display.128x96=SSD1327/29 (128x96)
+arduboy-homemade.menu.display.128x96.build.display=-128x96
+arduboy-homemade.menu.display.128x96.usb_product_postfix=12896
+arduboy-homemade.menu.display.128x96.bootloader_display=-ssd132x-128x96
+arduboy-homemade.menu.display.128x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X96 {build.usb_flags}
+
+arduboy-homemade.menu.display.128x96on128x128=SSD1327/29 (128x96 on 128x128)
+arduboy-homemade.menu.display.128x96on128x128.build.display=-128x96-on-128x128
+arduboy-homemade.menu.display.128x96on128x128.usb_product_postfix=128128
+arduboy-homemade.menu.display.128x96on128x128.bootloader_display=-ssd132x-128x128
+arduboy-homemade.menu.display.128x96on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X96_ON_128X128 {build.usb_flags}
+
+arduboy-homemade.menu.display.128x128=SSD1327/29 (128x128)
+arduboy-homemade.menu.display.128x128.build.display=-128x128
+arduboy-homemade.menu.display.128x128.usb_product_postfix=128128
+arduboy-homemade.menu.display.128x128.bootloader_display=-ssd132x-128x128
+arduboy-homemade.menu.display.128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X128 {build.usb_flags}
+
+################################################################################
+# Arduboy board
+################################################################################
+
+arduboy.name=Arduboy
+
+#Arduino Leonardo
+arduboy.vid.0=0x2341
+arduboy.pid.0=0x0036
+arduboy.vid.1=0x2341
+arduboy.pid.1=0x8036
+arduboy.vid.2=0x2A03
+arduboy.pid.2=0x0036
+arduboy.vid.3=0x2A03
+arduboy.pid.3=0x8036
+#Arduino Micro
+arduboy.vid.4=0x2341
+arduboy.pid.4=0x0037
+arduboy.vid.5=0x2341
+arduboy.pid.5=0x8037
+arduboy.vid.6=0x2A03
+arduboy.pid.6=0x0037
+arduboy.vid.7=0x2A03
+arduboy.pid.7=0x8037
+#Genuino Micro
+arduboy.vid.8=0x2341
+arduboy.pid.8=0x8237
+#Sparkfun Pro Micro 5V
+arduboy.vid.8=0x1b4f
+arduboy.pid.8=0x9205
+arduboy.vid.9=0x1b4f
+arduboy.pid.9=0x9206
+
+arduboy.upload.tool=arduino:avrdude
+arduboy.upload.protocol=avr109
+arduboy.upload.maximum_size=28672
+arduboy.upload.maximum_data_size=2560
+arduboy.upload.speed=57600
+arduboy.upload.disable_flushing=true
+arduboy.upload.use_1200bps_touch=true
+arduboy.upload.wait_for_upload_port=true
+
+arduboy.bootloader.tool=arduino:avrdude
+arduboy.bootloader.low_fuses=0xff
+arduboy.bootloader.high_fuses=0xd0
+arduboy.bootloader.extended_fuses=0xcb
+arduboy.bootloader.file=caterina/Caterina-Leonardo.hex
+arduboy.bootloader.unlock_bits=0xFF
+arduboy.bootloader.lock_bits=0xEF
+
+arduboy.build.mcu=atmega32u4
+arduboy.build.f_cpu=16000000L
+arduboy.build.variant=arduboy
+arduboy.build.board=AVR_ARDUBOY
+arduboy.build.vid=0x2341
+arduboy.build.pid=0x8036
+arduboy.build.variant=arduboy
+arduboy.build.usb_product="Arduboy"
+arduboy.build.board=AVR_ARDUBOY
+arduboy.build.extra_flags=-DARDUBOY_10 {build.usb_flags}
+
+# Arduboy menu options #########################################################
+
+arduboy.menu.core.arduboy-core=Arduboy optimized core
+arduboy.menu.core.arduboy-core.build.core=arduboy
+
+arduboy.menu.core.arduino-core=Standard Arduino core
+arduboy.menu.core.arduino-core.build.core=arduino:arduino
+
+arduboy.menu.boot.org=original (Caterina)
+arduboy.menu.boot.org.upload.maximum_size=28672
+arduboy.menu.boot.org.bootloader.high_fuses=0xd0
+arduboy.menu.boot.org.bootloader.file=caterina/Caterina-Leonardo.hex
+                 
+arduboy.menu.boot.cathy3k=Cathy3K
+arduboy.menu.boot.cathy3k.upload.maximum_size=29696
+arduboy.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+arduboy.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader.hex
+
+arduboy.menu.boot.cathy2k=Cathy2K
+arduboy.menu.boot.cathy2k.upload.maximum_size=30720
+arduboy.menu.boot.cathy2k.bootloader.high_fuses=0xd2
+arduboy.menu.boot.cathy2k.bootloader.file=cathy2k/arduboy2k-bootloader.hex
+
+################################################################################
+# Arduboy DevKit board
+################################################################################
+
+arduboy-devkit.name=Arduboy DevKit
+
+#Arduino Leonardo
+arduboy-devkit.vid.0=0x2341
+arduboy-devkit.pid.0=0x0036
+arduboy-devkit.vid.1=0x2341
+arduboy-devkit.pid.1=0x8036
+arduboy-devkit.vid.2=0x2A03
+arduboy-devkit.pid.2=0x0036
+arduboy-devkit.vid.3=0x2A03
+arduboy-devkit.pid.3=0x8036
+#Arduino Micro
+arduboy-devkit.vid.4=0x2341
+arduboy-devkit.pid.4=0x0037
+arduboy-devkit.vid.5=0x2341
+arduboy-devkit.pid.5=0x8037
+arduboy-devkit.vid.6=0x2A03
+arduboy-devkit.pid.6=0x0037
+arduboy-devkit.vid.7=0x2A03
+arduboy-devkit.pid.7=0x8037
+#Genuino Micro
+arduboy-devkit.vid.8=0x2341
+arduboy-devkit.pid.8=0x8237
+#Sparkfun Pro Micro 5V
+arduboy-devkit.vid.7=0x1b4f
+arduboy-devkit.pid.7=0x9205
+arduboy-devkit.vid.8=0x1b4f
+arduboy-devkit.pid.8=0x9206
+
+arduboy-devkit.upload.tool=arduino:avrdude
+arduboy-devkit.upload.protocol=avr109
+arduboy-devkit.upload.maximum_size=28672
+arduboy-devkit.upload.maximum_data_size=2560
+arduboy-devkit.upload.speed=57600
+arduboy-devkit.upload.disable_flushing=true
+arduboy-devkit.upload.use_1200bps_touch=true
+arduboy-devkit.upload.wait_for_upload_port=true
+
+arduboy-devkit.bootloader.tool=arduino:avrdude
+arduboy-devkit.bootloader.low_fuses=0xff
+arduboy-devkit.bootloader.high_fuses=0xd0
+arduboy-devkit.bootloader.extended_fuses=0xcb
+arduboy-devkit.bootloader.file=caterina/Caterina-Leonardo.hex
+arduboy-devkit.bootloader.unlock_bits=0xFF
+arduboy-devkit.bootloader.lock_bits=0xEF
+
+arduboy-devkit.build.mcu=atmega32u4
+arduboy-devkit.build.f_cpu=16000000L
+arduboy-devkit.build.variant=arduboy
+arduboy-devkit.build.board=AVR_ARDUBOY
+arduboy-devkit.build.vid=0x2341
+arduboy-devkit.build.pid=0x8036
+arduboy-devkit.build.variant=arduboy-devkit
+arduboy-devkit.build.usb_product="ABDevKit"
+arduboy-devkit.build.board=AVR_ARDUBOY_DEVKIT
+arduboy-devkit.build.extra_flags=-DAB_DEVKIT {build.usb_flags}
+
+# DevKit menu options ##########################################################
+
+arduboy-devkit.menu.core.arduboy=Arduboy optimized core
+arduboy-devkit.menu.core.arduboy.build.core=arduboy
+
+arduboy-devkit.menu.core.arduino=Standard Arduino core
+arduboy-devkit.menu.core.arduino.build.core=arduino:arduino
+
+arduboy-devkit.menu.boot.org=original (Caterina)
+arduboy-devkit.menu.boot.org.upload.maximum_size=28672
+arduboy-devkit.menu.boot.org.bootloader.high_fuses=0xd0
+arduboy-devkit.menu.boot.org.bootloader.file=caterina/Caterina-Leonardo.hex
+                 
+arduboy-devkit.menu.boot.cathy3k=Cathy3K
+arduboy-devkit.menu.boot.cathy3k.upload.maximum_size=29696
+arduboy-devkit.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+arduboy-devkit.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-devkit.hex
+
+arduboy-devkit.menu.boot.cathy2k=Cathy2K
+arduboy-devkit.menu.boot.cathy2k.upload.maximum_size=30720
+arduboy-devkit.menu.boot.cathy2k.bootloader.high_fuses=0xd2
+arduboy-devkit.menu.boot.cathy2k.bootloader.file=cathy2k/arduboy2k-bootloader-devkit.hex
+
+################################################################################
