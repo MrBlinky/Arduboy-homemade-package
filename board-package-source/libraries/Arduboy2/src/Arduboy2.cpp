@@ -170,7 +170,11 @@ void Arduboy2Base::bootLogoShell(void (*drawLogo)(int16_t))
   }
 
   if (showLEDs) {
+   #if defined(LCD_ST7565)
+    digitalWriteRGB(RGB_ON, RGB_OFF, RGB_OFF);
+   #else
     digitalWriteRGB(RED_LED, RGB_ON);
+   #endif
   }
 
   for (int16_t y = -16; y <= 24; y++) {
@@ -180,8 +184,12 @@ void Arduboy2Base::bootLogoShell(void (*drawLogo)(int16_t))
     }
 
     if (showLEDs && y == 4) {
+     #if defined(LCD_ST7565)
+      digitalWriteRGB(RGB_OFF, RGB_ON, RGB_OFF);
+     #else
       digitalWriteRGB(RED_LED, RGB_OFF);    // red LED off
       digitalWriteRGB(GREEN_LED, RGB_ON);   // green LED on
+     #endif
     }
 
     // Using display(CLEAR_BUFFER) instead of clear() may save code space.
@@ -193,12 +201,19 @@ void Arduboy2Base::bootLogoShell(void (*drawLogo)(int16_t))
   }
 
   if (showLEDs) {
+   #if defined(LCD_ST7565)
+    digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_ON);
+   #else
     digitalWriteRGB(GREEN_LED, RGB_OFF);  // green LED off
     digitalWriteRGB(BLUE_LED, RGB_ON);    // blue LED on
+   #endif
   }
   delayShort(400);
+ #if defined(LCD_ST7565)
+  digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_OFF);
+ #else
   digitalWriteRGB(BLUE_LED, RGB_OFF);
-
+ #endif
   bootLogoExtra();
 }
 
@@ -1203,7 +1218,11 @@ void Arduboy2::bootLogoText()
   }
 
   if (showLEDs) {
+   #if defined(LCD_ST7565)
+    digitalWriteRGB(RGB_ON, RGB_OFF, RGB_OFF);
+   #else
     digitalWriteRGB(RED_LED, RGB_ON);
+   #endif
   }
 
   for (int8_t y = -16; y <= 24; y++) {
@@ -1213,8 +1232,12 @@ void Arduboy2::bootLogoText()
     }
 
     if (showLEDs && y == 4) {
+     #if defined(LCD_ST7565)
+      digitalWriteRGB(RGB_OFF, RGB_ON, RGB_OFF);
+     #else
       digitalWriteRGB(RED_LED, RGB_OFF);    // red LED off
       digitalWriteRGB(GREEN_LED, RGB_ON);   // green LED on
+     #endif
     }
 
     // Using display(CLEAR_BUFFER) instead of clear() may save code space.
@@ -1230,11 +1253,19 @@ void Arduboy2::bootLogoText()
   }
 
   if (showLEDs) {
+   #if defined(LCD_ST7565)
+    digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_ON);
+   #else
     digitalWriteRGB(GREEN_LED, RGB_OFF);  // green LED off
     digitalWriteRGB(BLUE_LED, RGB_ON);    // blue LED on
+   #endif
   }
   delayShort(400);
+ #if defined(LCD_ST7565)
+  digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_OFF);
+ #else
   digitalWriteRGB(BLUE_LED, RGB_OFF);
+ #endif
 
   bootLogoExtra();
 }

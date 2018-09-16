@@ -20,6 +20,13 @@ const uint8_t PROGMEM lcdBootProgram[] = {
   0xD9, 0xF1,                   // Set Precharge = 0xF1
   OLED_SET_COLUMN_ADDRESS_LO,   //Set column address for left most pixel 
   0xAF                          // Display On
+#elif defined(LCD_ST7565)
+  0xC8,                         //SET_COM_REVERSE
+  0x28 | 0x7,                   //SET_POWER_CONTROL  | 0x7
+  0x20 | 0x5,                   //SET_RESISTOR_RATIO | 0x5
+  0x81,                         //SET_VOLUME_FIRST
+  0x13,                         //SET_VOLUME_SECOND
+  0xAF                          //DISPLAY_ON
 #elif defined(OLED_96X96) || defined(OLED_128X96) || defined(OLED_128X128) || defined(OLED_128X64_ON_96X96) || defined(OLED_128X64_ON_128X96) || defined(OLED_128X64_ON_128X128)|| defined(OLED_128X96_ON_128X128) || defined(OLED_96X96_ON_128X128) || defined(OLED_64X128_ON_128X128)
  #if defined(OLED_96X96) || defined(OLED_128X64_ON_96X96)
   0x15, 0x10, 0x3f, //left most 32 pixels are invisible
@@ -208,12 +215,18 @@ void Arduboy2Core::bootPins()
          #ifdef AB_ALTERNATE_WIRING
           | _BV(SPEAKER_2_BIT)
          #endif
+         #ifdef LCD_ST7565
+          | _BV(POWER_LED_BIT) 
+         #endif
           );
   
   // Port D outputs
   DDRD = _BV(RST_BIT) | _BV(CS_BIT) | _BV(DC_BIT) | 
         #ifdef AB_ALTERNATE_WIRING
          _BV(GREEN_LED_BIT) |
+        #endif
+        #ifdef LCD_ST7565
+        _BV(POWER_LED_BIT) |
         #endif
          _BV(CART_BIT) | _BV(TX_LED_BIT);
   // Port D inputs (none)
@@ -424,7 +437,7 @@ void Arduboy2Core::paint8Pixels(uint8_t pixels)
 
 void Arduboy2Core::paintScreen(const uint8_t *image)
 {
-#ifdef OLED_SH1106 
+#if defined(OLED_SH1106) || defined(LCD_ST7565)
   for (uint8_t i = 0; i < HEIGHT / 8; i++)
   {
     LCDCommandMode();
@@ -500,7 +513,7 @@ void Arduboy2Core::paintScreen(const uint8_t *image)
 // will be used by any buffer based subclass
 void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 {
-#ifdef OLED_SH1106 
+#if defined(OLED_SH1106) || defined(LCD_ST7565)
   //Assembly optimized page mode display code with clear support.
   //Each byte transfer takes 18 cycles
   asm volatile (
@@ -718,7 +731,15 @@ void Arduboy2Core::flipHorizontal(bool flipped)
 /* RGB LED */
 
 void Arduboy2Core::setRGBled(uint8_t red, uint8_t green, uint8_t blue)
-{ 
+{
+#ifdef LCD_ST7565
+  if ((red | green | blue) == 0) //prevent backlight off 
+  {
+    red   = 255;
+    green = 255;
+    blue  = 255;
+  }
+#endif
 #ifdef ARDUBOY_10 // RGB, all the pretty colors
   uint8_t pwmstate = TCCR0A;
  #ifndef AB_ALTERNATE_WIRING
@@ -727,14 +748,26 @@ void Arduboy2Core::setRGBled(uint8_t red, uint8_t green, uint8_t blue)
   pwmstate &= ~_BV(COM0B1);
  #endif
   if (green == 0)
-    bitSet(GREEN_LED_PORT, GREEN_LED_BIT); 
-  else if (green == 255)
+   #if defined(LCD_ST7565)
     bitClear(GREEN_LED_PORT, GREEN_LED_BIT); 
+   #else
+    bitSet(GREEN_LED_PORT, GREEN_LED_BIT); 
+   #endif
+  else if (green == 255)
+   #if defined(LCD_ST7565)
+    bitSet(GREEN_LED_PORT, GREEN_LED_BIT); 
+   #else
+    bitClear(GREEN_LED_PORT, GREEN_LED_BIT);
+   #endif
   else 
   {
    #ifndef AB_ALTERNATE_WIRING
     pwmstate |= _BV(COM0A1); //configure pin as pwm pin
+    #if defined(LCD_ST7565)
+    OCR0A = green;           //set pwm duty
+    #else
     OCR0A = 255 - green;     //set pwm duty
+    #endif
    #else
 	pwmstate |= _BV(COM0B1);
 	OCR0B = 255 - green;            
@@ -742,21 +775,57 @@ void Arduboy2Core::setRGBled(uint8_t red, uint8_t green, uint8_t blue)
   }
   TCCR0A = pwmstate;
   pwmstate = TCCR1A & ~(_BV(COM1B1) | _BV(COM1A1)); //default to digital pins for min and max values
-  if (red == 0) bitSet(RED_LED_PORT, RED_LED_BIT);
-  else if (red == 255) bitClear(RED_LED_PORT, RED_LED_BIT);
+  if (red == 0)
+  {
+   #if defined(LCD_ST7565)
+    bitClear(RED_LED_PORT, RED_LED_BIT);
+   #else
+    bitSet(RED_LED_PORT, RED_LED_BIT);
+   #endif
+  }
+  else if (red == 255)
+  {
+   #if defined(LCD_ST7565)
+    bitSet(RED_LED_PORT, RED_LED_BIT);
+   #else
+    bitClear(RED_LED_PORT, RED_LED_BIT);
+   #endif
+  }
   else
   {
     pwmstate |= _BV(COM1B1); //configure pin as pwm pin
     OCR1BH = 0;
+   #if defined(LCD_ST7565)
+    OCR1BL = red;            //set pwm duty
+   #else
     OCR1BL = 255 - red;      //set pwm duty
+   #endif
   } 
-  if (blue == 0) bitSet(BLUE_LED_PORT, BLUE_LED_BIT);
-  else if (blue == 255) bitClear(BLUE_LED_PORT, BLUE_LED_BIT);
+  if (blue == 0) 
+  {
+   #if defined(LCD_ST7565)
+    bitClear(BLUE_LED_PORT, BLUE_LED_BIT);
+   #else
+    bitSet(BLUE_LED_PORT, BLUE_LED_BIT);
+   #endif
+  }
+  else if (blue == 255) 
+  {
+   #if defined(LCD_ST7565)
+    bitSet(BLUE_LED_PORT, BLUE_LED_BIT);
+   #else
+    bitClear(BLUE_LED_PORT, BLUE_LED_BIT);
+   #endif
+  }
   else
   {
     pwmstate |= _BV(COM1A1); //configure pin as pwm pin
     OCR1AH = 0;
+   #if defined(LCD_ST7565)
+    OCR1AL = blue;           //set pwm duty
+   #else
     OCR1AL = 255 - blue;     //set pwm duty
+   #endif
   } 
   TCCR1A = pwmstate;
 #elif defined(AB_DEVKIT)
@@ -772,19 +841,31 @@ void Arduboy2Core::setRGBled(uint8_t color, uint8_t val)
 #ifdef ARDUBOY_10
   if (color == RED_LED)
   {
+   #ifdef LCD_ST7565
+    OCR1BL = 255 - val;
+   #else
     OCR1BL = val;
+   #endif
   }
   else if (color == GREEN_LED)
   {
    #ifndef AB_ALTERNATE_WIRING
     OCR0A = 255 - val;
    #else
+    #ifdef LCD_ST7565
+	OCR0B = val;            
+    #else
 	OCR0B = 255 - val;            
+    #endif
    #endif
   }
   else if (color == BLUE_LED)
   {
+   #ifdef LCD_ST7565
+    OCR1AL = 255 - val;
+   #else
     OCR1AL = val;
+   #endif
   }
 #elif defined(AB_DEVKIT)
   // only blue on DevKit, which is not PWM capable
@@ -806,15 +887,27 @@ void Arduboy2Core::freeRGBled()
 
 void Arduboy2Core::digitalWriteRGB(uint8_t red, uint8_t green, uint8_t blue)
 {
-#ifdef ARDUBOY_10
+#ifdef LCD_ST7565
+  if ((red & green & blue) == RGB_OFF) //prevent backlight off 
+  {
+    red   = RGB_ON;
+    green = RGB_ON;
+    blue  = RGB_ON;
+  }
+  bitWrite(RED_LED_PORT, RED_LED_BIT, !red);
+  bitWrite(GREEN_LED_PORT, GREEN_LED_BIT, !green);
+  bitWrite(BLUE_LED_PORT, BLUE_LED_BIT, !blue);
+#else
+ #ifdef ARDUBOY_10
   bitWrite(RED_LED_PORT, RED_LED_BIT, red);
   bitWrite(GREEN_LED_PORT, GREEN_LED_BIT, green);
   bitWrite(BLUE_LED_PORT, BLUE_LED_BIT, blue);
-#elif defined(AB_DEVKIT)
+ #elif defined(AB_DEVKIT)
   // only blue on DevKit
   (void)red;    // parameter unused
   (void)green;  // parameter unused
   bitWrite(BLUE_LED_PORT, BLUE_LED_BIT, blue);
+ #endif
 #endif
 }
 

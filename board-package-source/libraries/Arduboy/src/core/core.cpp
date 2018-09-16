@@ -37,6 +37,13 @@ const uint8_t PROGMEM lcdBootProgram[] = {
   0xD9, 0xF1,                   // Set Precharge = 0xF1
   OLED_SET_COLUMN_ADDRESS_LO,   //Set column address for left most pixel 
   0xAF                          // Display On
+#elif defined(LCD_ST7565)
+  0xC8,                         //SET_COM_REVERSE
+  0x28 | 0x7,                   //SET_POWER_CONTROL  | 0x7
+  0x20 | 0x5,                   //SET_RESISTOR_RATIO | 0x5
+  0x81,                         //SET_VOLUME_FIRST
+  0x13,                         //SET_VOLUME_SECOND
+  0xAF                          //DISPLAY_ON
 #elif defined(OLED_96X96) || defined(OLED_128X96) || defined(OLED_128X128) || defined(OLED_128X64_ON_96X96) || defined(OLED_128X64_ON_128X96) || defined(OLED_128X64_ON_128X128)|| defined(OLED_128X96_ON_128X128) || defined(OLED_96X96_ON_128X128) || defined(OLED_64X128_ON_128X128)
  #if defined(OLED_96X96) || defined(OLED_128X64_ON_96X96)
   0x15, 0x10, 0x3f, //left most 32 pixels are invisible
@@ -281,7 +288,7 @@ void ArduboyCore::paint8Pixels(uint8_t pixels)
 
 void ArduboyCore::paintScreen(const unsigned char *image)
 { 
-#if defined OLED_SH1106	
+#if defined(OLED_SH1106) || defined(LCD_ST7565)
   for (uint8_t i = 0; i < HEIGHT / 8; i++)
   {
   	LCDCommandMode();
@@ -356,7 +363,7 @@ void ArduboyCore::paintScreen(const unsigned char *image)
 // will be used by any buffer based subclass
 void ArduboyCore::paintScreen(unsigned char image[])
 {
-#if defined OLED_SH1106
+#if defined(OLED_SH1106) || defined(LCD_ST7565)
   for (uint8_t i = 0; i < HEIGHT / 8; i++)
   {
   	LCDCommandMode();
@@ -542,10 +549,22 @@ void ArduboyCore::flipHorizontal(boolean flipped)
 void ArduboyCore::setRGBled(uint8_t red, uint8_t green, uint8_t blue)
 {
 #ifdef ARDUBOY_10 // RGB, all the pretty colors
+ #if defined(LCD_ST7565)
+  if ((red | green | blue) == 0) //prevent backlight off 
+  {
+    red   = 255;
+    green = 255;
+    blue  = 255;
+  }
+  analogWrite(RED_LED, red);
+  analogWrite(GREEN_LED, green);
+  analogWrite(BLUE_LED, blue);
+ #else
   // inversion is necessary because these are common annode LEDs
   analogWrite(RED_LED, 255 - red);
   analogWrite(GREEN_LED, 255 - green);
   analogWrite(BLUE_LED, 255 - blue);
+ #endif
 #elif defined(AB_DEVKIT)
   // only blue on devkit
   digitalWrite(BLUE_LED, ~blue);

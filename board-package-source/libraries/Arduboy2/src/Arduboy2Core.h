@@ -100,6 +100,11 @@ extern volatile unsigned char bootloader_timer;
 #define RX_LED_PORT PORTB
 #define RX_LED_BIT PORTB0
 
+#ifdef LCD_ST7565
+  #define POWER_LED_PORT PORTD
+  #define POWER_LED_BIT PORTD0
+#endif
+
 // bit values for button states
 // these are determined by the buttonsState() function
 #define LEFT_BUTTON _BV(5)  /**< The Left button value for functions requiring a bitmask */
