@@ -206,6 +206,12 @@ arduboy-homemade.menu.display.128x128.usb_product_postfix=128128
 arduboy-homemade.menu.display.128x128.bootloader_display=-ssd132x-128x128
 arduboy-homemade.menu.display.128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X128 {build.usb_flags}
 
+arduboy-homemade.menu.display.st7565=LCD ST7565 (backlit)
+arduboy-homemade.menu.display.st7565.build.display=-st7565
+arduboy-homemade.menu.display.st7565.usb_product_postfix=lcd
+arduboy-homemade.menu.display.st7565.bootloader_display=-st7565
+arduboy-homemade.menu.display.st7565.build.extra_flags=-DARDUBOY_10 -DLCD_ST7565 {build.usb_flags}
+
 ################################################################################
 # Arduboy board
 ################################################################################
