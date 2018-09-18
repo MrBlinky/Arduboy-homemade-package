@@ -43,6 +43,21 @@
 * written by Brett Hagman, http://www.roguerobotics.com/
 *
 *****************************************************************************/
+/* 27 March 2018, L. Shustek
+This was adapted from my Playtune library, but it was missing this fix that
+prevents a "stuttering" playback because of timing errors:
+  15 August 2016, L. Shustek,
+      - Fixed a timing error: T Wasiluk's change to using a 16-bit timer instead
+        of an 8-bit timer for score waits exposed a old bug that was in the original
+        Brett Hagman code: when writing the timer OCR value, we need to clear the
+        timer counter, or else (the manual says) "the counter [might] miss the compare
+        match...and will have to count to its maximum value (0xFFFF) and wrap around
+        starting at 0 before the compare match can occur". This caused an error that
+        was small and not noticeable for the 8-bit timer, but could be hundreds of
+        milliseconds for the 16-bit counter. Thanks go to Joey Babcock for pushing me
+        to figure out why his music sounded weird, and for discovering that it worked
+        ok with the 2013 version that used the 8-bit timer for score waits.
+*/
 
 #include "ArduboyPlaytune.h"
 #include <avr/power.h>
@@ -187,12 +202,14 @@ void ArduboyPlaytune::playNote(byte chan, byte note)
       if (!tone_playing) {
         TCCR1B = (TCCR1B & 0b11111000) | prescalar_bits;
         OCR1A = ocr;
+        TCNT1 = 0;  //LJS
         bitWrite(TIMSK1, OCIE1A, 1);
       }
       break;
     case 3:
       TCCR3B = (TCCR3B & 0b11111000) | prescalar_bits;
       OCR3A = ocr;
+      TCNT3 = 0;  //LJS
       wait_timer_frequency2 = frequency2;  // for "tune_delay" function
       wait_timer_playing = true;
       bitWrite(TIMSK3, OCIE3A, 1);

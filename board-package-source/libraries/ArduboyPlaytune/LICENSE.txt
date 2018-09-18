@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-(C) Copyright 2016-2017, Chris J. Martinez, Kevin Bates, Josh Goebel, Scott Allen
+(C) Copyright 2016-2018, Chris J. Martinez, Kevin Bates, Josh Goebel, Scott Allen
 Based on work (C) Copyright 2011, 2015, Len Shustek
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
