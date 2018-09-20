@@ -109,6 +109,7 @@ static inline const byte *getTrackPointer(byte track) {
 
 
 void ATMsynth::play(const byte *song) {
+  TIMSK4 = 0b00000000;// ensure interrupt is disabled
   cia_count = 1;
   // cleanUp stuff first
   memset(channel, 0, sizeof(channel));
