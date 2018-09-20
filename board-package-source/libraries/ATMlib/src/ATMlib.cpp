@@ -131,8 +131,6 @@ void ATMsynth::play(const byte *song) {
   TCCR4C = 0b01000101;
   OCR4D  = 0x80;
 #endif  
-  TIMSK4 = 0b00000100;
-
 
   // Load a melody stream and start grinding samples
   // Read track count
@@ -145,6 +143,7 @@ void ATMsynth::play(const byte *song) {
   for (unsigned n = 0; n < 4; n++) {
     channel[n].ptr = getTrackPointer(pgm_read_byte(song++));
   }
+  TIMSK4 = 0b00000100;// enable interrupt as last
 }
 
 // Stop playing, unload melody
