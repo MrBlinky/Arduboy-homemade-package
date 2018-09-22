@@ -125,39 +125,23 @@ ISR(TIMER0_OVF_vect, ISR_NAKED)
       "    cpse r24, r1                 \n\t" //if (buttons) button_ticks_last = (uint8_t)(Millis >> 12)
       "    sts  %[apd], r16             \n\t" 
 #ifdef     AB_DEVKIT  
-      "    cpi	r24, 0x33	            \n\t" // test LEFT+UP+A+B for bootloader
-      "    breq 2f                      \n\t" 
-      "    cpi  r24, 0x47               \n\t" // test RIGHT+DOWN+A+B for reset sketch
-      "    brne 5f                      \n\t" 
+      "    cpi	r24, 0x50	            \n\t" // test DevKit UP+DOWN for bootloader
 #else
-      "    cpi	r24, 0xAC	            \n\t" // test LEFT+UP+A+B for bootloader
-      "    breq 2f                      \n\t" 
-      "    cpi  r24, 0x5C               \n\t" // test RIGHT+DOWN+A+B for reset sketch
-      "    brne 5f                      \n\t" 
+      "    cpi	r24, 0x90	            \n\t" // test arduboy UP+DOWN for bootloader
 #endif      
+      "    brne 5f                      \n\t" 
       "2:  lds  r16, %[hold]            \n\t" 
-      "    sub  r25, r16                \n\t" // (uint8_t)(timer0_millis >> 6) - button_ticks_last
+      "    sub  r25, r16                \n\t" // (uint8_t)(timer0_millis >> 8) - button_ticks_last
       "    cpi  r25, 6                  \n\t" 
-      "    brcs 6f                      \n\t" // if ((millis - hold) < 6)
-#ifdef     AB_DEVKIT  
-      "    subi r24, 0x33 - 0x77        \n\t" //get bootloader key or reset key value
-#else      
-      "    subi r24, 0xAC - 0x77        \n\t" //get bootloader key or reset key value
-#endif  
-      "3:  sts	0x800, r24              \n\t" 
+      "    brcs 6f                      \n\t" // if ((millis - hold) >= 6) {
+      "3:  ldi	r24, 0x77               \n\t" 
+      "    sts	0x800, r24              \n\t" 
       "    sts	0x801, r24              \n\t" 
-#ifndef ARDUINO_AVR_MICRO
-      "    cbi	%[led_port], %[led_bit] \n\t" //light up LED to acknowledge bootloader or reset is triggered
-#else      
-      "    sbi	%[led_port], %[led_bit] \n\t" 
-#endif  
-      "4:  rcall scan_buttons           \n\t" //wait for buttons to be released
-      "    brne 4b                      \n\t" 
       "    ldi	r24, %[value1]          \n\t" 
       "    ldi	r25, %[value2]          \n\t" 
       "    sts   %[wdtcsr], r24         \n\t" 
       "    sts   %[wdtcsr], r25         \n\t" 
-      "    rjmp .-2                     \n\t"
+      "    rjmp .-2                     \n\t" // }
       "5:                               \n\t"
       "    sts  %[hold], r25            \n\t" //button_ticks_hold = (uint8_t)(Millis >> 8)
       "6:                               \n\t"
@@ -165,15 +149,12 @@ ISR(TIMER0_OVF_vect, ISR_NAKED)
       "    subi r24, 1                  \n\t" 
       "    brcs 7f                      \n\t"
       "    sts  %[btimer],r24           \n\t"
-      "    ldi  r24, 0x77               \n\t"
       "    breq 3b                      \n\t" // if (bootloader_timer == 0) runBootLoader;
       "7:                               \n\t" //}
       :
       : [hold]      ""  (&button_ticks_hold),
         [apd]       ""  (&button_ticks_last),
         [btimer]    ""  (&bootloader_timer),
-        [led_port]  "M" (_SFR_IO_ADDR(PORTB)), //RX LED
-        [led_bit]   "M" (0),
         [value1]    "M" ((uint8_t)(_BV(WDCE) | _BV(WDE))),
         [value2]    "M" ((uint8_t)(_BV(WDE))),                         
         [wdtcsr]    "M" (_SFR_MEM_ADDR(WDTCSR))
@@ -552,15 +533,11 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR0A, WGM01);
     //sbi(TCCR0A, WGM00);
   asm volatile(
-      "    in   r24, %[tccr0a]          \n\t"          
-      "    ori  r24, %[wgm01]           \n\t"          
-      "    out  %[tccr0a], r24          \n\t"          
-      "    ori  r24, %[wgm00]           \n\t"          
+      "    ldi  r24, %[value]           \n\t"          
       "    out  %[tccr0a], r24          \n\t"          
       :
       : [tccr0a] "I" (_SFR_IO_ADDR(TCCR0A)),
-        [wgm01]  "M" (_BV(WGM01)),
-        [wgm00]  "M" (_BV(WGM00))
+        [value]  "M" (_BV(WGM01) | _BV(WGM00))
       : "r24"
     );
 #endif
@@ -578,15 +555,11 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR0B, CS01);
     //sbi(TCCR0B, CS00);
     asm volatile(
-      "    in   r24, %[tccr0b]          \n\t"          
-      "    ori  r24, %[cs01]            \n\t"          
-      "    out  %[tccr0b], r24          \n\t"          
-      "    ori  r24, %[cs00]            \n\t"          
+      "    ldi  r24, %[value]           \n\t"          
       "    out  %[tccr0b], r24          \n\t"          
       :
       : [tccr0b] "I" (_SFR_IO_ADDR(TCCR0B)),
-        [cs01]   "M" (_BV(CS01)),
-        [cs00]   "M" (_BV(CS00))
+        [value]   "M" (_BV(CS01) | _BV(CS00))
       : "r24"
     );
 #elif defined(TCCR0A) && defined(CS01) && defined(CS00)
@@ -616,28 +589,24 @@ void init() //assembly optimized by 68 bytes
 
     // set timer 1 prescale factor to 64
     //sbi(TCCR1B, CS11);
+//#if F_CPU >= 8000000L
+    //sbi(TCCR1B, CS10);
+//#endif    
     asm volatile(
       "    ldi  r30, %[tccr1b]          \n\t"          
       "    ldi  r31, 0x00               \n\t"          
-      "    st   z, r1                   \n\t"          
-      "    ldi  r24, %[cs11]            \n\t"          
+      "    ldi  r24, %[value]           \n\t"          
       "    st   z, r24                  \n\t"          
       :
       : [tccr1b] "M" (_SFR_MEM_ADDR(TCCR1B)),
-        [cs11]   "M" (_BV(CS11))
-      : "r24", "r30", "r31"
-    );
-    
 #if F_CPU >= 8000000L
-    //sbi(TCCR1B, CS10);
-    asm volatile(
-      "    ori  r24, %[cs10]            \n\t"          
-      "    st   z, r24                  \n\t"          
-      :
-      : [cs10] "M" (_BV(CS10))
+        [value]  "M" (_BV(CS11) | _BV(CS10))
+#else        
+        [value]  "M" (_BV(CS11))
+#endif    
       : "r24", "r30", "r31"
     );
-#endif
+   
 #elif defined(TCCR1) && defined(CS11) && defined(CS10)
     sbi(TCCR1, CS11);
 #if F_CPU >= 8000000L
@@ -649,8 +618,7 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR1A, WGM10);
     asm volatile(
       "    ldi  r30, %[tccr1a]          \n\t"          
-      "    ld   r24, z                  \n\t"          
-      "    ori  r24, %[wgm10]           \n\t"          
+      "    ldi  r24, %[wgm10]           \n\t"          
       "    st   z, r24                  \n\t"          
       :
       : [tccr1a] "M" (_SFR_MEM_ADDR(TCCR1A)),
@@ -682,22 +650,17 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR3B, CS30);
     asm volatile(
       "    ldi  r30, %[tccr3b]          \n\t"          
-      "    ld   r24, z                  \n\t"          
-      "    ori  r24, %[cs31]            \n\t"          
-      "    st   z, r24                  \n\t"          
-      "    ori  r24, %[cs30]            \n\t"          
+      "    ldi  r24, %[value]           \n\t"          
       "    st   z, r24                  \n\t"          
       :
       : [tccr3b] "M" (_SFR_MEM_ADDR(TCCR3B)),
-        [cs31]   "M" (_BV(CS31)),
-        [cs30]   "M" (_BV(CS30))
+        [value]  "M" (_BV(CS31) | _BV(CS30))
       : "r24", "r30", "r31"
     );
     //sbi(TCCR3A, WGM30);     // put timer 3 in 8-bit phase correct pwm mode
     asm volatile(
       "    ldi  r30, %[tccr3a]          \n\t"          
-      "    ld   r24, z                  \n\t"          
-      "    ori  r24, %[wgm30]            \n\t"          
+      "    ldi  r24, %[wgm30]            \n\t"          
       "    st   z, r24                  \n\t"          
       :
       : [tccr3a] "M" (_SFR_MEM_ADDR(TCCR3A)),
@@ -712,25 +675,17 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR4B, CS40);
     asm volatile(
       "    ldi  r30, %[tccr4b]          \n\t"          
-      "    ld   r24, z                  \n\t"          
-      "    ori  r24, %[cs42]            \n\t"          
-      "    st   z, r24                  \n\t"          
-      "    ori  r24, %[cs41]            \n\t"          
-      "    st   z, r24                  \n\t"          
-      "    ori  r24, %[cs40]            \n\t"          
+      "    ldi  r24, %[value]           \n\t"          
       "    st   z, r24                  \n\t"          
       :
       : [tccr4b] "M" (_SFR_MEM_ADDR(TCCR4B)),
-        [cs42]   "M" (_BV(CS42)),
-        [cs41]   "M" (_BV(CS41)),
-        [cs40]   "M" (_BV(CS40))
+        [value]  "M" (_BV(CS42) | _BV(CS41) | _BV(CS40))
       : "r24", "r30", "r31"
     );
     //sbi(TCCR4D, WGM40);     // put timer 4 in phase- and frequency-correct PWM mode 
     asm volatile(
       "    ldi  r30, %[tccr4d]          \n\t"          
-      "    ld   r24, z                  \n\t"          
-      "    ori  r24, %[wgm40]           \n\t"          
+      "    ldi  r24, %[wgm40]           \n\t"          
       "    st   z, r24                  \n\t"          
       :
       : [tccr4d] "M" (_SFR_MEM_ADDR(TCCR4D)),
@@ -740,8 +695,7 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR4A, PWM4A);     // enable PWM mode for comparator OCR4A
     asm volatile(
       "    ldi  r30, %[tccr4a]          \n\t"          
-      "    ld   r24, z                  \n\t"          
-      "    ori  r24, %[pwm4a]           \n\t"          
+      "    ldi  r24, %[pwm4a]           \n\t"          
       "    st   z, r24                  \n\t"          
       :
       : [tccr4a] "M" (_SFR_MEM_ADDR(TCCR4A)),
@@ -751,12 +705,11 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR4C, PWM4D);     // enable PWM mode for comparator OCR4D
     asm volatile(
       "    ldi  r30, %[tccr4c]          \n\t"          
-      "    ld   r24, z                  \n\t"          
-      "    ori  r24, %[pwm4d]           \n\t"          
+      "    ldi  r24, %[value]           \n\t"          
       "    st   z, r24                  \n\t"          
       :
       : [tccr4c] "M" (_SFR_MEM_ADDR(TCCR4C)),
-        [pwm4d]  "M" (_BV(PWM4D))
+        [value]  "M" (_BV(PWM4D))
       : "r24", "r30", "r31"
     );
 #else /* beginning of timer4 block for ATMEGA1280 and ATMEGA2560 */
@@ -781,19 +734,12 @@ void init() //assembly optimized by 68 bytes
         //sbi(ADCSRA, ADPS0);
         asm volatile(
           "    ldi  r30, %[adcsra]          \n\t"          
-          "    ld   r24, z                  \n\t"          
-          "    ori  r24, %[adps2]           \n\t"          
-          "    st   z, r24                  \n\t"          
-          "    ori  r24, %[adps1]           \n\t"          
-          "    st   z, r24                  \n\t"          
-          "    ori  r24, %[adps0]           \n\t"          
+          "    ldi  r24, %[value]           \n\t"          
           "    st   z, r24                  \n\t"          
           :
           : [adcsra] "M" (_SFR_MEM_ADDR(ADCSRA)),
-            [adps2]  "M" (_BV(ADPS2)),
-            [adps1]  "M" (_BV(ADPS1)),
-            [adps0]  "M" (_BV(ADPS0))
-          : "r24", "r30", "r31"
+            [value]  "M" (_BV(ADPS2) |_BV(ADPS1) | _BV(ADPS0))
+          : "r24"
         );
     #elif F_CPU >= 8000000 // 8 MHz / 64 = 125 KHz
         //sbi(ADCSRA, ADPS2);
@@ -801,18 +747,11 @@ void init() //assembly optimized by 68 bytes
         //cbi(ADCSRA, ADPS0);
         asm volatile(
           "    ldi  r30, %[adcsra]          \n\t"          
-          "    ld   r24, z                  \n\t"          
-          "    ori  r24, %[adps2]           \n\t"          
-          "    st   z, r24                  \n\t"          
-          "    ori  r24, %[adps1]           \n\t"          
-          "    st   z, r24                  \n\t"          
-          "    andi r24, %[adps0]           \n\t"          
+          "    ldi  r24, %[value]           \n\t"          
           "    st   z, r24                  \n\t"          
           :
           : [adcsra] "M" (_SFR_MEM_ADDR(ADCSRA)),
-            [adps2]  "M" (_BV(ADPS2)),
-            [adps1]  "M" (_BV(ADPS1)),
-            [adps0]  "M" (~_BV(ADPS0))
+            [value]  "M" (_BV(ADPS2) | _BV(ADPS1))
           : "r24", "r30", "r31"
         );
     #elif F_CPU >= 4000000 // 4 MHz / 32 = 125 KHz
