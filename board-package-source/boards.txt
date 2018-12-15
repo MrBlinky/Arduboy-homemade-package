@@ -5,6 +5,7 @@ menu.based_on=Based on
 menu.core=Core
 menu.display=Display
 menu.boot=Bootloader
+menu.flashselect=Flash select
 
 ################################################################################
 # Arduboy homemade board
@@ -69,7 +70,7 @@ arduboy-homemade.menu.based_on.leonardo.build.pid=0x8036
 arduboy-homemade.menu.based_on.leonardo.build.variant=arduboy-leonardo
 arduboy-homemade.menu.based_on.leonardo.build.usb_product="ABL{usb_product_postfix}"
 arduboy-homemade.menu.based_on.leonardo.org_bootloader_file=caterina/Caterina-Leonardo.hex
-arduboy-homemade.menu.based_on.leonardo.c3k_bootloader_file=cathy3k/arduboy3k-bootloader{bootloader_display}.hex
+arduboy-homemade.menu.based_on.leonardo.c3k_bootloader_file=cathy3k/arduboy3k-bootloader{bootloader_display}{bootloader_flashselect}.hex
 arduboy-homemade.menu.based_on.leonardo.c2k_bootloader_file=cathy2k/arduboy2k-bootloader.hex
 
 # micro #
@@ -80,7 +81,7 @@ arduboy-homemade.menu.based_on.micro.build.pid=0x8037
 arduboy-homemade.menu.based_on.micro.build.variant=arduboy-micro
 arduboy-homemade.menu.based_on.micro.build.usb_product="ABM{usb_product_postfix}"
 arduboy-homemade.menu.based_on.micro.org_bootloader_file=caterina/Caterina-Micro.hex
-arduboy-homemade.menu.based_on.micro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-micro{bootloader_display}.hex
+arduboy-homemade.menu.based_on.micro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-micro{bootloader_display}{bootloader_flashselect}.hex
 arduboy-homemade.menu.based_on.micro.c2k_bootloader_file=cathy2k/arduboy2k-bootloader-micro.hex
 
 # SparkFun Pro Micro 5V #
@@ -94,7 +95,7 @@ arduboy-homemade.menu.based_on.promicro.build.variant=arduboy-promicro
 arduboy-homemade.menu.based_on.promicro.build.usb_product="ABP{usb_product_postfix}"
 arduboy-homemade.menu.based_on.promicro.build.board=AVR_PROMICRO
 arduboy-homemade.menu.based_on.promicro.org_bootloader_file=caterina/Caterina-promicro16.hex
-arduboy-homemade.menu.based_on.promicro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader{bootloader_display}.hex
+arduboy-homemade.menu.based_on.promicro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader{bootloader_display}{bootloader_flashselect}.hex
 arduboy-homemade.menu.based_on.promicro.c2k_bootloader_file=cathy2k/arduboy2k-bootloader.hex
 
 arduboy-homemade.menu.based_on.promicro_alt=SparkFun Pro Micro 5V - Alternate wiring
@@ -107,7 +108,7 @@ arduboy-homemade.menu.based_on.promicro_alt.build.variant=arduboy-promicro-alt
 arduboy-homemade.menu.based_on.promicro_alt.build.usb_product="ABA{usb_product_postfix}"
 arduboy-homemade.menu.based_on.promicro_alt.build.board=AVR_PROMICRO -DAB_ALTERNATE_WIRING
 arduboy-homemade.menu.based_on.promicro_alt.org_bootloader_file=caterina/Caterina-promicro16.hex
-arduboy-homemade.menu.based_on.promicro_alt.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-promicro{bootloader_display}.hex
+arduboy-homemade.menu.based_on.promicro_alt.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-promicro{bootloader_display}{bootloader_flashselect}.hex
 arduboy-homemade.menu.based_on.promicro_alt.c2k_bootloader_file=cathy2k/arduboy-bootloader-promicro.hex
 
 # bootloader #
@@ -138,79 +139,91 @@ arduboy-homemade.menu.display.sh1106=SH1106
 arduboy-homemade.menu.display.sh1106.build.display=-sh1106
 arduboy-homemade.menu.display.sh1106.usb_product_postfix=1106
 arduboy-homemade.menu.display.sh1106.bootloader_display=-sh1106
-arduboy-homemade.menu.display.sh1106.build.extra_flags=-DARDUBOY_10 -DOLED_SH1106 {build.usb_flags}
+arduboy-homemade.menu.display.sh1106.build.extra_flags=-DARDUBOY_10 -DOLED_SH1106 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.ssd1306=SSD1306
 arduboy-homemade.menu.display.ssd1306.build.display=-ssd1306
 arduboy-homemade.menu.display.ssd1306.usb_product_postfix=1306
 arduboy-homemade.menu.display.ssd1306.bootloader_display=
-arduboy-homemade.menu.display.ssd1306.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1306 {build.usb_flags}
+arduboy-homemade.menu.display.ssd1306.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1306 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.ssd1309=SSD1309
 arduboy-homemade.menu.display.ssd1309.build.display=-ssd1309
 arduboy-homemade.menu.display.ssd1309.usb_product_postfix=1309
 arduboy-homemade.menu.display.ssd1309.bootloader_display=
-arduboy-homemade.menu.display.ssd1309.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1309 {build.usb_flags}
+arduboy-homemade.menu.display.ssd1309.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1309 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.64x128on96x96=SSD1327/29 (128x64 on 96x96)
 arduboy-homemade.menu.display.64x128on96x96.build.display=-128x64-on-96x96
 arduboy-homemade.menu.display.64x128on96x96.usb_product_postfix=9696
 arduboy-homemade.menu.display.64x128on96x96.bootloader_display=-ssd132x-96x96
-arduboy-homemade.menu.display.64x128on96x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_96X96 {build.usb_flags}
+arduboy-homemade.menu.display.64x128on96x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_96X96 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.64x128on128x96=SSD1327/29 (128x64 on 128x96)
 arduboy-homemade.menu.display.64x128on128x96.build.display=-128x64-on-128x96
 arduboy-homemade.menu.display.64x128on128x96.usb_product_postfix=12896
 arduboy-homemade.menu.display.64x128on128x96.bootloader_display=-ssd132x-128x96
-arduboy-homemade.menu.display.64x128on128x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_128X96 {build.usb_flags}
+arduboy-homemade.menu.display.64x128on128x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_128X96 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.64x128on128x128=SSD1327/29 (128x64 on 128x128)
 arduboy-homemade.menu.display.64x128on128x128.build.display=-128x64-on-128x128
 arduboy-homemade.menu.display.64x128on128x128.usb_product_postfix=128128
 arduboy-homemade.menu.display.64x128on128x128.bootloader_display=-ssd132x-128x128
-arduboy-homemade.menu.display.64x128on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_128X128 {build.usb_flags}
+arduboy-homemade.menu.display.64x128on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X64_ON_128X128 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.128x64on128x128=SSD1327/29 (64x128 on 128x128)
 arduboy-homemade.menu.display.128x64on128x128.build.display=-64x128-on-128x128
 arduboy-homemade.menu.display.128x64on128x128.usb_product_postfix=64128
 arduboy-homemade.menu.display.128x64on128x128.bootloader_display=-ssd132x-128x128
-arduboy-homemade.menu.display.128x64on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_64X128_ON_128X128 {build.usb_flags}
+arduboy-homemade.menu.display.128x64on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_64X128_ON_128X128 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.96x96=SSD1327/29 (96x96)
 arduboy-homemade.menu.display.96x96.build.display=-96x96
 arduboy-homemade.menu.display.96x96.usb_product_postfix=9696
 arduboy-homemade.menu.display.96x96.bootloader_display=-ssd132x-96x96
-arduboy-homemade.menu.display.96x96.build.extra_flags=-DARDUBOY_10 -DOLED_96X96 {build.usb_flags}
+arduboy-homemade.menu.display.96x96.build.extra_flags=-DARDUBOY_10 -DOLED_96X96 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.96x96on128x128=SSD1327/29 (96x96 on 128x128)
 arduboy-homemade.menu.display.96x96on128x128.build.display=-96x96-on-128x128
 arduboy-homemade.menu.display.96x96on128x128.usb_product_postfix=128128
 arduboy-homemade.menu.display.96x96on128x128.bootloader_display=-ssd132x-128x128
-arduboy-homemade.menu.display.96x96on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_96X96_ON_128X128 {build.usb_flags}
+arduboy-homemade.menu.display.96x96on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_96X96_ON_128X128 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.128x96=SSD1327/29 (128x96)
 arduboy-homemade.menu.display.128x96.build.display=-128x96
 arduboy-homemade.menu.display.128x96.usb_product_postfix=12896
 arduboy-homemade.menu.display.128x96.bootloader_display=-ssd132x-128x96
-arduboy-homemade.menu.display.128x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X96 {build.usb_flags}
+arduboy-homemade.menu.display.128x96.build.extra_flags=-DARDUBOY_10 -DOLED_128X96 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.128x96on128x128=SSD1327/29 (128x96 on 128x128)
 arduboy-homemade.menu.display.128x96on128x128.build.display=-128x96-on-128x128
 arduboy-homemade.menu.display.128x96on128x128.usb_product_postfix=128128
 arduboy-homemade.menu.display.128x96on128x128.bootloader_display=-ssd132x-128x128
-arduboy-homemade.menu.display.128x96on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X96_ON_128X128 {build.usb_flags}
+arduboy-homemade.menu.display.128x96on128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X96_ON_128X128 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.128x128=SSD1327/29 (128x128)
 arduboy-homemade.menu.display.128x128.build.display=-128x128
 arduboy-homemade.menu.display.128x128.usb_product_postfix=128128
 arduboy-homemade.menu.display.128x128.bootloader_display=-ssd132x-128x128
-arduboy-homemade.menu.display.128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X128 {build.usb_flags}
+arduboy-homemade.menu.display.128x128.build.extra_flags=-DARDUBOY_10 -DOLED_128X128 {build.flash_cs} {build.usb_flags}
 
 arduboy-homemade.menu.display.st7565=LCD ST7565 (backlit)
 arduboy-homemade.menu.display.st7565.build.display=-st7565
 arduboy-homemade.menu.display.st7565.usb_product_postfix=lcd
 arduboy-homemade.menu.display.st7565.bootloader_display=-st7565
-arduboy-homemade.menu.display.st7565.build.extra_flags=-DARDUBOY_10 -DLCD_ST7565 {build.usb_flags}
+arduboy-homemade.menu.display.st7565.build.extra_flags=-DARDUBOY_10 -DLCD_ST7565 {build.flash_cs} {build.usb_flags}
+
+# External flash chip select pin #
+
+arduboy-homemade.menu.flashselect.sda=Pin2/D1 (new design)
+arduboy-homemade.menu.flashselect.sda.build.flash_cs=-DCART_CS_SDA
+arduboy-homemade.menu.flashselect.sda.build.flashselect=-sda
+arduboy-homemade.menu.flashselect.sda.bootloader_flashselect=-sda
+
+arduboy-homemade.menu.flashselect.rx=Pin0/D2 (old design)
+arduboy-homemade.menu.flashselect.rx.build.flash_cs=-DCART_CS_RX
+arduboy-homemade.menu.flashselect.rx.build.flashselect=
+arduboy-homemade.menu.flashselect.rx.bootloader_flashselect=
 
 ################################################################################
 # Arduboy board
@@ -271,7 +284,7 @@ arduboy.build.pid=0x8036
 arduboy.build.variant=arduboy
 arduboy.build.usb_product="Arduboy"
 arduboy.build.board=AVR_ARDUBOY
-arduboy.build.extra_flags=-DARDUBOY_10 {build.usb_flags}
+arduboy.build.extra_flags=-DARDUBOY_10 {build.flash_cs} {build.usb_flags}
 
 # Arduboy menu options #########################################################
 

@@ -38,6 +38,7 @@ compiler.size.cmd=avr-size
 # This can be overridden in boards.txt
 build.extra_flags=
 build.display=
+build.flashselect=
 
 # These can be overridden in platform.local.txt
 compiler.c.extra_flags=
@@ -74,7 +75,7 @@ recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf
 
 ## Save hex
 recipe.output.tmp_file={build.project_name}.hex
-recipe.output.save_file={build.project_name}-{build.variant}{build.display}.hex
+recipe.output.save_file={build.project_name}-{build.variant}{build.display}{build.flashselect}.hex
 
 ## Compute size
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
