@@ -215,15 +215,16 @@ arduboy-homemade.menu.display.st7565.build.extra_flags=-DARDUBOY_10 -DLCD_ST7565
 
 # External flash chip select pin #
 
-arduboy-homemade.menu.flashselect.sda=Pin2/D1 (new design)
+arduboy-homemade.menu.flashselect.rx=Pin0/D2/Rx (recommended)
+arduboy-homemade.menu.flashselect.rx.build.flash_cs=-DCART_CS_RX
+arduboy-homemade.menu.flashselect.rx.build.flashselect=
+arduboy-homemade.menu.flashselect.rx.bootloader_flashselect=
+
+arduboy-homemade.menu.flashselect.sda=Pin2/D1/SDA
 arduboy-homemade.menu.flashselect.sda.build.flash_cs=-DCART_CS_SDA
 arduboy-homemade.menu.flashselect.sda.build.flashselect=-sda
 arduboy-homemade.menu.flashselect.sda.bootloader_flashselect=-sda
 
-arduboy-homemade.menu.flashselect.rx=Pin0/D2 (old design)
-arduboy-homemade.menu.flashselect.rx.build.flash_cs=-DCART_CS_RX
-arduboy-homemade.menu.flashselect.rx.build.flashselect=
-arduboy-homemade.menu.flashselect.rx.bootloader_flashselect=
 
 ################################################################################
 # Arduboy board
@@ -284,6 +285,7 @@ arduboy.build.pid=0x8036
 arduboy.build.variant=arduboy
 arduboy.build.usb_product="Arduboy"
 arduboy.build.board=AVR_ARDUBOY
+arduboy.build.flash_cs=-DCART_CS_RX
 arduboy.build.extra_flags=-DARDUBOY_10 {build.flash_cs} {build.usb_flags}
 
 # Arduboy menu options #########################################################
