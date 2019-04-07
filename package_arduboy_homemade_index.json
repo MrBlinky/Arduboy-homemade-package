@@ -153,7 +153,7 @@
           "url": "https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/board-package/arduboy-homemade-1.2.5.zip",
           "archiveFileName": "arduboy-homemade-1.2.6.zip",
           "checksum": "SHA-256:520d0efb325944a8804777185f087d5c2b37cbf0273e7ccce87f9b385ab35b29",
-          "size": "905977",
+          "size": "997457",
           "boards": [
             {"name": "Arduboy production"},
             {"name": "Arduboy DevKit"},
