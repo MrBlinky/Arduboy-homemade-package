@@ -22,6 +22,27 @@ const uint8_t PROGMEM pinBootProgram[] = {
   0
 };
 
+#ifdef OLED_SSD1306_I2C
+#define I2CADDR 0x3c
+
+void i2c_send_byte(uint8_t data) {
+  TWDR = data;
+  TWCR = _BV(TWINT)  |  _BV(TWEN);
+  while( !(TWCR & _BV(TWINT)));
+}
+
+void i2c_start() {
+  TWCR = _BV(TWINT) | _BV(TWSTA)  | _BV(TWEN);
+  while( !(TWCR & _BV(TWINT)));
+  i2c_send_byte(I2CADDR<<1);
+}
+
+void i2c_stop(void) {
+  TWCR = _BV(TWINT) | _BV(TWEN) | _BV(TWSTO);
+  while( (TWCR & _BV(TWSTO)));
+}
+#endif
+
 const uint8_t PROGMEM lcdBootProgram[] = {
     
   // boot defaults are commented out but left here incase they
@@ -29,7 +50,67 @@ const uint8_t PROGMEM lcdBootProgram[] = {
   //
   // Further reading: https://www.adafruit.com/datasheets/SSD1306.pdf
 
-#ifdef OLED_SH1106
+#ifdef OLED_SSD1306_I2C
+  // Sets all registers to sane defaults since i2c
+  // displays usually havn't a reset input
+
+  // Display Off
+  0xAE,
+
+  // Set Display Clock Divisor v = 0xF0
+  // default is 0x80
+  0xD5, 0xF0,
+
+  // Set Multiplex Ratio v = 0x3F
+  0xA8, 0x3F,
+
+  // Set Display Offset v = 0
+  0xD3, 0x00,
+
+  // Set Start Line (0)
+  0x40,
+
+  // Charge Pump Setting v = enable (0x14)
+  // default is disabled
+  0x8D, 0x14,
+
+  // Set Segment Re-map (A0) | (b0001)
+  // default is (b0000)
+  0xA1,
+
+  // Set COM Output Scan Direction
+  0xC8,
+
+  // Set COM Pins v
+  0xDA, 0x12,
+
+  // Set Contrast v = 0xCF
+  0x81, 0xCF,
+
+  // Set Precharge = 0xF1
+  0xD9, 0xF1,
+
+  // Set VCom Detect
+  0xDB, 0x40,
+
+  // Entire Display ON
+  0xA4,
+
+  // Set normal/inverse display
+  0xA6,
+
+  // Display On
+  0xAF,
+
+  // set display mode = horizontal addressing mode (0x00)
+  0x20, 0x00,
+
+  // set col address range
+  0x21, 0x00, WIDTH-1,
+
+  // set page address range
+  0x22, 0x00, 0x07,
+#elif defined(OLED_SH1106)
   0x8D, 0x14,                   // Charge Pump Setting v = enable (0x14)
   0xA1,                         // Set Segment Re-map
   0xC8,                         // Set COM Output Scan Direction
@@ -288,7 +369,20 @@ void ArduboyCore::paint8Pixels(uint8_t pixels)
 
 void ArduboyCore::paintScreen(const unsigned char *image)
 { 
-#if defined(OLED_SH1106) || defined(LCD_ST7565)
+#ifdef OLED_SSD1306_I2C
+  // I2C
+  for (uint8_t i=0; i<(WIDTH*HEIGHT/(16*8));) {
+    // send a bunch of data in one xmission
+    i2c_start();
+    i2c_send_byte(0x40);
+    for(uint8_t x=0;x<16;x++,i++) {
+      TWDR = pgm_read_byte(image+i);
+      TWCR = _BV(TWINT) |  _BV(TWEN);
+      while( !(TWCR & _BV(TWINT)));
+    }
+    i2c_stop();
+  }
+#elif defined(OLED_SH1106) || defined(LCD_ST7565)
   for (uint8_t i = 0; i < HEIGHT / 8; i++)
   {
   	LCDCommandMode();
@@ -363,7 +457,20 @@ void ArduboyCore::paintScreen(const unsigned char *image)
 // will be used by any buffer based subclass
 void ArduboyCore::paintScreen(unsigned char image[])
 {
-#if defined(OLED_SH1106) || defined(LCD_ST7565)
+#ifdef OLED_SSD1306_I2C
+  // I2C
+  for (uint8_t i=0; i<(WIDTH*HEIGHT/(16*8));) {
+    // send a bunch of data in one xmission
+    i2c_start();
+    i2c_send_byte(0x40);
+    for(uint8_t x=0;x<16;x++,i++) {
+      TWDR = pgm_read_byte(image+i);
+      TWCR = _BV(TWINT) |  _BV(TWEN);
+      while( !(TWCR & _BV(TWINT)));
+    }
+    i2c_stop();
+  }
+#elif defined(OLED_SH1106) || defined(LCD_ST7565)
   for (uint8_t i = 0; i < HEIGHT / 8; i++)
   {
   	LCDCommandMode();
@@ -498,14 +605,29 @@ void ArduboyCore::paintScreen(unsigned char image[])
 
 void ArduboyCore::blank()
 {
-#ifdef OLED_SH1106 
+#ifdef OLED_SSD1306_I2C
+  TWSR = 0;
+  TWBR = F_CPU/(2*100000)-8;
+
+  i2c_start();
+  i2c_send_byte(0x00);
+  for (uint8_t i = 0; i < sizeof(lcdBootProgram); i++) 
+    i2c_send_byte(pgm_read_byte(lcdBootProgram + i));
+  i2c_stop();
+  
+  //  TWBR = F_CPU/(2*400000)-8;
+  TWBR = 1; // 12 = 400kHz
+#elif OLED_SH1106 
   for (int i = 0; i < (HEIGHT * 132) / 8; i++)
 #elif defined(OLED_96X96) || defined(OLED_128X96) || defined(OLED_128X128) || defined(OLED_128X64_ON_128X96) || defined(OLED_128X64_ON_128X128)|| defined(OLED_128X96_ON_128X128) || defined(OLED_96X96_ON_128X128) || defined(OLED_64X128_ON_128X128)
   for (int i = 0; i < (HEIGHT * WIDTH) / 2; i++)
 #else //OLED SSD1306 and compatibles
   for (int i = 0; i < (HEIGHT * WIDTH) / 8; i++)
 #endif
-    SPI.transfer(0x00);
+
+#ifndef OLED_SSD1306_I2C
+    SPItransfer(0x00);
+#endif
 }
 
 void ArduboyCore::sendLCDCommand(uint8_t command)
