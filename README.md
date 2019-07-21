@@ -50,7 +50,10 @@ This package contains all the currently available Arduboy libraries with changes
 |----------------- | ---------------------- | ----------- | ---------------------------------- | --------------------------------- |
 | CART_CS          |  0 PORTD2***           |    -        |    -                               |  0 PORTD2***                      |
 | SPI MISO         | 14 PORTB3***           |    -        |    -                               | 14 PORTB3***                      |
-
+|----------------- | ---------------------- | ----------- | ---------------------------------- | --------------------------------- |
+| OLED SDA         |  4 PORTD4*****         |    -        |  4 PORTD4*****                     |  4 PORTD4*****                    |
+| OLED SCL         |  6 PORTD7*****         |    -        |  6 PORTD7*****                     |  1/TXO PORTD3*****                |
+	
 Numbers before the portnames are Arduino assigned pin numbers.
 
 (*)
@@ -72,9 +75,16 @@ Flash cart support:
 
 (****)
 When using serial flash with the Pro Micro standard wiring, OLED_CS (chip select) cannot be grounded (always active).
-In this case a simple circuit with a general purpose PNP transistor and two resistors can be used to deactive OLED_CS while CART_CS is active.
+In this case a simple circuit with a general purpose PNP transistor and two resistors or a single inverter chip like the 74LVC1G04 can be used to deactive OLED_CS while CART_CS is active.
 
 **TODO** add schematic
+
+(*****)
+support for I2C displays has been added. When using an I2C display the SDA pin should be connected to pin 4 PORTD4 and the displays SCL pin to pin 6 PORTD7 unless you're using a Pro Micro with the alternate wiring scherme. In that case SCL pin should be connected to pin 1/TXO PORTD3.
+
+Note that updating a I2C display is slower than a SPI display. To get the most out of an I2C display, the display update code is optimized using assembly and bitbangs the display at 2 Mbps or 2,66 Mbps (uses more progmem).
+
+At 2 Mbps the display update will be 4.3 times slower than when a SPI display is used and 3.1 times slower at 2.66 Mbps. Games will still run smootly at 60 FPS when the main program requires less than %70 (2Mbps) or 78% (2.66Mbps) of MCU power.
 
 ## (future) expansion connector
 
