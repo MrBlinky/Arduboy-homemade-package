@@ -35,9 +35,6 @@ extern const u16 STRING_LANGUAGE[] PROGMEM;
 extern const u8 STRING_PRODUCT[] PROGMEM;
 extern const u8 STRING_MANUFACTURER[] PROGMEM;
 extern const DeviceDescriptor USB_DeviceDescriptorIAD PROGMEM;
-#ifndef ARDUBOY_CORE
-extern bool _updatedLUFAbootloader;
-#endif
 
 const u16 STRING_LANGUAGE[2] = {
 	(3<<8) | (2+2),
@@ -821,14 +818,6 @@ void USBDevice_::attach()
 	UDIEN = (1<<EORSTE) | (1<<SOFE) | (1<<SUSPE);	// Enable interrupts for EOR (End of Reset), SOF (start of frame) and SUSPEND
 	
 	TX_RX_LED_INIT;
-    
-#ifndef ARDUBOY_CORE
-    #if MAGIC_KEY_POS != (RAMEND-1)
-	if (pgm_read_word(FLASHEND - 1) == NEW_LUFA_SIGNATURE) {
-		_updatedLUFAbootloader = true;
-	}
-    #endif
-#endif
 }
 
 void USBDevice_::detach()
