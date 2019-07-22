@@ -8,11 +8,31 @@
 #include "ab_logo.c"
 #include "glcdfont.c"
 
+//================================
+//========== class Rect ==========
+//================================
+
+Rect::Rect(int16_t x, int16_t y, uint8_t width, uint8_t height)
+ : x(x), y(y), width(width), height(height)
+{
+}
+
+//=================================
+//========== class Point ==========
+//=================================
+
+Point::Point(int16_t x, int16_t y)
+ : x(x), y(y)
+{
+}
+
 //========================================
 //========== class Arduboy2Base ==========
 //========================================
 
 uint8_t Arduboy2Base::sBuffer[];
+
+uint8_t Arduboy2Base::batteryLow = EEPROM.read(EEPROM_BATTERY_LOW); //Low battery bandgap value - 192  
 
 Arduboy2Base::Arduboy2Base()
 {
@@ -31,8 +51,9 @@ void Arduboy2Base::begin()
 {
   boot(); // raw hardware
 
-  display(CLEAR_BUFFER); //sBuffer is global, so cleared automatically)
-
+  //using CLEAR_BUFFER so a sketch can be optimized when using CLEAR_BUFFER exclusivly
+  display(CLEAR_BUFFER); //sBuffer is global, so cleared automatically. 
+                         
   flashlight(); // light the RGB LED and screen if UP button is being held.
 
   // check for and handle buttons held during start up for system control
@@ -323,14 +344,6 @@ void Arduboy2Base::clear()
   fillScreen(BLACK);
 }
 
-
-// Used by drawPixel to help with left bitshifting since AVR has no
-// multiple bit shift instruction.  We can bit shift from a lookup table
-// in flash faster than we can calculate the bit shifts on the CPU.
-const uint8_t bitshift_left[] PROGMEM = {
-  _BV(0), _BV(1), _BV(2), _BV(3), _BV(4), _BV(5), _BV(6), _BV(7)
-};
-
 void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
 {
   #ifdef PIXEL_SAFE_MODE
@@ -343,58 +356,57 @@ void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
   uint16_t row_offset;
   uint8_t bit;
 
-  // uint8_t row = (uint8_t)y / 8;
-  // row_offset = (row*WIDTH) + (uint8_t)x;
-  // bit = _BV((uint8_t)y % 8);
-
-  // the above math can also be rewritten more simply as;
-  //   row_offset = (y * WIDTH/8) & ~0b01111111 + (uint8_t)x;
-  // which is what the below assembler does
-
-  // local variable for the bitshift_left array pointer,
-  // which can be declared a read-write operand
-  const uint8_t* bsl = bitshift_left;
-
   asm volatile
   (
-#if WIDTH == 128
-    "mul %[width_offset], %A[y]\n"
-    "movw %[row_offset], r0\n"
-    "andi %A[row_offset], 0x80\n" // row_offset &= (~0b01111111);
-    "clr __zero_reg__\n"
-    "add %A[row_offset], %[x]\n"
-    // mask for only 0-7
-    "andi %A[y], 0x07\n"
-#else
-    "mov  r0, %A[y]                    \n"
-    "andi %A[y], 0x07                  \n" // mask for only 0-7
-    "eor  r0, %A[y]                    \n" // == and 0xF8
-    "mul  %[width_offset], r0          \n"
+    // bit = 1 << (y & 7)
+    "ldi  %[bit], 1                    \n" //bit = 1;
+    "sbrc %[y], 1                      \n" //if (y & _BV(1)) bit = 4;
+    "ldi  %[bit], 4                    \n"
+    "sbrc %[y], 0                      \n" //if (y & _BV(0)) bit = bit << 1;
+    "lsl  %[bit]                       \n"
+    "sbrc %[y], 2                      \n" //if (y & _BV(2)) bit = (bit << 4) | (bit >> 4);
+    "swap %[bit]                       \n"
+    //row_offset = y / 8 * WIDTH + x;
+    "andi %A[y], 0xf8                  \n" //row_offset = (y & 0xF8) * WIDTH / 8
+    "mul  %[width_offset], %A[y]       \n"
     "movw %[row_offset], r0            \n"
     "clr  __zero_reg__                 \n"
-    "add  %A[row_offset], %[x]         \n"
-    "adc  %B[row_offset], __zero_reg__ \n"
+    "add  %A[row_offset], %[x]         \n" //row_offset += x
+#if WIDTH != 128
+    "adc  %B[row_offset], __zero_reg__ \n" // only non 128 width can overflow
 #endif
-    // Z += y           
-    "add  r30, %A[y]                            \n"
-    "adc  r31, __zero_reg__                     \n"
-    // load correct bitshift from program RAM
-    "lpm  %[bit], Z                              \n"
-    : [row_offset] "=&x" (row_offset), // upper register (ANDI)
-      [bit] "=r" (bit),
-      [y] "+d" (y), // upper register (ANDI), must be writable
-      "+z" (bsl) // is modified to point to the proper shift array element
-    : [width_offset] "r" ((uint8_t)(WIDTH/8)),
-      [x] "r" ((uint8_t)x)
+    : [row_offset]   "=&x" (row_offset),   // upper register (ANDI)
+      [bit]          "=&d" (bit),          // upper register (LDI)
+      [y]            "+d"  (y)             // upper register (ANDI), must be writable
+    : [width_offset] "r"   ((uint8_t)(WIDTH/8)),
+      [x]            "r"   ((uint8_t)x)
     :
   );
-
-  if (color) {
-    sBuffer[row_offset] |=   bit;
-  } else {
-    sBuffer[row_offset] &= ~ bit;
-  }
+  uint8_t data = sBuffer[row_offset] | bit;
+  if (!(color & _BV(0))) data ^= bit;
+  sBuffer[row_offset] = data;
 }
+#if 0
+// For reference, this is the C++ equivalent
+void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
+{
+  #ifdef PIXEL_SAFE_MODE
+  if (x < 0 || x > (WIDTH-1) || y < 0 || y > (HEIGHT-1))
+  {
+    return;
+  }
+  #endif
+
+  uint16_t row_offset;
+  uint8_t bit;
+
+  bit = 1 << (y & 7);
+  row_offset = (y & 0xF8) * WIDTH / 8 + x;
+  uint8_t data = sBuffer[row_offset] | bit;
+  if (!color) data ^= bit;
+  sBuffer[row_offset] = data;
+}
+#endif
 
 uint8_t Arduboy2Base::getPixel(uint8_t x, uint8_t y)
 {
@@ -685,7 +697,7 @@ void Arduboy2Base::fillScreen(uint8_t color)
     "ldi %[color], 0xFF\n"
     // counter = WIDTH * HEIGHT / 8 / 8
     "ldi r24, %[cnt]\n"
-    "loopto:\n"
+    "1:\n"
     // (4x/8x) store color into screen buffer,
     // then increment buffer position
     "st Z+, %[color]\n"
@@ -701,7 +713,7 @@ void Arduboy2Base::fillScreen(uint8_t color)
     // decrease counter
     "subi r24, 1\n"
     // repeat for 256, 144 or 192 loops depending on screen resolution
-    "brcc loopto\n"
+    "brcc 1b\n"
     : [color] "+d" (color),
       "+z" (bPtr)
 #if defined(OLED_96X96) || defined(OLED_128X96) || defined(OLED_128X128) || defined(OLED_128X96_ON_128X128) || defined(OLED_96X96_ON_128X128)
@@ -858,14 +870,9 @@ void Arduboy2Base::drawBitmap
   if (x+w < 0 || x > WIDTH-1 || y+h < 0 || y > HEIGHT-1)
     return;
 
-  int yOffset = abs(y) % 8;
-  int sRow = y / 8;
-  if (y < 0) {
-    sRow--;
-    yOffset = 8 - yOffset;
-  }
-  int rows = h/8;
-  if (h%8!=0) rows++;
+  int8_t yOffset = y & 7;
+  int8_t sRow = y;
+  uint8_t rows = h >> 3;
   for (int a = 0; a < rows; a++) {
     int bRow = sRow + a;
     if (bRow > (HEIGHT/8)-1) break;
@@ -873,21 +880,22 @@ void Arduboy2Base::drawBitmap
       for (int iCol = 0; iCol<w; iCol++) {
         if (iCol + x > (WIDTH-1)) break;
         if (iCol + x >= 0) {
+          uint16_t data = pgm_read_byte(bitmap+(a*w)+iCol) << yOffset;
           if (bRow >= 0) {
             if (color == WHITE)
-              sBuffer[(bRow*WIDTH) + x + iCol] |= pgm_read_byte(bitmap+(a*w)+iCol) << yOffset;
+              sBuffer[(bRow*WIDTH) + x + iCol] |= data;
             else if (color == BLACK)
-              sBuffer[(bRow*WIDTH) + x + iCol] &= ~(pgm_read_byte(bitmap+(a*w)+iCol) << yOffset);
+              sBuffer[(bRow*WIDTH) + x + iCol] &= ~data;
             else
-              sBuffer[(bRow*WIDTH) + x + iCol] ^= pgm_read_byte(bitmap+(a*w)+iCol) << yOffset;
+              sBuffer[(bRow*WIDTH) + x + iCol] ^= data;
           }
           if (yOffset && bRow<(HEIGHT/8)-1 && bRow > -2) {
             if (color == WHITE)
-              sBuffer[((bRow+1)*WIDTH) + x + iCol] |= pgm_read_byte(bitmap+(a*w)+iCol) >> (8-yOffset);
+              sBuffer[((bRow+1)*WIDTH) + x + iCol] |= (data >> 8);
             else if (color == BLACK)
-              sBuffer[((bRow+1)*WIDTH) + x + iCol] &= ~(pgm_read_byte(bitmap+(a*w)+iCol) >> (8-yOffset));
+              sBuffer[((bRow+1)*WIDTH) + x + iCol] &= ~(data >> 8);
             else
-              sBuffer[((bRow+1)*WIDTH) + x + iCol] ^= pgm_read_byte(bitmap+(a*w)+iCol) >> (8-yOffset);
+              sBuffer[((bRow+1)*WIDTH) + x + iCol] ^= (data >> 8);
           }
         }
       }
@@ -940,7 +948,7 @@ struct BitStreamReader
       }
 
       if ((this->byteBuffer & this->bitBuffer) != 0)
-        result |= (1 << i); // result |= bitshift_left[i];
+        result |= (1 << i);
 
       this->bitBuffer += this->bitBuffer;
     }
@@ -1192,6 +1200,88 @@ void Arduboy2Base::swap(int16_t& a, int16_t& b)
   b = temp;
 }
 
+uint8_t Arduboy2Base::checkBatteryState()
+{
+  uint8_t state = BATTERY_STATE_INVALID;
+  asm volatile (
+    "   ldi     r30, lo8(%[prr0])   \n" // if (bit_is_set(PRR0,PRADC)) //ADC power off
+    "   ldi     r31, hi8(%[prr0])   \n" // {
+    "   ld      r24, z              \n"    
+    "   lds     r25, %[adcsra]      \n"    
+    "   sbrs	r24, %[pradc]       \n"    
+    "   rjmp    1f                  \n"    
+    "                               \n"    
+    "   andi    r24, ~(1<<%[pradc]) \n" //   PRR0 &= ~_BV(PRADC); // ADC power on
+    "   st      z, r24              \n"    
+    "   ldi     r24, %[admuxval]    \n" //   ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1)
+    "   sts     %[admux], r24       \n"    
+    "   ori     r25, 1<<%[adsc]     \n" //   ADCSRA |= _BV(ADSC) //start conversion
+    "   sts     %[adcsra], r25      \n" // }
+    "   ;rjmp   2f                  \n" // bit is set so continue below to jump to 2f
+    "1:                             \n" 
+    "   sbrc	r25, %[adsc]        \n" // else if (!(ADCSRA & _BV(ADSC)) //ADC conversion ready
+    "   rjmp    2f                  \n" // {
+    "                               \n"
+    "   ori     r24, 1<<%[pradc]    \n" //   PRR0 |= _BV(PRADC); // ADC power off
+    "   st      z, r24              \n"
+    "   ldi     r30, %[adcl]        \n" //   uint16_t bandgap = ADCL | (ADCH << 8);
+    "   ld      r24, z+             \n"
+    "   ld      r25, z              \n"
+    "   subi    r24, 192            \n" //   bandgap -= 192;
+    "   sbci    r25, 0              \n"
+    "   and     r25, r25            \n" //   if (bandgap < 256)
+    "   brne    2f                  \n" //   {
+    "                               \n"
+    "   ldi     %[state],%[normal]  \n" //     state = BATTERY_STATE_NORMAL;
+    "   lds     r25, %[battlow]     \n"
+    "   cp      r25, r24            \n"
+    "   brcc    2f                  \n" //     if (batteryLow < bandgap) state = BATTERY_STATE_LOW;
+    "   ldi     %[state],%[low]     \n" //   }
+    "2:                             \n" // }
+    :[state]    "+d"(state)
+    :[prr0]     "M" (_SFR_MEM_ADDR(PRR0)),
+     [adcsra]   "M" (_SFR_MEM_ADDR(ADCSRA)),
+     [pradc]    "I" (PRADC),
+     [admuxval] "M" (_BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1)),
+     [admux]    "M" (_SFR_MEM_ADDR(ADMUX)),
+     [adsc]     "I" (ADSC),
+     [adcl]     "M" (_SFR_MEM_ADDR(ADCL)),
+     [battlow]  ""  (&batteryLow),
+     [normal]   "I" (BATTERY_STATE_NORMAL),
+     [low]      "I" (BATTERY_STATE_LOW)
+    : "r24", "r25", "r30", "r31"
+  );  
+#if 0  
+// For reference, this is the C++ equivalent
+  uint8_t state = BATTERY_STATE_UNDEFINED;
+  if (bit_is_set(PRR0,PRADC)) //only enable when ADC power is disabled 
+  {
+    PRR0 &= ~_BV(PRADC); // ADC power on
+    ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1); //meassure 1.1V bandgap against AVcc
+    ADCSRA |= _BV(ADSC); //start conversion
+  } 
+  else if (!(ADCSRA & _BV(ADSC)))   
+  {
+    PRR0 |= _BV(PRADC); // ADC power off
+    uint16_t bandgap = ADCL | (ADCH << 8);
+    bandgap -= 192;
+    if (bandgap < 256)
+    {
+      state = BATTERY_STATE_NORMAL;
+      if (batteryLow < (uint8_t)bandgap) state = BATTERY_STATE_LOW;
+    }
+  }
+#endif
+  return state;  
+}
+
+uint8_t Arduboy2Base::checkBatteryStateLED(bool flash)
+{
+    uint8_t state = checkBatteryState();
+    if (state == BATTERY_STATE_NORMAL | flash) TXLED0;
+    if (state == BATTERY_STATE_LOW) TXLED1;
+    return state;
+}
 
 //====================================
 //========== class Arduboy2 ==========

@@ -43,6 +43,38 @@
   #define RST 6
 #endif
 #define DC 4
+#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+ //bitbanged I2C pins
+ #define I2C_PORT  PORTD
+ #define I2C_DDR   DDRD
+ #define I2C_PIN   PIND
+ #ifdef AB_ALTERNATE_WIRING
+  #define SCL 1
+  #define I2C_SCL PORTD3
+ #else
+  #define SCL 6
+  #define I2C_SCL PORTD7
+ #endif
+ #define SDA 4
+ #define I2C_SDA PORTD4 
+  
+ //port states
+ #define I2C_SDA_HIGH() I2C_PORT |=  (1 << I2C_SDA)
+ #define I2C_SCL_HIGH() I2C_PORT |=  (1 << I2C_SCL)
+ #define I2C_SDA_LOW()  I2C_PORT &= ~(1 << I2C_SDA)
+ #define I2C_SCL_LOW()  I2C_PORT &= ~(1 << I2C_SCL)
+ 
+ //port directions
+ #define I2C_SDA_AS_INPUT()  I2C_DDR &= ~(1 << I2C_SDA)
+ #define I2C_SCL_AS_INPUT()  I2C_DDR &= ~(1 << I2C_SCL)
+ #define I2C_SDA_AS_OUTPUT() I2C_DDR |= (1 << I2C_SDA)
+ #define I2C_SCL_AS_OUTPUT() I2C_DDR |= (1 << I2C_SCL)
+ 
+ // display address, commands
+ #define SSD1306_I2C_ADDR 0x3c //0x3c:default, 0x3d: alternative)
+ #define SSD1306_I2C_CMD  0x00
+ #define SSD1306_I2C_DATA 0x40
+#endif
 
 #define RED_LED 10
 #if defined AB_ALTERNATE_WIRING  //Pro Micro Alternative GREEN LED pin
@@ -193,9 +225,22 @@ public:
      */
     void static LCDCommandMode();
 
+#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+    void static i2c_start(uint8_t mode);
+    
+    void static inline i2c_stop() __attribute__((always_inline))
+    {
+      // SDA and SCL both are already low, from writing ACK bit no need to change state
+      I2C_SDA_AS_INPUT(); // switch to input so SDA is pulled up externally first for stop condition
+      I2C_SCL_AS_INPUT(); // pull up SCL externally
+    }
+    
+    void static i2c_sendByte(uint8_t byte);
+#endif
+    
     uint8_t static width();    //< return display width
     uint8_t static height();   // < return display height
-
+    
     /// get current state of all buttons (bitmask)
     /**
      * Bit mask that is returned:

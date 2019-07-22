@@ -10,8 +10,6 @@
 #include <Arduino.h>
 #include <avr/power.h>
 #include <avr/sleep.h>
-#include <avr/wdt.h>
-#include <limits.h>
 
 extern volatile unsigned char bootloader_timer;
 
@@ -58,19 +56,52 @@ extern volatile unsigned char bootloader_timer;
   #define RST_BIT PORTD7  // Display reset physical bit number
 #endif
 
-#define PIN_DC 4        // Display D/C Arduino pin number
-#define DC_PORT PORTD   // Display D/C port
-#define DC_BIT PORTD4   // Display D/C physical bit number
+ #define PIN_DC 4        // Display D/C Arduino pin number
+ #define DC_PORT PORTD   // Display D/C port
+ #define DC_BIT PORTD4   // Display D/C physical bit number
 
-#define PIN_CART 0        // flash cart chip select
+#ifdef CART_CS_SDA
+ #define PIN_CART 2        // SDA as alternative flash cart chip select
+ #define CART_BIT PORTD1
+#else
+ #define PIN_CART 0        // RX as default flash cart chip select
+ #define CART_BIT PORTD2
+#endif
 #define CART_PORT PORTD
-#define CART_BIT PORTD2
 
 #define SPI_MOSI_PORT PORTB
 #define SPI_MOSI_BIT PORTB2
 
 #define SPI_SCK_PORT PORTB
 #define SPI_SCK_BIT PORTB1
+
+#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+ #define I2C_PORT  PORTD
+ #define I2C_DDR   DDRD
+ #define I2C_PIN   PIND
+ #ifdef AB_ALTERNATE_WIRING
+  #define I2C_SCL PORTD3
+ #else
+  #define I2C_SCL PORTD7
+ #endif    
+ #define I2C_SDA PORTD4
+ //port states
+ #define I2C_SDA_HIGH() I2C_PORT |=  (1 << I2C_SDA)
+ #define I2C_SCL_HIGH() I2C_PORT |=  (1 << I2C_SCL)
+ #define I2C_SDA_LOW()  I2C_PORT &= ~(1 << I2C_SDA)
+ #define I2C_SCL_LOW()  I2C_PORT &= ~(1 << I2C_SCL)
+ 
+ //port directions
+ #define I2C_SDA_AS_INPUT()  I2C_DDR &= ~(1 << I2C_SDA)
+ #define I2C_SCL_AS_INPUT()  I2C_DDR &= ~(1 << I2C_SCL)
+ #define I2C_SDA_AS_OUTPUT() I2C_DDR |= (1 << I2C_SDA)
+ #define I2C_SCL_AS_OUTPUT() I2C_DDR |= (1 << I2C_SCL)
+ 
+ // display address, commands
+ #define SSD1306_I2C_ADDR 0x3c //0x3c:default, 0x3d: alternative)
+ #define SSD1306_I2C_CMD  0x00
+ #define SSD1306_I2C_DATA 0x40
+#endif
 
 #define RED_LED 10   /**< The pin number for the red color in the RGB LED. */
 #ifdef AB_ALTERNATE_WIRING
@@ -429,7 +460,10 @@ class Arduboy2Core
      *
      * \see LCDCommandMode() SPItransfer()
      */
-    inline void static LCDDataMode() __attribute__((always_inline));
+    void static inline LCDDataMode() __attribute__((always_inline))
+    {
+      bitSet(DC_PORT, DC_BIT);
+    }
     /** \brief
      * Put the display into command mode.
      *
@@ -452,7 +486,10 @@ class Arduboy2Core
      *
      * \see LCDDataMode() sendLCDCommand() SPItransfer()
      */
-    inline void static LCDCommandMode() __attribute__((always_inline));
+    void static inline LCDCommandMode() __attribute__((always_inline))
+    {
+      bitClear(DC_PORT, DC_BIT);
+    }
     /** \brief
      * Transfer a byte to the display.
      *
@@ -468,6 +505,21 @@ class Arduboy2Core
      */
     uint8_t static SPItransfer(uint8_t data);
 
+#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+    void static i2c_start(uint8_t mode);
+    
+    void static inline i2c_stop() __attribute__((always_inline))
+    {
+      // SDA and SCL both are already low, from writing ACK bit no need to change state
+      I2C_SDA_AS_INPUT(); // switch to input so SDA is pulled up externally first for stop condition
+      I2C_SCL_AS_INPUT(); // pull up SCL externally
+    }
+    
+    void static i2c_sendByte(uint8_t byte);
+#endif
+    
+//#endif
+    
     /** \brief
      * Turn the display off.
      *
