@@ -7,7 +7,7 @@
         "type": "git",
         "url": "https://github.com/TEAMarg/ATMlib.git"
     },
-    "version": "1.2.5",
+    "version": "1.2.6",
     "exclude": "extras",
     "frameworks": "arduino",
     "platforms": "atmelavr"

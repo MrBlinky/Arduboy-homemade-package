@@ -63,15 +63,12 @@ ISR(TIMER4_OVF_vect, ISR_NAKED) { \
                 "push r2                                          " "\n\t" \
                 "in   r2,                    __SREG__             " "\n\t" \
                 "push r18                                         " "\n\t" \
-                "lds  r18, half \n\t" \
-                "com  r18 \n\t" \
-                "sts  half, r18 \n\t" \
-                "breq continue \n\t" \
-                "pop  r18                                         " "\n\t" \
-                "out  __SREG__,              r2                   " "\n\t" \
-                "pop  r2                                          " "\n\t" \
-                "reti                                             " "\n\t" \
-                "continue: \n\t" \
+                "lds  r18,                   half                 " "\n\t" \
+                "com  r18                                         " "\n\t" \
+                "sts  half,                  r18                  " "\n\t" \
+                "breq 1f                                          " "\n\t" \
+                "rjmp 3f                                          " "\n\t" \
+                "1:                                               " "\n\t" \
                 "push r27                                         " "\n\t" \
                 "push r26                                         " "\n\t" \
                 "push r0                                          " "\n\t" \
@@ -154,14 +151,8 @@ ISR(TIMER4_OVF_vect, ISR_NAKED) { \
                 "breq call_playroutine                            " "\n\t" \
                 "sts  cia_count+1,           r27                  " "\n\t" \
                 "sts  cia_count,             r26                  " "\n\t" \
-                "pop  r1                                          " "\n\t" \
-                "pop  r0                                          " "\n\t" \
-                "pop  r26                                         " "\n\t" \
-                "pop  r27                                         " "\n\t" \
-                "pop  r18                                         " "\n\t" \
-                "out  __SREG__,              r2                   " "\n\t" \
-                "pop  r2                                          " "\n\t" \
-                "reti                                             " "\n\t" \
+                "rjmp 2f                                          " "\n\t" \
+                \
                 "call_playroutine:                                " "\n\t" \
                 \
                 "lds  r27, cia+1                                  " "\n\t" \
@@ -192,11 +183,12 @@ ISR(TIMER4_OVF_vect, ISR_NAKED) { \
                 "pop  r21                                         " "\n\t" \
                 "pop  r20                                         " "\n\t" \
                 "pop  r19                                         " "\n\t" \
-                \
+                "2:                                               " "\n\t" \
                 "pop  r1                                          " "\n\t" \
                 "pop  r0                                          " "\n\t" \
                 "pop  r26                                         " "\n\t" \
                 "pop  r27                                         " "\n\t" \
+                "3:                                               " "\n\t" \
                 "pop  r18                                         " "\n\t" \
                 "out  __SREG__,              r2                   " "\n\t" \
                 "pop  r2                                          " "\n\t" \
@@ -217,15 +209,12 @@ ISR(TIMER4_OVF_vect, ISR_NAKED) { \
                 "push r2                                          " "\n\t" \
                 "in   r2,                    __SREG__             " "\n\t" \
                 "push r18                                         " "\n\t" \
-                "lds  r18, half \n\t" \
-                "com  r18 \n\t" \
-                "sts  half, r18 \n\t" \
-                "breq continue \n\t" \
-                "pop  r18                                         " "\n\t" \
-                "out  __SREG__,              r2                   " "\n\t" \
-                "pop  r2                                          " "\n\t" \
-                "reti                                             " "\n\t" \
-                "continue: \n\t" \
+                "lds  r18,                   half                 " "\n\t" \
+                "com  r18                                         " "\n\t" \
+                "sts  half,                  r18                  " "\n\t" \
+                "breq 1f                                          " "\n\t" \
+                "rjmp 3f                                          " "\n\t" \
+                "1:                                               " "\n\t" \
                 "push r27                                         " "\n\t" \
                 "push r26                                         " "\n\t" \
                 "push r0                                          " "\n\t" \
@@ -309,14 +298,8 @@ ISR(TIMER4_OVF_vect, ISR_NAKED) { \
                 "breq call_playroutine                            " "\n\t" \
                 "sts  cia_count+1,           r27                  " "\n\t" \
                 "sts  cia_count,             r26                  " "\n\t" \
-                "pop  r1                                          " "\n\t" \
-                "pop  r0                                          " "\n\t" \
-                "pop  r26                                         " "\n\t" \
-                "pop  r27                                         " "\n\t" \
-                "pop  r18                                         " "\n\t" \
-                "out  __SREG__,              r2                   " "\n\t" \
-                "pop  r2                                          " "\n\t" \
-                "reti                                             " "\n\t" \
+                "rjmp 2f                                          " "\n\t" \
+                \
                 "call_playroutine:                                " "\n\t" \
                 \
                 "lds  r27, cia+1                                  " "\n\t" \
@@ -347,11 +330,12 @@ ISR(TIMER4_OVF_vect, ISR_NAKED) { \
                 "pop  r21                                         " "\n\t" \
                 "pop  r20                                         " "\n\t" \
                 "pop  r19                                         " "\n\t" \
-                \
+                "2:                                               " "\n\t" \
                 "pop  r1                                          " "\n\t" \
                 "pop  r0                                          " "\n\t" \
                 "pop  r26                                         " "\n\t" \
                 "pop  r27                                         " "\n\t" \
+                "3:                                               " "\n\t" \
                 "pop  r18                                         " "\n\t" \
                 "out  __SREG__,              r2                   " "\n\t" \
                 "pop  r2                                          " "\n\t" \
