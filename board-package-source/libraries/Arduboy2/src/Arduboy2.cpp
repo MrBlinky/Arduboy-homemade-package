@@ -871,7 +871,7 @@ void Arduboy2Base::drawBitmap
     return;
 
   int8_t yOffset = y & 7;
-  int8_t sRow = y;
+  int8_t sRow = y >> 3;
   uint8_t rows = h >> 3;
   for (int a = 0; a < rows; a++) {
     int bRow = sRow + a;
