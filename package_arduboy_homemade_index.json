@@ -172,10 +172,10 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.2.7.zip",
-          "archiveFileName": "arduboy-homemade-1.2.7.zip",
-          "checksum": "SHA-256:5b776b3f5abb46b010dcfd2d6b8f842db0b44298590c6e6baa6846f976bc1484",
-          "size": "1002731",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.2.7a.zip",
+          "archiveFileName": "arduboy-homemade-1.2.7a.zip",
+          "checksum": "SHA-256:635ccc75c3a2c23c656ea960372d850c1ae6eb68a1f3ea15c7231e024829b931",
+          "size": "1002733",
           "boards": [
             {"name": "Arduboy production"},
             {"name": "Arduboy DevKit"},
