@@ -116,6 +116,7 @@ An expansion connector can be added to a modified or Homemade Arduboy in the for
 |  12 |  11 |  10 |  9  |  8  |  7  |  6  |  5  |  4  |  3  |  2  |  1  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 |  TX | SDA | SCL | RX  |  NC | KEY | MISO| MOSI| CLK | RST | GND | Vcc |
+
 (RX and SDA pins are swapped)
 
 ```text
