@@ -205,7 +205,6 @@ void Arduboy2Core::bootPins()
 
   // Port C
   // Speaker: Not set here. Controlled by audio class
-
   // Port D INPUT_PULLUP or HIGH
   PORTD = (
          #if defined(AB_ALTERNATE_WIRING)
@@ -428,6 +427,7 @@ void Arduboy2Core::i2c_sendByte(uint8_t byte)
     "    brne 1b                \n" // initial set carry will be shifted out after 8 loops setting Z flag
     "                           \n" 
     "    out  %[port], %[sda0]  \n" // clear SDA for ACK
+    "    nop                    \n" // extra delay
     "    sbi  %[port], %[sclb]  \n" // set SCL (extends ACK bit by 1 cycle)
     "    cbi  %[port], %[sclb]  \n" // clear SCL (extends SCL high by 1 cycle)
     :[byte] "+r" (byte)
@@ -621,7 +621,7 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
     "2:                         \n"
     "    out  %[port], %[sda0]  \n" // preemtively clear SDA
     "    brcc 3f                \n" // skip if dealing with 0 bit
-    "    out  %[pin], %[sda]    \n" 
+    "    out  %[pin], %[sda]    \n" // toggle SDA on
     "3:                         \n" 
     "    out  %[pin], %[scl]    \n" // toggle SCL on
     "    lsl  r0                \n" // next bit to carry (moved here for 1 extra cycle delay)
@@ -630,6 +630,7 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
     "                           \n" 
     "    out  %[port], %[sda0]  \n" // clear SDA for ACK
     "    subi %A[len], 1        \n" // len-- part1 (moved here for 1 cycle delay)
+        "nop\n"
     "    out  %[pin], %[scl]    \n" // set SCL (2 cycles required)
     "    sbci %B[len], 0        \n" // len-- part2 (moved here for 1 cycle delay)
     "    out  %[pin], %[scl]    \n" // clear SCL (2 cycles required)
