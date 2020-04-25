@@ -610,8 +610,8 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
   //bitbanging I2C ~2Mbps (8 cycles per bit / 78 cycles per byte)
   asm volatile (    
     "    dec  %[clear]          \n" //  get clear mask 0:0xFF, 1:0x00
-    "1:                         \n"
     "    ld   r24, %a[ptr]      \n" // fetch display byte from buffer
+    "1:                         \n"
     "    mov  r0, r24           \n" // move to shift register
     "    and  r24, %[clear]     \n" // apply clear mask
     "    st   %a[ptr]+, r24     \n" // update buffer
@@ -630,7 +630,7 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
     "                           \n" 
     "    out  %[port], %[sda0]  \n" // clear SDA for ACK
     "    subi %A[len], 1        \n" // len-- part1 (moved here for 1 cycle delay)
-        "nop\n"
+    "    ld   r24, %a[ptr]      \n" // fetch display byte from buffer (and delay)
     "    out  %[pin], %[scl]    \n" // set SCL (2 cycles required)
     "    sbci %B[len], 0        \n" // len-- part2 (moved here for 1 cycle delay)
     "    out  %[pin], %[scl]    \n" // clear SCL (2 cycles required)
