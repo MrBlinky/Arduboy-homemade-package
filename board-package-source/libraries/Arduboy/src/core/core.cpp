@@ -295,6 +295,7 @@ void ArduboyCore::i2c_sendByte(uint8_t byte)
     "    brne 1b                \n" // initial set carry will be shifted out after 8 loops setting Z flag
     "                           \n" 
     "    out  %[port],%[sda0]   \n" // clear SDA for ACK
+    "    nop                    \n" // extra delay
     "    sbi  %[port], %[sclb]  \n" // set SCL (extends ACK bit by 1 cycle)
     "    cbi  %[port], %[sclb]  \n" // clear SCL (extends SCL high by 1 cycle)
     :[byte] "+r" (byte)
@@ -448,8 +449,8 @@ void ArduboyCore::paintScreen(unsigned char image[])
  #if defined (OLED_SSD1306_I2C)
   //bitbanging I2C ~2Mbps (8 cycles per bit / 78 cycles per byte)
   asm volatile (    
-    "1:                         \n"
     "    ld   r0, %a[ptr]+      \n" // fetch display byte from buffer
+    "1:                         \n"
     "    sec                    \n" // set carry for 8 shift counts
     "    rol  r0                \n" // shift a bit out and count at the same time
     "2:                         \n"
@@ -464,6 +465,7 @@ void ArduboyCore::paintScreen(unsigned char image[])
     "                           \n" 
     "    out  %[port], %[sda0]  \n" // clear SDA for ACK
     "    subi %A[len], 1        \n" // len-- part1 (moved here for 1 cycle delay)
+    "    ld   r0, %a[ptr]+      \n" // fetch display byte from buffer (and delay)
     "    out  %[pin], %[scl]    \n" // set SCL (2 cycles required)
     "    sbci %B[len], 0        \n" // len-- part2 (moved here for 1 cycle delay)
     "    out  %[pin], %[scl]    \n" // clear SCL (2 cycles required)
