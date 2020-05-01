@@ -109,13 +109,13 @@ An expansion connector can be added to a modified or Homemade Arduboy in the for
 
 |  12 |  11 |  10 |  9  |  8  |  7  |  6  |  5  |  4  |  3  |  2  |  1  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  TX |  RX | SCL | SDA |  NC | KEY | MISO| MOSI| CLK | RST | GND | Vcc |
+|  TX |  RX | SCL | SDA |  A5 | KEY | MISO| MOSI| CLK | RST | GND | Vcc |
 
 ### Expansion connector pinout (new design)
 
 |  12 |  11 |  10 |  9  |  8  |  7  |  6  |  5  |  4  |  3  |  2  |  1  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  TX | SDA | SCL | RX  |  NC | KEY | MISO| MOSI| CLK | RST | GND | Vcc |
+|  TX | SDA | SCL | RX  |  A5 | KEY | MISO| MOSI| CLK | RST | GND | Vcc |
 
 (RX and SDA pins are swapped)
 
@@ -124,7 +124,7 @@ TX*  - Serial Transmitter output
 RX   - Serial Receiver input / original Flash cart chip select
 SCL* - I2C/TWI serial clock I/O
 SDA* - I2C/TWI serial data I/O / new Flash cart chip select (Arduboy FX)
-NC   - Not connected (reserved for future use)
+A5   - Analog input pin
 KEY  - Key pin. should be filled to block pin insertion (reverse insert protection)
 MISO - SPI/ICSP Master Input, Slave Output
 MOSI - SPI/ICSP Master Output, Slave Input
@@ -134,5 +134,5 @@ GND  - Ground (0V)
 Vcc  - 5V (~3.0V to ~4.1V on Arduboy)
 (*) Not available when using Pro Micro with Alternate Wiring
 ```
-Note on the original flash cart design RX is used as flash chip select. In the new design (as used by Arduboy FX) SDA is used as flash chip select and Rx and Rx are available for serial comms.
+Note on the original flash cart design RX is used as flash chip select. In the new design (as used by Arduboy FX) SDA is used as flash chip select and Rx and Tx are available for serial comms.
 
