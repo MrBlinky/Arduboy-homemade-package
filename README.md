@@ -124,7 +124,7 @@ TX*  - Serial Transmitter output
 RX   - Serial Receiver input / original Flash cart chip select
 SCL* - I2C/TWI serial clock I/O
 SDA* - I2C/TWI serial data I/O / new Flash cart chip select (Arduboy FX)
-A5   - Analog input pin
+A5   - Analog input pin (Note not broken out on Pro Micro boards)
 KEY  - Key pin. should be filled to block pin insertion (reverse insert protection)
 MISO - SPI/ICSP Master Input, Slave Output
 MOSI - SPI/ICSP Master Output, Slave Input
