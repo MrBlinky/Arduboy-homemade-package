@@ -53,12 +53,13 @@ arduboy-homemade.bootloader.tool=arduino:avrdude
 arduboy-homemade.bootloader.low_fuses=0xff
 arduboy-homemade.bootloader.high_fuses=0xd0
 arduboy-homemade.bootloader.extended_fuses=0xcb
-arduboy-homemade.bootloader.unlock_bits=0xFF
-arduboy-homemade.bootloader.lock_bits=0xEF
+arduboy-homemade.bootloader.unlock_bits=0x3F
+arduboy-homemade.bootloader.lock_bits=0x3F
 
 arduboy-homemade.build.mcu=atmega32u4
 arduboy-homemade.build.f_cpu=16000000L
 arduboy-homemade.build.board=AVR_ARDUBOY_HOMEMADE
+arduboy-homemade.build.core=arduboy
 
 ## Arduboy homemade based on boards ###########################################
 
@@ -128,11 +129,11 @@ arduboy-homemade.menu.boot.cathy2k.bootloader.high_fuses=0xd2
 arduboy-homemade.menu.boot.cathy2k.bootloader.file={c2k_bootloader_file}
 
 # core #
-arduboy-homemade.menu.core.arduboy-core=Arduboy optimized core
-arduboy-homemade.menu.core.arduboy-core.build.core=arduboy
-
 arduboy-homemade.menu.core.arduino-core=Standard Arduino core
 arduboy-homemade.menu.core.arduino-core.build.core=arduino:arduino
+
+arduboy-homemade.menu.core.arduboy-core=Arduboy optimized core
+arduboy-homemade.menu.core.arduboy-core.build.core=arduboy
 
 # display #
 arduboy-homemade.menu.display.sh1106=SH1106
@@ -225,18 +226,23 @@ arduboy-homemade.menu.display.st7565.usb_product_postfix=lcd
 arduboy-homemade.menu.display.st7565.bootloader_display=-st7565
 arduboy-homemade.menu.display.st7565.build.extra_flags=-DARDUBOY_10 -DLCD_ST7565 {build.flash_cs} {build.usb_flags}
 
+arduboy-homemade.menu.display.gu12864_800b=GU12864-800B
+arduboy-homemade.menu.display.gu12864_800b.build.display=-gu12864
+arduboy-homemade.menu.display.gu12864_800b.usb_product_postfix=vfd
+arduboy-homemade.menu.display.gu12864_800b.bootloader_display=-gu12864
+arduboy-homemade.menu.display.gu12864_800b.build.extra_flags=-DARDUBOY_10 -DGU12864_800B {build.flash_cs} {build.usb_flags}
+
 # External flash chip select pin #
 
-arduboy-homemade.menu.flashselect.rx=Pin0/D2/Rx (recommended)
-arduboy-homemade.menu.flashselect.rx.build.flash_cs=-DCART_CS_RX
-arduboy-homemade.menu.flashselect.rx.build.flashselect=
-arduboy-homemade.menu.flashselect.rx.bootloader_flashselect=
-
-arduboy-homemade.menu.flashselect.sda=Pin2/D1/SDA
+arduboy-homemade.menu.flashselect.sda=Pin2/D1/SDA (official)
 arduboy-homemade.menu.flashselect.sda.build.flash_cs=-DCART_CS_SDA
 arduboy-homemade.menu.flashselect.sda.build.flashselect=-sda
 arduboy-homemade.menu.flashselect.sda.bootloader_flashselect=-sda
 
+arduboy-homemade.menu.flashselect.rx=Pin0/D2/Rx (original)
+arduboy-homemade.menu.flashselect.rx.build.flash_cs=-DCART_CS_RX
+arduboy-homemade.menu.flashselect.rx.build.flashselect=
+arduboy-homemade.menu.flashselect.rx.bootloader_flashselect=
 
 ################################################################################
 # Arduboy board
@@ -285,8 +291,8 @@ arduboy.bootloader.low_fuses=0xff
 arduboy.bootloader.high_fuses=0xd0
 arduboy.bootloader.extended_fuses=0xcb
 arduboy.bootloader.file=caterina/Caterina-Leonardo.hex
-arduboy.bootloader.unlock_bits=0xFF
-arduboy.bootloader.lock_bits=0xEF
+arduboy.bootloader.unlock_bits=0x3F
+arduboy.bootloader.lock_bits=0x2F
 
 arduboy.build.mcu=atmega32u4
 arduboy.build.f_cpu=16000000L
@@ -297,16 +303,17 @@ arduboy.build.pid=0x8036
 arduboy.build.variant=arduboy
 arduboy.build.usb_product="Arduboy"
 arduboy.build.board=AVR_ARDUBOY
-arduboy.build.flash_cs=-DCART_CS_RX
+arduboy.build.core=arduino:arduino
+arduboy.build.flash_cs=-DCART_CS_SDA
 arduboy.build.extra_flags=-DARDUBOY_10 {build.flash_cs} {build.usb_flags}
 
 # Arduboy menu options #########################################################
 
-arduboy.menu.core.arduboy-core=Arduboy optimized core
-arduboy.menu.core.arduboy-core.build.core=arduboy
-
 arduboy.menu.core.arduino-core=Standard Arduino core
 arduboy.menu.core.arduino-core.build.core=arduino:arduino
+
+arduboy.menu.core.arduboy-core=Arduboy optimized core
+arduboy.menu.core.arduboy-core.build.core=arduboy
 
 arduboy.menu.boot.org=original (Caterina)
 arduboy.menu.boot.org.upload.maximum_size=28672
@@ -316,7 +323,7 @@ arduboy.menu.boot.org.bootloader.file=caterina/Caterina-Leonardo.hex
 arduboy.menu.boot.cathy3k=Cathy3K
 arduboy.menu.boot.cathy3k.upload.maximum_size=29696
 arduboy.menu.boot.cathy3k.bootloader.high_fuses=0xd2
-arduboy.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader.hex
+arduboy.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-sda.hex
 
 arduboy.menu.boot.cathy2k=Cathy2K
 arduboy.menu.boot.cathy2k.upload.maximum_size=30720
@@ -370,8 +377,8 @@ arduboy-devkit.bootloader.low_fuses=0xff
 arduboy-devkit.bootloader.high_fuses=0xd0
 arduboy-devkit.bootloader.extended_fuses=0xcb
 arduboy-devkit.bootloader.file=caterina/Caterina-Leonardo.hex
-arduboy-devkit.bootloader.unlock_bits=0xFF
-arduboy-devkit.bootloader.lock_bits=0xEF
+arduboy-devkit.bootloader.unlock_bits=0x3F
+arduboy-devkit.bootloader.lock_bits=0x2F
 
 arduboy-devkit.build.mcu=atmega32u4
 arduboy-devkit.build.f_cpu=16000000L
@@ -382,15 +389,16 @@ arduboy-devkit.build.pid=0x8036
 arduboy-devkit.build.variant=arduboy-devkit
 arduboy-devkit.build.usb_product="ABDevKit"
 arduboy-devkit.build.board=AVR_ARDUBOY_DEVKIT
+arduboy-devkit.build.core=arduino:arduino
 arduboy-devkit.build.extra_flags=-DAB_DEVKIT {build.usb_flags}
 
 # DevKit menu options ##########################################################
 
-arduboy-devkit.menu.core.arduboy=Arduboy optimized core
-arduboy-devkit.menu.core.arduboy.build.core=arduboy
-
 arduboy-devkit.menu.core.arduino=Standard Arduino core
 arduboy-devkit.menu.core.arduino.build.core=arduino:arduino
+
+arduboy-devkit.menu.core.arduboy=Arduboy optimized core
+arduboy-devkit.menu.core.arduboy.build.core=arduboy
 
 arduboy-devkit.menu.boot.org=original (Caterina)
 arduboy-devkit.menu.boot.org.upload.maximum_size=28672
