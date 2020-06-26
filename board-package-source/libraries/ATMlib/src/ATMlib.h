@@ -22,17 +22,17 @@ class ATMsynth {
     ATMsynth() {};
 
     // Load and play specified song
-    void play(const byte *song);
+    static void play(const byte *song);
 
     // Play or Pause playback
-    void playPause();
+    static void playPause();
 
     // Stop playback (unloads song)
-    void stop();
+    static void stop();
 
-    void muteChannel(byte ch);
+    static void muteChannel(byte ch);
 
-    void unMuteChannel(byte ch);
+    static void unMuteChannel(byte ch);
 };
 
 

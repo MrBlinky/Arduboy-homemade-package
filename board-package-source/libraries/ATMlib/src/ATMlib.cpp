@@ -292,11 +292,8 @@ static inline const byte *getTrackPointer(byte track) {
 
 
 void ATMsynth::play(const byte *song) {
-  TIMSK4 = 0b00000000;// ensure interrupt is disabled
+  stop();
   cia_count = 1;
-  // cleanUp stuff first
-  memset(channel, 0, sizeof(channel));
-  ChannelActiveMute = 0b11110000;
 
   // Initializes ATMsynth
   // Sets sample rate and tick rate
@@ -324,7 +321,7 @@ void ATMsynth::play(const byte *song) {
   // Store track pointer
   trackBase = (song += (trackCount << 1)) + 4;
   // Fetch starting points for each track
-  for (unsigned n = 0; n < 4; n++) {
+  for (byte n = 0; n < 4; n++) {
     channel[n].ptr = getTrackPointer(pgm_read_byte(song++));
   }
   TIMSK4 = 0b00000100;// enable interrupt as last
@@ -603,8 +600,7 @@ void ATM_playroutine() {
       }
       else
       {
-        memset(channel, 0, sizeof(channel));
-        TIMSK4 = 0; // Disable interrupt
+        ATMsynth::stop();
       }
     }
   }
