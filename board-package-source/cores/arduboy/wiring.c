@@ -20,8 +20,6 @@
   Boston, MA  02111-1307  USA
 */
 
-#define ARDUBOY_CORE_WIRING_C
-
 #include "wiring_private.h"
 
 // the prescaler is set so that timer0 ticks every 64 clock cycles, and the
@@ -42,189 +40,148 @@ volatile unsigned long timer0_millis = 0;
 static   unsigned char timer0_fract = 0;
 
 volatile unsigned char button_ticks_hold = 0;
-volatile unsigned char button_ticks_now  = 0;
-volatile unsigned char button_ticks_last = 0;
-volatile unsigned char bootloader_timer  = 0;
 
 #if defined(TIM0_OVF_vect)
-ISR(TIM0_OVF_vect)
+ISR(TIM0_OVF_vect, ISR_NAKED)
 #else
 ISR(TIMER0_OVF_vect, ISR_NAKED)
 #endif
 {
-    // copy these to local variables so they can be stored in registers
-    // (volatile variables must be read from memory on every access)
-/*
-    unsigned long m = timer0_millis;
-    unsigned char f = timer0_fract;
+/*  
+	// copy these to local variables so they can be stored in registers
+	// (volatile variables must be read from memory on every access)
+	unsigned long m = timer0_millis;
+	unsigned char f = timer0_fract;
 
-    m += MILLIS_INC;
-    f += FRACT_INC;
-    if (f >= FRACT_MAX) {
-        f -= FRACT_MAX;
-        m += 1;
-    }
+	m += MILLIS_INC;
+	f += FRACT_INC;
+	if (f >= FRACT_MAX) {
+		f -= FRACT_MAX;
+		m += 1;
+	}
+	timer0_fract = f;
+	timer0_millis = m;
+	timer0_overflow_count++;
+    
+    assembly optimisation saves 46 bytes compared to compiled C++ version
+    by adding arduboy button combo code takes 8 bytes more than C++ version
+    3 bytes ram saved (1 byte used extra for button_ticks_hold but 4 bytes
+    saved due to less stack pushes)
+*/
+    asm volatile(
+      // save registers and SREG before 12622 after 12576 (saving 46 bytes)
+      "    push r0                      \n"
+      "    in   r0, __SREG__            \n"
+      "    push r24                     \n"
+      "    push r25                     \n"
+      "    push r30                     \n"
+      "    push r31                     \n"
+      "    ldi  r25, - %[millis_inc]    \n" // millis_inc = MILLIS_INC;
+      "    lds  r24, %[fract]           \n" // f= timer0_fract;
+      "    subi r24, - %[fract_inc]     \n" // f += FRACT_INC;
+      "    cpi  r24, %[fract_max]       \n" // if (f >= FRACT_MAX)
+      "    brcs 1f                      \n" // {
 
-    timer0_fract = f;
-    timer0_millis = m;
-    timer0_overflow_count++;
-*/  
-    // save registers and SREG
-    asm volatile(
-      "    push r16                     \n\t"
-      "    in   r16, __SREG__           \n\t"
-      "    push r16                     \n\t" //use as more functional temp reg
-      "    push r1                      \n\t"
-      "    clr  r1                      \n\t" //zero reg
-      "    push r24                     \n\t"
-      "    push r25                     \n\t"
-      "    push r30                     \n\t"
-      "    push r31                     \n\t"
-    );
-    asm volatile(
-      "    lds  r24, %[fract]           \n\t" // f= timer0_fract;
-      "    ldi  r25, %[millis_inc]      \n\t" // millis_inc = MILLIS_INC;
-      "    subi r24, %[fract_inc]       \n\t" // f += FRACT_INC;
-      "    cpi  r24, %[fract_max]       \n\t" // if (f >= FRACT_MAX) {
-      "    brcs 1f                      \n\t" 
-      
-      "    subi r24, %[fract_max]       \n\t" // f -= FRACT_MAX;
-      "    inc  r25                     \n\t" // millis_inc++ }
-      "1:                               \n\t"
-      "    sts  %[fract], r24           \n\t" // timer0_fract = f;
-      "    ld   r24, z                  \n\t" //timer0_millis += millis_inc
-      "    add  r24, r25                \n\t"
-      "    st   z, r24                  \n\t"
-      "    ldd  r25, z+1                \n\t" 
-      "    adc  r25, r1                 \n\t" 
-      "    std  z+1, r25                \n\t" // r25 = (millis >>8)
-      "    ldd  r16, z+2                \n\t"  
-      "    adc  r16, r1                 \n\t" 
-      "    std  z+2, r16                \n\t" // r16 = (millis >>16)
-      "    ldd  r24, z+3                \n\t" 
-      "    adc  r24, r1                 \n\t"  
-      "    std  z+3, r24                \n\t"
-      
-      "    eor  r16, r25                \n\t" //button_ticks_now = (millis >> 12)
-      "    andi r16, 0x0F               \n\t"
-      "    eor  r16, r25                \n\t"
-      "    swap r16                     \n\t"
-      "    sts  %[buttons_now], r16     \n\t"
-      : 
-      : [millis]      "z" (&timer0_millis),
-        [fract]       ""  (&timer0_fract),
-        [buttons_now] ""  (&button_ticks_now),
-        [millis_inc]  "M" (MILLIS_INC),
-        [fract_inc]   "M" (256 - FRACT_INC), // negated for subi instruction
-        [fract_max]   "M" (FRACT_MAX)
-      : 
-    );
-    //Arduboy bootloader and reset button feature
-    asm volatile (
-      "    rcall scan_buttons           \n\t" 
-      "    cpse r24, r1                 \n\t" //if (buttons) button_ticks_last = (uint8_t)(Millis >> 12)
-      "    sts  %[apd], r16             \n\t" 
-#ifdef     AB_DEVKIT  
-      "    cpi	r24, 0x50	            \n\t" // test DevKit UP+DOWN for bootloader
-#else
-      "    cpi	r24, 0x90	            \n\t" // test arduboy UP+DOWN for bootloader
-#endif      
-      "    brne 5f                      \n\t" 
-      "2:  lds  r16, %[hold]            \n\t" 
-      "    sub  r25, r16                \n\t" // (uint8_t)(timer0_millis >> 8) - button_ticks_last
-      "    cpi  r25, 6                  \n\t" 
-      "    brcs 6f                      \n\t" // if ((millis - hold) >= 6) {
-      "3:  ldi	r24, 0x77               \n\t" 
-      "    sts	0x800, r24              \n\t" 
-      "    sts	0x801, r24              \n\t" 
-      "    ldi	r24, %[value1]          \n\t" 
-      "    ldi	r25, %[value2]          \n\t" 
-      "    sts   %[wdtcsr], r24         \n\t" 
-      "    sts   %[wdtcsr], r25         \n\t" 
-      "    rjmp .-2                     \n\t" // }
-      "5:                               \n\t"
-      "    sts  %[hold], r25            \n\t" //button_ticks_hold = (uint8_t)(Millis >> 8)
-      "6:                               \n\t"
-      "    lds  r24, %[btimer]          \n\t" //if (bootloader_timer--) {
-      "    subi r24, 1                  \n\t" 
-      "    brcs 7f                      \n\t"
-      "    sts  %[btimer],r24           \n\t"
-      "    breq 3b                      \n\t" // if (bootloader_timer == 0) runBootLoader;
-      "7:                               \n\t" //}
+      "    subi r24, %[fract_max]       \n" //   f -= FRACT_MAX;
+      "    dec  r25                     \n" //   millis_inc++
+      "1:                               \n" // }
+      "    sts  %[fract], r24           \n" // timer0_fract = f;
+      // timer0_millis += millis_inc (addition by substracting negative value)      
+      "    ldi  r30, lo8(%[millis])     \n"
+      "    ldi  r31, hi8(%[millis])     \n"
+      "    ld   r24, z                  \n" 
+      "    sub  r24, r25                \n" 
+      "    st   z, r24                  \n"
+      "    ldd  r25, z+1                \n" 
+      "    sbci r25, 0xFF               \n" // save (uint8_t)(timer0_millis >> 8) in 25
+      "    std  z+1, r25                \n"
+      "    ldd  r24, z+2                \n"
+      "    sbci r24, 0xFF               \n"
+      "    std  z+2, r24                \n"
+      "    ldd  r24, z+3                \n"
+      "    sbci r24, 0xFF               \n"
+      "    std  z+3, r24                \n"
+    //timer0_overflow_count++;
+      "    ldi  r30, lo8(%[count])      \n"
+      "    ldi  r31, hi8(%[count])      \n"
+      "    ld   r24, z                  \n"
+      "    subi r24, 0xFF               \n" // ++ (addition by substracting negative value)
+      "    st   z, r24                  \n"
+      "    ldd  r24, z+1                \n"
+      "    sbci r24, 0xFF               \n"
+      "    std  z+1, r24                \n"
+      "    ldd  r24, z+2                \n"
+      "    sbci r24, 0xFF               \n"
+      "    std  z+2, r24                \n"
+      "    ldd  r24, z+3                \n"
+      "    sbci r24, 0xFF               \n"
+      "    std  z+3, r24                \n"
+      //read Arduboy buttons      
+#ifdef     AB_DEVKIT
+      "    in	r24, %[pinb]            \n" // down, left, up buttons
+      "    andi r24, 0x8F               \n" 
+      "    sbis %[pinc], 6	            \n" // right button
+      "    andi	r24, 0xFB	            \n" 
+      "    sbis %[pinf], 7	            \n" // A button
+      "    andi	r24, 0xFD	            \n" 
+      "    sbis %[pinf], 6	            \n" // B button
+      "    andi	r24, 0xFE	            \n" 
+      "    cpi	r24, 0xAF	            \n" // test DevKit UP+DOWN for bootloader
+#else      
+      "    in	r24, %[pinf]            \n" // directional buttons
+      "    ori  r24, 0x0F               \n" 
+      "    sbis %[pine], 6	            \n" // A button
+      "    andi	r24, 0xF7	            \n" 
+      "    sbis %[pinb], 4	            \n" // B button
+      "    andi	r24, 0xFB	            \n" 
+      "    cpi	r24, 0x6F	            \n" // test arduboy UP+DOWN for bootloader
+#endif
+      "    brne 5f                      \n" // skip button combo not pressed
+      // test button combo hold long enough
+      "2:  lds  r24, %[hold]            \n" 
+      "    sub  r25, r24                \n" // (uint8_t)(timer0_millis >> 8) - button_ticks_hold
+      "    cpi  r25, 6                  \n" // 1536ms >> 8
+      "    brcs 6f                      \n" // skip not long enough
+      //button combo pressed long enough: trigger bootloader mode 
+      ".global exit_to_bootloader       \n"
+      "exit_to_bootloader:              \n"
+      "3:  ldi	r24, 0x77               \n" //   set bootloader MAGIC KEY
+      "    sts	0x800, r24              \n" 
+      "    sts	0x801, r24              \n" 
+      "    ldi	r24, %[value1]          \n" //   set watchdog timer
+      "    ldi	r25, %[value2]          \n" 
+      "    sts   %[wdtcsr], r24         \n" 
+      "    sts   %[wdtcsr], r25         \n" 
+      "    rjmp .-2                     \n" //   infinite loop will trigger watchdog reset
+      "5:                               \n" // }
+      // reset button_ticks_hold
+      "    sts  %[hold], r25            \n" // button_ticks_hold = (uint8_t)(Millis >> 8)
+      "6:                               \n" 
+      //restore registers and return from interrupt
+      "    pop  r31                     \n"
+      "    pop  r30                     \n"
+      "    pop  r25                     \n"
+      "    pop  r24                     \n"
+      "    out  __SREG__, r0            \n"
+      "    pop  r0                      \n"
+      "    reti                         \n"
       :
-      : [hold]      ""  (&button_ticks_hold),
-        [apd]       ""  (&button_ticks_last),
-        [btimer]    ""  (&bootloader_timer),
+      : [millis]     ""  (&timer0_millis),
+        [fract]      ""  (&timer0_fract),
+        [millis_inc] "M" (MILLIS_INC),
+        [fract_inc]  "M" (FRACT_INC),
+        [fract_max]  "M" (FRACT_MAX),
+        [count]      ""  (&timer0_overflow_count),
+        [hold]      ""  (&button_ticks_hold),
+        [pinf]      "I" (_SFR_IO_ADDR(PINF)),
+        [pine]      "I" (_SFR_IO_ADDR(PINE)),
+        [pinc]      "I" (_SFR_IO_ADDR(PINC)),
+        [pinb]      "I" (_SFR_IO_ADDR(PINB)),
         [value1]    "M" ((uint8_t)(_BV(WDCE) | _BV(WDE))),
         [value2]    "M" ((uint8_t)(_BV(WDE))),                         
         [wdtcsr]    "M" (_SFR_MEM_ADDR(WDTCSR))
-      : 
-    );
-    //timer0_overflow_count++;
-    asm volatile (
-      "    ld   r24, z                  \n\t"  
-      "    ldd  r25, z+1                \n\t"  
-      "    adiw r24, 1                  \n\t"
-      "    st   z, r24                  \n\t"  
-      "    std  z+1, r25                \n\t"  
-      "    ldd  r24, z+2                \n\t"  
-      "    ldd  r25, z+3                \n\t"  
-      "    adc  r24, r1                 \n\t"  
-      "    adc  r25, r1                 \n\t"  
-      "    std  z+2, r24                \n\t"  
-      "    std  z+3, r25                \n\t"  
-    :
-    : "z" (&timer0_overflow_count)
-    );
-    //restore registers and retirn from interrupt
-    asm volatile (
-      "    pop  r31                     \n\t"
-      "    pop  r30                     \n\t"
-      "    pop  r25                     \n\t"
-      "    pop  r24                     \n\t"
-      "    pop  r1                      \n\t"
-      "    pop  r16                     \n\t"  
-      "    out  __SREG__, r16           \n\t"
-      "    pop  r16                     \n\t"
-      "    reti                         \n\t"
-      ".global scan_buttons             \n\t"
-      "scan_buttons:                    \n\t"
-#ifdef     AB_DEVKIT
-      "    in	r24, %[pinb]            \n\t" // down, left, up buttons
-      "    com  r24                     \n\t" 
-      "    andi r24, 0x70               \n\t" 
-      "    sbis %[pinc], 6	            \n\t" // right button
-      "    ori	r24, 0x04	            \n\t" 
-      "    sbis %[pinf], 7	            \n\t" // A button
-      "    ori	r24, 0x02	            \n\t" 
-      "    sbis %[pinf], 6	            \n\t" // B button
-      "    ori	r24, 0x01	            \n\t" 
-#else      
-      "    in	r24, %[pinf]            \n\t" // directional buttons
-      "    com  r24                     \n\t" 
-      "    andi r24, 0xF0               \n\t" 
-      "    sbis %[pine], 6	            \n\t" // A button
-      "    ori	r24, 0x08	            \n\t" 
-      "    sbis %[pinb], 4	            \n\t" // B button
-      "    ori	r24, 0x04	            \n\t" 
-#endif      
-      "    ret          	            \n\t" // Z flag set from AND when no button is pressed
       :
-      : [pinf]      "I" (_SFR_IO_ADDR(PINF)),
-        [pine]      "I" (_SFR_IO_ADDR(PINE)),
-        [pinc]      "I" (_SFR_IO_ADDR(PINC)),
-        [pinb]      "I" (_SFR_IO_ADDR(PINB))
     );
-}
-
-unsigned char buttonsIdleTime()
-{
-  return button_ticks_now - button_ticks_last;
-}
-
-unsigned char millisChar()
-{
-  return *(unsigned char*)&timer0_millis;
 }
 
 unsigned long millis()
@@ -428,9 +385,9 @@ void delayMicroseconds(unsigned int us)
     // for a one-microsecond delay, simply return.  the overhead
     // of the function call takes 18 (20) cycles, which is 1us
     __asm__ __volatile__ (
-        "nop" "\n\t"
-        "nop" "\n\t"
-        "nop" "\n\t"
+        "nop" "\n"
+        "nop" "\n"
+        "nop" "\n"
         "nop"); //just waiting 4 cycles
     if (us <= 1) return; //  = 3 cycles, (4 when true)
 
@@ -514,7 +471,7 @@ void delayMicroseconds(unsigned int us)
 
     // busy wait
     __asm__ __volatile__ (
-        "1: sbiw %0,1" "\n\t" // 2 cycles
+        "1: sbiw %0,1" "\n" // 2 cycles
         "brne 1b" : "=w" (us) : "0" (us) // 2 cycles
     );
     // return = 4 cycles
@@ -533,8 +490,8 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR0A, WGM01);
     //sbi(TCCR0A, WGM00);
   asm volatile(
-      "    ldi  r24, %[value]           \n\t"          
-      "    out  %[tccr0a], r24          \n\t"          
+      "    ldi  r24, %[value]           \n"          
+      "    out  %[tccr0a], r24          \n"          
       :
       : [tccr0a] "I" (_SFR_IO_ADDR(TCCR0A)),
         [value]  "M" (_BV(WGM01) | _BV(WGM00))
@@ -555,8 +512,8 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR0B, CS01);
     //sbi(TCCR0B, CS00);
     asm volatile(
-      "    ldi  r24, %[value]           \n\t"          
-      "    out  %[tccr0b], r24          \n\t"          
+      "    ldi  r24, %[value]           \n"          
+      "    out  %[tccr0b], r24          \n"          
       :
       : [tccr0b] "I" (_SFR_IO_ADDR(TCCR0B)),
         [value]   "M" (_BV(CS01) | _BV(CS00))
@@ -593,10 +550,10 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR1B, CS10);
 //#endif    
     asm volatile(
-      "    ldi  r30, %[tccr1b]          \n\t"          
-      "    ldi  r31, 0x00               \n\t"          
-      "    ldi  r24, %[value]           \n\t"          
-      "    st   z, r24                  \n\t"          
+      "    ldi  r30, %[tccr1b]          \n"          
+      "    ldi  r31, 0x00               \n"          
+      "    ldi  r24, %[value]           \n"          
+      "    st   z, r24                  \n"          
       :
       : [tccr1b] "M" (_SFR_MEM_ADDR(TCCR1B)),
 #if F_CPU >= 8000000L
@@ -617,9 +574,9 @@ void init() //assembly optimized by 68 bytes
 #if defined(TCCR1A) && defined(WGM10)
     //sbi(TCCR1A, WGM10);
     asm volatile(
-      "    ldi  r30, %[tccr1a]          \n\t"          
-      "    ldi  r24, %[wgm10]           \n\t"          
-      "    st   z, r24                  \n\t"          
+      "    ldi  r30, %[tccr1a]          \n"          
+      "    ldi  r24, %[wgm10]           \n"          
+      "    st   z, r24                  \n"          
       :
       : [tccr1a] "M" (_SFR_MEM_ADDR(TCCR1A)),
         [wgm10]  "M" (_BV(WGM10))
@@ -649,9 +606,9 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR3B, CS31);      // set timer 3 prescale factor to 64
     //sbi(TCCR3B, CS30);
     asm volatile(
-      "    ldi  r30, %[tccr3b]          \n\t"          
-      "    ldi  r24, %[value]           \n\t"          
-      "    st   z, r24                  \n\t"          
+      "    ldi  r30, %[tccr3b]          \n"          
+      "    ldi  r24, %[value]           \n"          
+      "    st   z, r24                  \n"          
       :
       : [tccr3b] "M" (_SFR_MEM_ADDR(TCCR3B)),
         [value]  "M" (_BV(CS31) | _BV(CS30))
@@ -659,9 +616,9 @@ void init() //assembly optimized by 68 bytes
     );
     //sbi(TCCR3A, WGM30);     // put timer 3 in 8-bit phase correct pwm mode
     asm volatile(
-      "    ldi  r30, %[tccr3a]          \n\t"          
-      "    ldi  r24, %[wgm30]            \n\t"          
-      "    st   z, r24                  \n\t"          
+      "    ldi  r30, %[tccr3a]          \n"          
+      "    ldi  r24, %[wgm30]           \n"          
+      "    st   z, r24                  \n"          
       :
       : [tccr3a] "M" (_SFR_MEM_ADDR(TCCR3A)),
         [wgm30]  "M" (_BV(WGM30))
@@ -674,9 +631,9 @@ void init() //assembly optimized by 68 bytes
     //sbi(TCCR4B, CS41);
     //sbi(TCCR4B, CS40);
     asm volatile(
-      "    ldi  r30, %[tccr4b]          \n\t"          
-      "    ldi  r24, %[value]           \n\t"          
-      "    st   z, r24                  \n\t"          
+      "    ldi  r30, %[tccr4b]          \n"          
+      "    ldi  r24, %[value]           \n"          
+      "    st   z, r24                  \n"          
       :
       : [tccr4b] "M" (_SFR_MEM_ADDR(TCCR4B)),
         [value]  "M" (_BV(CS42) | _BV(CS41) | _BV(CS40))
@@ -684,9 +641,9 @@ void init() //assembly optimized by 68 bytes
     );
     //sbi(TCCR4D, WGM40);     // put timer 4 in phase- and frequency-correct PWM mode 
     asm volatile(
-      "    ldi  r30, %[tccr4d]          \n\t"          
-      "    ldi  r24, %[wgm40]           \n\t"          
-      "    st   z, r24                  \n\t"          
+      "    ldi  r30, %[tccr4d]          \n"          
+      "    ldi  r24, %[wgm40]           \n"          
+      "    st   z, r24                  \n"          
       :
       : [tccr4d] "M" (_SFR_MEM_ADDR(TCCR4D)),
         [wgm40]  "M" (_BV(WGM40))
@@ -694,9 +651,9 @@ void init() //assembly optimized by 68 bytes
     );
     //sbi(TCCR4A, PWM4A);     // enable PWM mode for comparator OCR4A
     asm volatile(
-      "    ldi  r30, %[tccr4a]          \n\t"          
-      "    ldi  r24, %[pwm4a]           \n\t"          
-      "    st   z, r24                  \n\t"          
+      "    ldi  r30, %[tccr4a]          \n"          
+      "    ldi  r24, %[pwm4a]           \n"          
+      "    st   z, r24                  \n"          
       :
       : [tccr4a] "M" (_SFR_MEM_ADDR(TCCR4A)),
         [pwm4a]  "M" (_BV(PWM4A))
@@ -704,9 +661,9 @@ void init() //assembly optimized by 68 bytes
     );
     //sbi(TCCR4C, PWM4D);     // enable PWM mode for comparator OCR4D
     asm volatile(
-      "    ldi  r30, %[tccr4c]          \n\t"          
-      "    ldi  r24, %[value]           \n\t"          
-      "    st   z, r24                  \n\t"          
+      "    ldi  r30, %[tccr4c]          \n"          
+      "    ldi  r24, %[value]           \n"          
+      "    st   z, r24                  \n"          
       :
       : [tccr4c] "M" (_SFR_MEM_ADDR(TCCR4C)),
         [value]  "M" (_BV(PWM4D))
@@ -733,9 +690,9 @@ void init() //assembly optimized by 68 bytes
         //sbi(ADCSRA, ADPS1);
         //sbi(ADCSRA, ADPS0);
         asm volatile(
-          "    ldi  r30, %[adcsra]          \n\t"          
-          "    ldi  r24, %[value]           \n\t"          
-          "    st   z, r24                  \n\t"          
+          "    ldi  r30, %[adcsra]      \n"          
+          "    ldi  r24, %[value]       \n"          
+          "    st   z, r24              \n"          
           :
           : [adcsra] "M" (_SFR_MEM_ADDR(ADCSRA)),
             [value]  "M" (_BV(ADPS2) |_BV(ADPS1) | _BV(ADPS0))
@@ -746,9 +703,9 @@ void init() //assembly optimized by 68 bytes
         //sbi(ADCSRA, ADPS1);
         //cbi(ADCSRA, ADPS0);
         asm volatile(
-          "    ldi  r30, %[adcsra]          \n\t"          
-          "    ldi  r24, %[value]           \n\t"          
-          "    st   z, r24                  \n\t"          
+          "    ldi  r30, %[adcsra]      \n"          
+          "    ldi  r24, %[value]       \n"          
+          "    st   z, r24              \n"          
           :
           : [adcsra] "M" (_SFR_MEM_ADDR(ADCSRA)),
             [value]  "M" (_BV(ADPS2) | _BV(ADPS1))
@@ -774,14 +731,14 @@ void init() //assembly optimized by 68 bytes
     // enable a2d conversions
     //sbi(ADCSRA, ADEN);
         asm volatile(
-          "    ori  r24, %[aden]            \n\t" 
-          "    st   z, r24                  \n\t"          
+          "    ori  r24, %[aden]        \n" 
+          "    st   z, r24              \n"          
           :
           : [aden] "M" (_BV(ADEN))
           : "r24", "r30", "r31"
         );
 #endif
-
+    //(below not relevant for atmega32u4)
     // the bootloader connects pins 0 and 1 to the USART; disconnect them
     // here so they can be used as normal digital i/o; they will be
     // reconnected in Serial.begin()
