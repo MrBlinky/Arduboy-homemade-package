@@ -20,6 +20,7 @@ Tinyfont::Tinyfont(uint8_t *screenBuffer, int16_t width, int16_t height){
 }
 
 size_t Tinyfont::write(uint8_t c) {
+  // check \n
   if(c == '\n'){
     cursorX = baseX; // cr
     cursorY += lineHeight; // lf
@@ -27,11 +28,6 @@ size_t Tinyfont::write(uint8_t c) {
   // check for tab
   else if(c == '\t'){
     cursorX += TINYFONT_WIDTH + 5;
-  }
-  // check \n
-  else if (c == '\n') {
-    cursorX = baseX;
-    cursorY += lineHeight;
   }
   else{
     // draw char
@@ -48,7 +44,7 @@ void Tinyfont::printChar(char c, int16_t x, int16_t y)
     return;
 
   // check if char is available
-  if (((uint8_t) c) < 32 || ((uint8_t) c) > 255) c = (char)127;
+  if (((uint8_t) c) < 32 || ((uint8_t) c) > 127) c = (char)127;
 
   uint8_t cval = ((uint8_t) c) - 32;
 
