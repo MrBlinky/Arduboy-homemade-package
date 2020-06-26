@@ -13,8 +13,13 @@ const uint8_t PROGMEM lcdBootProgram[] = {
   // might prove useful for reference
   //
   // Further reading: https://www.adafruit.com/datasheets/SSD1306.pdf
-
-#if defined(OLED_SH1106)
+  
+#if defined(GU12864_800B)
+  0x24, 0x40,                   // enable Layer 0, graphic display area on
+  0x47,                         // set brightness
+  0x64, 0x00,                   // set x position 0
+  0x84,                         // address mode set: X increment
+#elif defined(OLED_SH1106)
   0x8D, 0x14,                   // Charge Pump Setting v = enable (0x14)
   0xA1,                         // Set Segment Re-map
   0xC8,                         // Set COM Output Scan Direction
@@ -321,7 +326,25 @@ void Arduboy2Core::bootPins()
 
 void Arduboy2Core::bootOLED()
 {
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(GU12864_800B)
+  bitSet(RST_PORT,RST_BIT);
+  delayShort(10);
+  displayEnable();
+  for (uint8_t i = 0; i < sizeof(lcdBootProgram) + 8; i++)
+  {
+    if (i < 8)    
+    {
+      displayWrite(0x62); // set display area
+      displayWrite(i);    // display area address
+      LCDDataMode();     
+      displayWrite(0xFF); // Graphic display
+      LCDCommandMode();
+    }
+    else 
+      displayWrite(pgm_read_byte(lcdBootProgram + i - 8));
+  }
+  displayDisable();
+#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
   i2c_start(SSD1306_I2C_CMD);
   for (uint8_t i = 0; i < sizeof(lcdBootProgram); i++)
     i2c_sendByte(pgm_read_byte(lcdBootProgram + i));
@@ -476,10 +499,38 @@ void Arduboy2Core::bootPowerSaving()
   PRR1 = _BV(PRUSART1);
 }
 
+#if defined(GU12864_800B)
+void Arduboy2Core::displayEnable()
+{
+  bitSet(CS_PORT,CS_BIT);
+  SPCR = _BV(SPE) | _BV(MSTR) | _BV(CPOL) | _BV(CPHA);
+  //bitClear(CS_PORT,CS_BIT);
+  LCDCommandMode();
+}
+
+void Arduboy2Core::displayDisable()
+{
+  //bitSet(CS_PORT,CS_BIT);
+  SPCR = _BV(SPE) | _BV(MSTR);
+}
+
+void Arduboy2Core::displayWrite(uint8_t data)
+{
+  bitClear(CS_PORT,CS_BIT);
+  SPItransfer(data);
+  bitSet(CS_PORT,CS_BIT);
+}
+#endif
+
 // Shut down the display
 void Arduboy2Core::displayOff()
 {
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(GU12864_800B)
+  displayEnable();
+  displayWrite(0x20);
+  displayWrite(0x00);
+  displayDisable();
+#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
   i2c_start(SSD1306_I2C_CMD);    
   i2c_sendByte(0xAE); // display off
   i2c_sendByte(0x8D); // charge pump:
@@ -519,7 +570,24 @@ void Arduboy2Core::paint8Pixels(uint8_t pixels)
 
 void Arduboy2Core::paintScreen(const uint8_t *image)
 {
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(GU12864_800B) 
+  displayEnable();
+  for (uint8_t r = 0; r < (HEIGHT/8); r++)
+  {
+    LCDCommandMode();
+    displayWrite(0x60);
+    displayWrite(r);
+    LCDDataMode();
+    for (uint8_t c = 0; c < (WIDTH); c++)
+    {
+      bitClear(CS_PORT,CS_BIT);
+      SPDR = pgm_read_byte(image++);
+      while (!(SPSR & _BV(SPIF)));
+      bitSet(CS_PORT,CS_BIT);
+    }
+  }
+  displayDisable();
+#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
   i2c_start(SSD1306_I2C_DATA);
   for (int i = 0; i < (HEIGHT * WIDTH) / 8; i++)
     i2c_sendByte(pgm_read_byte(image+i));
@@ -599,7 +667,30 @@ void Arduboy2Core::paintScreen(const uint8_t *image)
 // will be used by any buffer based subclass
 void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 {
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(GU12864_800B) 
+  displayEnable();
+  for (uint8_t r = 0; r < (HEIGHT/8); r++)
+  {
+    LCDCommandMode();
+    displayWrite(0x60);
+    displayWrite(r);
+    LCDDataMode();
+    for (uint8_t c = 0; c < (WIDTH); c++)
+    {
+      bitClear(CS_PORT,CS_BIT);
+      if (clear)
+      {
+        SPDR = *image; // set the first SPI data byte to get things started
+        *(image++) = 0;  // clear the first image byte
+      }
+      else
+        SPDR = *(image++);
+      while (!(SPSR & _BV(SPIF)));
+      bitSet(CS_PORT,CS_BIT);
+    }
+  }
+  displayDisable();
+#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
   uint16_t length = WIDTH * HEIGHT / 8;
   uint8_t sda_clr = I2C_PORT & ~((1 << I2C_SDA) | (1 << I2C_SCL));
   uint8_t scl = 1 << I2C_SCL;
@@ -957,7 +1048,7 @@ void Arduboy2Core::sendLCDCommand(uint8_t command)
   i2c_start(SSD1306_I2C_CMD);
   i2c_sendByte(command);
   i2c_stop();
-#else
+#else if !defined GU12864_800B 
   LCDCommandMode();
   SPItransfer(command);
   LCDDataMode();
@@ -968,26 +1059,57 @@ void Arduboy2Core::sendLCDCommand(uint8_t command)
 // when inverted, a pixel set to 0 will be on
 void Arduboy2Core::invert(bool inverse)
 {
+ #if defined(GU12864_800B)
+  displayEnable();
+  displayWrite(0x24);
+  if (inverse) displayWrite(0x50);
+  else displayWrite(0x40);
+  LCDDataMode();
+  displayDisable();
+ #else
   sendLCDCommand(inverse ? OLED_PIXELS_INVERTED : OLED_PIXELS_NORMAL);
+ #endif
 }
 
 // turn all display pixels on, ignoring buffer contents
 // or set to normal buffer display
 void Arduboy2Core::allPixelsOn(bool on)
 {
+ #if defined(GU12864_800B)
+  displayEnable();
+  if (on) 
+  {
+    displayWrite(0x20);
+    displayWrite(0x50);
+  }
+  else 
+    displayWrite(0x24);
+    displayWrite(0x40);
+  LCDDataMode();
+  displayDisable();
+ #else
   sendLCDCommand(on ? OLED_ALL_PIXELS_ON : OLED_PIXELS_FROM_RAM);
+ #endif  
 }
 
 // flip the display vertically or set to normal
 void Arduboy2Core::flipVertical(bool flipped)
 {
+ #ifdef GU12864_800B 
+  //not available
+ #else
   sendLCDCommand(flipped ? OLED_VERTICAL_FLIPPED : OLED_VERTICAL_NORMAL);
+ #endif
 }
 
 // flip the display horizontally or set to normal
 void Arduboy2Core::flipHorizontal(bool flipped)
 {
+ #ifdef GU12864_800B 
+  //not available
+ #else
   sendLCDCommand(flipped ? OLED_HORIZ_FLIPPED : OLED_HORIZ_NORMAL);
+ #endif
 }
 
 /* RGB LED */
@@ -1201,9 +1323,9 @@ void Arduboy2Core::digitalWriteRGB(uint8_t color, uint8_t val)
 
 uint8_t Arduboy2Core::buttonsState()
 {
-#ifndef ARDUBOY_CORE
   uint8_t buttons;
- #ifdef ARDUBOY_10
+
+#ifdef ARDUBOY_10
   // up, right, left, down
   buttons = ((~PINF) &
               (_BV(UP_BUTTON_BIT) | _BV(RIGHT_BUTTON_BIT) |
@@ -1222,11 +1344,8 @@ uint8_t Arduboy2Core::buttonsState()
   if (bitRead(A_BUTTON_PORTIN, A_BUTTON_BIT) == 0) { buttons |= A_BUTTON; }
   // B
   if (bitRead(B_BUTTON_PORTIN, B_BUTTON_BIT) == 0) { buttons |= B_BUTTON; }
- #endif
-#else
-  register uint8_t buttons asm("r24");
-  asm volatile("call scan_buttons\n\t" : "=d" (buttons));
-#endif  
+#endif
+
   return buttons;
 }
 
@@ -1242,8 +1361,10 @@ void Arduboy2Core::delayShort(uint16_t ms)
 
 void Arduboy2Core::exitToBootloader()
 {
-#ifndef ARDUBOY_CORE
   cli();
+ #ifdef ARDUBOY_CORE
+  asm volatile ("jmp exit_to_bootloader");
+ #else
   // set bootloader magic key
   // storing two uint8_t instead of one uint16_t saves an instruction
   //  when high and low bytes of the magic key are the same
@@ -1254,10 +1375,7 @@ void Arduboy2Core::exitToBootloader()
   WDTCSR = (_BV(WDCE) | _BV(WDE));
   WDTCSR = _BV(WDE);
   while (true) { }
-#else
-  bootloader_timer = 120; //ms
-  while (true) { }
-#endif
+ #endif
 }
 
 // Replacement main() that eliminates the USB stack code.

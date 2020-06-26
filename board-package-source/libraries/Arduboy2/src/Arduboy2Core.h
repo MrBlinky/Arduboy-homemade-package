@@ -61,6 +61,9 @@ extern volatile unsigned char bootloader_timer;
  #define DC_BIT PORTD4   // Display D/C physical bit number
 
 #ifdef CART_CS_SDA
+ #ifdef AB_ALTERNATE_WIRING
+  #error SDA can not be used as flash chip select when using Pro Micro alternate wiring. Use RX instead.
+ #endif
  #define PIN_CART 2        // SDA as alternative flash cart chip select
  #define CART_BIT PORTD1
 #else
@@ -462,7 +465,11 @@ class Arduboy2Core
      */
     void static inline LCDDataMode() __attribute__((always_inline))
     {
+     #if defined(GU12864_800B)
+      bitClear(DC_PORT, DC_BIT);
+     #else
       bitSet(DC_PORT, DC_BIT);
+     #endif
     }
     /** \brief
      * Put the display into command mode.
@@ -488,7 +495,11 @@ class Arduboy2Core
      */
     void static inline LCDCommandMode() __attribute__((always_inline))
     {
+     #ifdef GU12864_800B
+      bitSet(DC_PORT, DC_BIT);
+     #else
       bitClear(DC_PORT, DC_BIT);
+     #endif
     }
     /** \brief
      * Transfer a byte to the display.
@@ -972,6 +983,12 @@ class Arduboy2Core
     void static bootOLED();
     void static bootPins();
     void static bootPowerSaving();
+#if defined(GU12864_800B)
+    void static displayWrite(uint8_t d);
+    void static displayEnable();
+    void static displayDisable();
+#endif
+    
 };
 
 #endif

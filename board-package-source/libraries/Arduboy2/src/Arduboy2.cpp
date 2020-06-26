@@ -8,31 +8,11 @@
 #include "ab_logo.c"
 #include "glcdfont.c"
 
-//================================
-//========== class Rect ==========
-//================================
-
-Rect::Rect(int16_t x, int16_t y, uint8_t width, uint8_t height)
- : x(x), y(y), width(width), height(height)
-{
-}
-
-//=================================
-//========== class Point ==========
-//=================================
-
-Point::Point(int16_t x, int16_t y)
- : x(x), y(y)
-{
-}
-
 //========================================
 //========== class Arduboy2Base ==========
 //========================================
 
 uint8_t Arduboy2Base::sBuffer[];
-
-uint8_t Arduboy2Base::batteryLow = EEPROM.read(EEPROM_BATTERY_LOW); //Low battery bandgap value - 192  
 
 Arduboy2Base::Arduboy2Base()
 {
@@ -78,16 +58,17 @@ void Arduboy2Base::flashlight()
   if (!pressed(UP_BUTTON)) {
     return;
   }
-
+ #ifdef GU12864_800B
+  allPixelsOn(true);
+ #else
   sendLCDCommand(OLED_ALL_PIXELS_ON); // smaller than allPixelsOn()
+ #endif
   digitalWriteRGB(RGB_ON, RGB_ON, RGB_ON);
 
-#ifndef ARDUBOY_CORE // for Arduboy core timer 0 should remain enabled
   // prevent the bootloader magic number from being overwritten by timer 0
   // when a timer variable overlaps the magic number location, for when
   // flashlight mode is used for upload problem recovery
   power_timer0_disable();
-#endif
 
   while (true) {
     idle();
@@ -267,11 +248,7 @@ bool Arduboy2Base::everyXFrames(uint8_t frames)
 
 bool Arduboy2Base::nextFrame()
 {
-#ifdef ARDUBOY_CORE
-  uint8_t now = millisChar();
-#else
-  uint8_t now = (uint8_t) millis();
-#endif
+  uint8_t now = (uint8_t) timer0_millis;
   uint8_t frameDurationMs = now - thisFrameStart;
 
   if (justRendered) {
@@ -867,7 +844,7 @@ void Arduboy2Base::drawBitmap
  uint8_t color)
 {
   // no need to draw at all if we're offscreen
-  if (x+w < 0 || x > WIDTH-1 || y+h < 0 || y > HEIGHT-1)
+  if (x+w <= 0 || x > WIDTH-1 || y+h <= 0 || y > HEIGHT-1)
     return;
 
   int8_t yOffset = y & 7;
@@ -1200,88 +1177,6 @@ void Arduboy2Base::swap(int16_t& a, int16_t& b)
   b = temp;
 }
 
-uint8_t Arduboy2Base::checkBatteryState()
-{
-  uint8_t state = BATTERY_STATE_INVALID;
-  asm volatile (
-    "   ldi     r30, lo8(%[prr0])   \n" // if (bit_is_set(PRR0,PRADC)) //ADC power off
-    "   ldi     r31, hi8(%[prr0])   \n" // {
-    "   ld      r24, z              \n"    
-    "   lds     r25, %[adcsra]      \n"    
-    "   sbrs	r24, %[pradc]       \n"    
-    "   rjmp    1f                  \n"    
-    "                               \n"    
-    "   andi    r24, ~(1<<%[pradc]) \n" //   PRR0 &= ~_BV(PRADC); // ADC power on
-    "   st      z, r24              \n"    
-    "   ldi     r24, %[admuxval]    \n" //   ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1)
-    "   sts     %[admux], r24       \n"    
-    "   ori     r25, 1<<%[adsc]     \n" //   ADCSRA |= _BV(ADSC) //start conversion
-    "   sts     %[adcsra], r25      \n" // }
-    "   ;rjmp   2f                  \n" // bit is set so continue below to jump to 2f
-    "1:                             \n" 
-    "   sbrc	r25, %[adsc]        \n" // else if (!(ADCSRA & _BV(ADSC)) //ADC conversion ready
-    "   rjmp    2f                  \n" // {
-    "                               \n"
-    "   ori     r24, 1<<%[pradc]    \n" //   PRR0 |= _BV(PRADC); // ADC power off
-    "   st      z, r24              \n"
-    "   ldi     r30, %[adcl]        \n" //   uint16_t bandgap = ADCL | (ADCH << 8);
-    "   ld      r24, z+             \n"
-    "   ld      r25, z              \n"
-    "   subi    r24, 192            \n" //   bandgap -= 192;
-    "   sbci    r25, 0              \n"
-    "   and     r25, r25            \n" //   if (bandgap < 256)
-    "   brne    2f                  \n" //   {
-    "                               \n"
-    "   ldi     %[state],%[normal]  \n" //     state = BATTERY_STATE_NORMAL;
-    "   lds     r25, %[battlow]     \n"
-    "   cp      r25, r24            \n"
-    "   brcc    2f                  \n" //     if (batteryLow < bandgap) state = BATTERY_STATE_LOW;
-    "   ldi     %[state],%[low]     \n" //   }
-    "2:                             \n" // }
-    :[state]    "+d"(state)
-    :[prr0]     "M" (_SFR_MEM_ADDR(PRR0)),
-     [adcsra]   "M" (_SFR_MEM_ADDR(ADCSRA)),
-     [pradc]    "I" (PRADC),
-     [admuxval] "M" (_BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1)),
-     [admux]    "M" (_SFR_MEM_ADDR(ADMUX)),
-     [adsc]     "I" (ADSC),
-     [adcl]     "M" (_SFR_MEM_ADDR(ADCL)),
-     [battlow]  ""  (&batteryLow),
-     [normal]   "I" (BATTERY_STATE_NORMAL),
-     [low]      "I" (BATTERY_STATE_LOW)
-    : "r24", "r25", "r30", "r31"
-  );  
-#if 0  
-// For reference, this is the C++ equivalent
-  uint8_t state = BATTERY_STATE_UNDEFINED;
-  if (bit_is_set(PRR0,PRADC)) //only enable when ADC power is disabled 
-  {
-    PRR0 &= ~_BV(PRADC); // ADC power on
-    ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1); //meassure 1.1V bandgap against AVcc
-    ADCSRA |= _BV(ADSC); //start conversion
-  } 
-  else if (!(ADCSRA & _BV(ADSC)))   
-  {
-    PRR0 |= _BV(PRADC); // ADC power off
-    uint16_t bandgap = ADCL | (ADCH << 8);
-    bandgap -= 192;
-    if (bandgap < 256)
-    {
-      state = BATTERY_STATE_NORMAL;
-      if (batteryLow < (uint8_t)bandgap) state = BATTERY_STATE_LOW;
-    }
-  }
-#endif
-  return state;  
-}
-
-uint8_t Arduboy2Base::checkBatteryStateLED(bool flash)
-{
-    uint8_t state = checkBatteryState();
-    if (state == BATTERY_STATE_NORMAL | flash) TXLED0;
-    if (state == BATTERY_STATE_LOW) TXLED1;
-    return state;
-}
 
 //====================================
 //========== class Arduboy2 ==========

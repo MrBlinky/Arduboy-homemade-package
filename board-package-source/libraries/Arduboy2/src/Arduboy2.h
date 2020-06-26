@@ -41,8 +41,6 @@
 #define EEPROM_VERSION 0
 #define EEPROM_SYS_FLAGS 1
 #define EEPROM_AUDIO_ON_OFF 2
-#define EEPROM_BANDGAP_CAL 6  //Bandgap calibration value
-#define EEPROM_BATTERY_LOW  7 //Battery low threshold
 #define EEPROM_UNIT_ID 8    // A uint16_t binary unit ID
 #define EEPROM_UNIT_NAME 10 // An up to 6 character unit name. Cannot contain
                             // 0x00 or 0xFF. Lengths less than 6 are padded
@@ -89,10 +87,6 @@
 
 #define CLEAR_BUFFER true /**< Value to be passed to `display()` to clear the screen buffer. */
 
-#define BATTERY_STATE_LOW     0
-#define BATTERY_STATE_NORMAL  1
-#define BATTERY_STATE_INVALID 0xFF
-#define FLASH_LED             true
 
 //=============================================
 //========== Rect (rectangle) object ==========
@@ -128,7 +122,10 @@ struct Rect
    * \param width The width of the rectangle. Copied to variable `width`.
    * \param height The height of the rectangle. Copied to variable `height`.
    */
-  Rect(int16_t x, int16_t y, uint8_t width, uint8_t height);
+  constexpr Rect(int16_t x, int16_t y, uint8_t width, uint8_t height)
+    : x(x), y(y), width(width), height(height)
+  {
+  }
 };
 
 //==================================
@@ -159,7 +156,10 @@ struct Point
    * \param x The X coordinate of the point. Copied to variable `x`.
    * \param y The Y coordinate of the point. Copied to variable `y`.
    */
-  Point(int16_t x, int16_t y);
+  constexpr Point(int16_t x, int16_t y)
+    : x(x), y(y)
+  {
+  }
 };
 
 //==================================
@@ -1267,60 +1267,6 @@ class Arduboy2Base : public Arduboy2Core
   void writeShowBootLogoLEDsFlag(bool val);
 
   /** \brief
-   * Returns the battery state.
-   * \details
-   * This function is intended as a method to determine a low battery state
-   *
-   * Returns the following states:
-   * - BATTERY_STATE_LOW The battery low threshold has been reached.
-   * - BATTERY_STATE_NORMAL The battery is considered normal.
-   * - BATTERY_STATE_INVALID The ADC conversion is not ready yet or the
-   *   result is out of range.
-   * 
-   * This fucntion depends on the EEPROM_BATTERY_LOW value been set to the
-   * low batterly bandgap voltage value. The default value (0xFF) will 
-   * disable the EEPROM_BATTERY_LOW state.
-   *
-   * example:
-   * \code{.cpp}
-   * void loop() {
-   *   if (!arduboy.nextFrame()) return;
-   *   if (arduboy.everyXFrames(FRAMERATE) && arduboy.checkBatteryState() == BATTERY_STATE_LOW)
-   *   {
-   *     batteryLowWarning = true;
-   *   }
-   * \endcode
-   *
-   * \see everyXFrames()
-   */
-  uint8_t checkBatteryState();
-  
-  /** \brief
-   * Returns battery state and sets TXLED as a low battery indicator
-   * \param flash defaults to 'false' for no flashing. use 'FLASH_LED' or
-   * `true` for flashing.
-   * \details
-   * This function is intended as a method to determine a low battery state.
-   * The TXLED is used as a battery low indicator. The TXLED will light up 
-   * continiously by default when the battery state is low. The optional 
-   * FLASH_LED parameter can be passed to make the LED toggle on or off on low
-   * battery state.
-   *
-   * This function is a quick way of adding a low battery indicator to a sketch.
-   *
-   * example:
-   * \code{.cpp}
-   * void loop() {
-   *   if (!arduboy.nextFrame()) return;
-   *   //turn TXLED alternately on 1 second and off 1 second when battery is low
-   *   if (arduboy.everyXFrames(FRAMERATE)) checkBatteryStateLED(FLASH_LED);
-   * \endcode
-   *
-   * \see checkBatteryState() everyXFrames()
-   */
-  uint8_t checkBatteryStateLED(bool flash = false);
-  
-  /** \brief
    * A counter which is incremented once per frame.
    *
    * \details
@@ -1369,8 +1315,6 @@ class Arduboy2Base : public Arduboy2Core
    */
   static uint8_t sBuffer[(HEIGHT*WIDTH)/8];
 
-  static uint8_t batteryLow;
-  
  protected:
   // helper function for sound enable/disable system control
   void sysCtrlSound(uint8_t buttons, uint8_t led, uint8_t eeVal);
@@ -1711,6 +1655,8 @@ class Arduboy2 : public Print, public Arduboy2Base
   uint8_t textSize;
   bool textWrap;
 };
+
+extern volatile unsigned long timer0_millis;
 
 #endif
 

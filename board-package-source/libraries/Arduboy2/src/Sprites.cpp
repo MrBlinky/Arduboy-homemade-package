@@ -44,83 +44,84 @@ void Sprites::draw(int16_t x, int16_t y,
   if (bitmap == NULL)
     return;
 
-//  uint8_t width = pgm_read_byte(bitmap);
-//  uint8_t height = pgm_read_byte(++bitmap);
-//  bitmap++;
-//  if (frame > 0 || sprite_frame > 0) {
-//    frame_offset = (width * ( height / 8 + ( height % 8 == 0 ? 0 : 1)));
-//    // sprite plus mask uses twice as much space for each frame
-//    if (drawMode == SPRITE_PLUS_MASK) {
-//      frame_offset *= 2;
-//    } else if (mask != NULL) {
-//      mask += sprite_frame * frame_offset;
-//    }
-//    bitmap += frame * frame_offset;
-//  }
-//  // if we're detecting the draw mode then base it on whether a mask
-//  // was passed as a separate object
-//  if (drawMode == SPRITE_AUTO_MODE) {
-//    drawMode = mask == NULL ? SPRITE_UNMASKED : SPRITE_MASKED;
-//  }
+  uint8_t width = pgm_read_byte(bitmap);
+  uint8_t height = pgm_read_byte(++bitmap);
+  bitmap++;
+  if (frame > 0 || sprite_frame > 0) {
+    frame_offset = (width * ( height / 8 + ( height % 8 == 0 ? 0 : 1)));
+    // sprite plus mask uses twice as much space for each frame
+    if (drawMode == SPRITE_PLUS_MASK) {
+      frame_offset *= 2;
+    } else if (mask != NULL) {
+      mask += sprite_frame * frame_offset;
+    }
+    bitmap += frame * frame_offset;
+  }
+
+  // if we're detecting the draw mode then base it on whether a mask
+  // was passed as a separate object
+  if (drawMode == SPRITE_AUTO_MODE) {
+    drawMode = mask == NULL ? SPRITE_UNMASKED : SPRITE_MASKED;
+  }
   // assembly optimisation of above code saving 20(+) bytes
-  uint8_t width;
-  uint8_t height;
-  asm volatile(
-    "    lpm   %[width], Z+                 \n\t" // width  = pgm_read_byte(bitmap++);
-    "    lpm   %[height], Z+                \n\t" // height = pgm_read_byte(bitmap++);
-    "    cp    %[frame], __zero_reg__       \n\t" // if (frame > 0 || sprite_frame > 0)
-    "    brne  1f                           \n\t" 
-    "    cp    %[spr_frame], __zero_reg__   \n\t" 
-    "    breq  3f                           \n\t" 
-    "1:                                     \n\t" 
-    "    ldi   r20, 7                       \n\t" //rows = ((height+7)
-    "    add   r20, %[height]               \n\t" 
-    "    ror   r20                          \n\t" //include carry for heights > 248
-    "    lsr   r20                          \n\t" //rows = (height+7) / 8
-    "    lsr   r20                          \n\t" 
-    "    cpi   %[mode], %[sprite_plus_mask] \n\t" //if (drawMode == SPRITE_PLUS_MASK) rows *= 2
-    "    brne  2f                           \n\t"
-    "    lsl   r20                          \n\t" 
-    "2:                                     \n\t" 
-    "    mul   r20, %[width]                \n\t" //frame offset = rows * width
-    "    movw  r20, r0                      \n\t" 
-    "    mul   %[frame] , r20               \n\t" 
-    "    add   %A[bitmap], r0               \n\t" //bitmap += frame * (frame offset & 0xFF)
-    "    adc   %B[bitmap], r1               \n\t" 
-    "    mul   %[frame] , r21               \n\t" //bitmap += frame * (frame_offset >> 8 )) << 8
-    "    add   %B[bitmap], r0               \n\t" 
-    "                                       \n\t" 
-    "    adiw %A[mask], 0                   \n\t" //if (mask != NULL)
-    "    breq  3f                           \n\t" 
-    "                                       \n\t" 
-    "    mul   %[spr_frame] , r20           \n\t"  
-    "    add   %A[mask], r0                 \n\t" //mask += sprite_frame * (frame offset & 0xFF)
-    "    adc   %B[mask], r1                 \n\t" 
-    "    mul   %[spr_frame] , r21           \n\t" //mask += (sprite_frame * (frame_offset >> 8 )) << 8
-    "    add   %B[mask], r0                 \n\t" 
-    "3:                                     \n\t" 
-    "    clr   __zero_reg__                 \n\t" 
-    "4:                                     \n\t" 
-    "    cpi   %[mode], %[sprite_auto_mode] \n\t" //if (drawMode == SPRITE_AUTO_MODE)
-    "    brne  5f                           \n\t" 
-    "    adiw  %A[mask], 0                  \n\t" //if (mask = NULL) drawMode = SPRITE_UNMASKED
-    "    ldi   %[mode], %[sprite_unmasked]  \n\t" 
-    "    breq  5f                           \n\t" 
-    "    ldi   %[mode], %[sprite_masked]    \n\t" //else drawMode = SPRITE_PLUS_MASK
-    "5:                                     \n\t" 
-    : [width]  "=&r" (width),
-      [height] "=&r" (height),
-      [mask]   "+x"  (mask),
-      [bitmap] "+z"  (bitmap),
-      [mode]   "+d"  (drawMode)
-    : [frame]            "r" (frame),
-      [spr_frame]        "r" (sprite_frame),
-      [sprite_plus_mask] "M" (SPRITE_PLUS_MASK),
-      [sprite_auto_mode] "M" (SPRITE_AUTO_MODE),
-      [sprite_unmasked]  "M" (SPRITE_UNMASKED),
-      [sprite_masked]    "M" (SPRITE_MASKED)
-    : "r20", "r21"
-  );
+//  uint8_t width;
+//  uint8_t height;
+//  asm volatile(
+//    "    lpm   %[width], Z+                 \n\t" // width  = pgm_read_byte(bitmap++);
+//    "    lpm   %[height], Z+                \n\t" // height = pgm_read_byte(bitmap++);
+//    "    cp    %[frame], __zero_reg__       \n\t" // if (frame > 0 || sprite_frame > 0)
+//    "    brne  1f                           \n\t" 
+//    "    cp    %[spr_frame], __zero_reg__   \n\t" 
+//    "    breq  3f                           \n\t" 
+//    "1:                                     \n\t" 
+//    "    ldi   r20, 7                       \n\t" //rows = ((height+7)
+//    "    add   r20, %[height]               \n\t" 
+//    "    ror   r20                          \n\t" //include carry for heights > 248
+//    "    lsr   r20                          \n\t" //rows = (height+7) / 8
+//    "    lsr   r20                          \n\t" 
+//    "    cpi   %[mode], %[sprite_plus_mask] \n\t" //if (drawMode == SPRITE_PLUS_MASK) rows *= 2
+//    "    brne  2f                           \n\t"
+//    "    lsl   r20                          \n\t" 
+//    "2:                                     \n\t" 
+//    "    mul   r20, %[width]                \n\t" //frame offset = rows * width
+//    "    movw  r20, r0                      \n\t" 
+//    "    mul   %[frame] , r20               \n\t" 
+//    "    add   %A[bitmap], r0               \n\t" //bitmap += frame * (frame offset & 0xFF)
+//    "    adc   %B[bitmap], r1               \n\t" 
+//    "    mul   %[frame] , r21               \n\t" //bitmap += frame * (frame_offset >> 8 )) << 8
+//    "    add   %B[bitmap], r0               \n\t" 
+//    "                                       \n\t" 
+//    "    adiw %A[mask], 0                   \n\t" //if (mask != NULL)
+//    "    breq  3f                           \n\t" 
+//    "                                       \n\t" 
+//    "    mul   %[spr_frame] , r20           \n\t"  
+//    "    add   %A[mask], r0                 \n\t" //mask += sprite_frame * (frame offset & 0xFF)
+//    "    adc   %B[mask], r1                 \n\t" 
+//    "    mul   %[spr_frame] , r21           \n\t" //mask += (sprite_frame * (frame_offset >> 8 )) << 8
+//    "    add   %B[mask], r0                 \n\t" 
+//    "3:                                     \n\t" 
+//    "    clr   __zero_reg__                 \n\t" 
+//    "4:                                     \n\t" 
+//    "    cpi   %[mode], %[sprite_auto_mode] \n\t" //if (drawMode == SPRITE_AUTO_MODE)
+//    "    brne  5f                           \n\t" 
+//    "    adiw  %A[mask], 0                  \n\t" //if (mask = NULL) drawMode = SPRITE_UNMASKED
+//    "    ldi   %[mode], %[sprite_unmasked]  \n\t" 
+//    "    breq  5f                           \n\t" 
+//    "    ldi   %[mode], %[sprite_masked]    \n\t" //else drawMode = SPRITE_PLUS_MASK
+//    "5:                                     \n\t" 
+//    : [width]  "=&r" (width),
+//      [height] "=&r" (height),
+//      [mask]   "+x"  (mask),
+//      [bitmap] "+z"  (bitmap),
+//      [mode]   "+d"  (drawMode)
+//    : [frame]            "r" (frame),
+//      [spr_frame]        "r" (sprite_frame),
+//      [sprite_plus_mask] "M" (SPRITE_PLUS_MASK),
+//      [sprite_auto_mode] "M" (SPRITE_AUTO_MODE),
+//      [sprite_unmasked]  "M" (SPRITE_UNMASKED),
+//      [sprite_masked]    "M" (SPRITE_MASKED)
+//    : "r20", "r21"
+//  );
   drawBitmap(x, y, bitmap, mask, width, height, drawMode);
 }
 

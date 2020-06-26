@@ -2,7 +2,7 @@
 
 // need to redeclare these here since we declare them static in .h
 volatile uint8_t *ArduboyCore::mosiport, 
-  /* *ArduboyCore::csport, */ *ArduboyCore::dcport;
+   *ArduboyCore::csport,  *ArduboyCore::dcport;
 uint8_t ArduboyCore::mosipinmask, 
   ArduboyCore::cspinmask, ArduboyCore::dcpinmask;
 
@@ -35,7 +35,12 @@ const uint8_t PROGMEM lcdBootProgram[] = {
   //
   // Further reading: https://www.adafruit.com/datasheets/SSD1306.pdf
 
-#ifdef OLED_SH1106
+#if defined(GU12864_800B)
+  0x24, 0x40,                   // enable Layer 0, graphic display area on
+  0x47,                         // set brightness
+  0x64, 0x00,                   // set x position 0
+  0x84,                         // address mode set: X increment
+#elif OLED_SH1106
   0x8D, 0x14,                   // Charge Pump Setting v = enable (0x14)
   0xA1,                         // Set Segment Re-map
   0xC8,                         // Set COM Output Scan Direction
@@ -217,6 +222,27 @@ void ArduboyCore::bootPins()
 #endif
 }
 
+#if defined(GU12864_800B)
+void ArduboyCore::displayEnable()
+{
+  *csport |= cspinmask;
+  SPCR = _BV(SPE) | _BV(MSTR) | _BV(CPOL) | _BV(CPHA);
+  LCDCommandMode();
+}
+
+void ArduboyCore::displayDisable()
+{
+  SPCR = _BV(SPE) | _BV(MSTR);
+}
+
+void ArduboyCore::displayWrite(uint8_t data)
+{
+  *csport &= ~cspinmask;
+  SPI.transfer(data);
+  *csport |= cspinmask;
+}
+#endif
+
 void ArduboyCore::bootLCD()
 {
 #if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
@@ -230,13 +256,32 @@ void ArduboyCore::bootLCD()
   i2c_stop();
 #else   
   // setup the ports we need to talk to the OLED
-  //csport = portOutputRegister(digitalPinToPort(CS));
-  *portOutputRegister(digitalPinToPort(CS)) &= ~cspinmask;
+  csport = portOutputRegister(digitalPinToPort(CS));
   cspinmask = digitalPinToBitMask(CS);
+  *portOutputRegister(digitalPinToPort(CS)) &= ~cspinmask;
   dcport = portOutputRegister(digitalPinToPort(DC));
   dcpinmask = digitalPinToBitMask(DC);
   SPI.setClockDivider(SPI_CLOCK_DIV2);
- #if defined(OLED_128X64_ON_96X96) || defined(OLED_128X64_ON_128X96) || defined(OLED_128X64_ON_128X128)|| defined(OLED_128X96_ON_128X128) || defined(OLED_96X96_ON_128X128) || defined(OLED_64X128_ON_128X128)
+ #if defined(GU12864_800B)
+  delayShort(1);
+  digitalWrite(RST, HIGH);
+  delayShort(10);
+  displayEnable();
+  for (uint8_t i = 0; i < sizeof(lcdBootProgram) + 8; i++)
+  {
+    if (i < 8)    
+    {
+      displayWrite(0x62); // set display area
+      displayWrite(i);    // display area address
+      LCDDataMode();     
+      displayWrite(0xFF); // Graphic display
+      LCDCommandMode();
+    }
+    else 
+      displayWrite(pgm_read_byte(lcdBootProgram + i - 8));
+  }
+  displayDisable();
+ #elif defined(OLED_128X64_ON_96X96) || defined(OLED_128X64_ON_128X96) || defined(OLED_128X64_ON_128X128)|| defined(OLED_128X96_ON_128X128) || defined(OLED_96X96_ON_128X128) || defined(OLED_64X128_ON_128X128)
   LCDDataMode();
   for (uint16_t i = 0; i < 8192; i++) SPI.transfer(0); //Clear all display ram
  #endif
@@ -253,14 +298,22 @@ void ArduboyCore::bootLCD()
 
 void ArduboyCore::LCDDataMode()
 {
+ #if defined(GU12864_800B)
+  *dcport &= ~dcpinmask;
+ #else
   *dcport |= dcpinmask;
+ #endif
   // *csport &= ~cspinmask; 
 }
 
 void ArduboyCore::LCDCommandMode()
 {
   // *csport |= cspinmask;
+ #if defined(GU12864_800B)
+  *dcport |= dcpinmask;
+ #else
   *dcport &= ~dcpinmask;
+ #endif
   // *csport &= ~cspinmask; CS set once at bootLCD
 }
 
@@ -359,7 +412,24 @@ void ArduboyCore::paint8Pixels(uint8_t pixels)
 
 void ArduboyCore::paintScreen(const unsigned char *image)
 { 
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(GU12864_800B) 
+  displayEnable();
+  for (uint8_t r = 0; r < (HEIGHT/8); r++)
+  {
+    LCDCommandMode();
+    displayWrite(0x60);
+    displayWrite(r);
+    LCDDataMode();
+    for (uint8_t c = 0; c < (WIDTH); c++)
+    {
+      *csport &= ~cspinmask;
+      SPDR = pgm_read_byte(image++);
+      while (!(SPSR & _BV(SPIF)));
+      *csport |= cspinmask;
+    }
+  }
+  displayDisable();
+#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
   i2c_start(SSD1306_I2C_DATA);
   for (int i = 0; i < (HEIGHT * WIDTH) / 8; i++)
     i2c_sendByte(pgm_read_byte(image+i));
@@ -439,7 +509,24 @@ void ArduboyCore::paintScreen(const unsigned char *image)
 // will be used by any buffer based subclass
 void ArduboyCore::paintScreen(unsigned char image[])
 {
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(GU12864_800B) 
+  displayEnable();
+  for (uint8_t r = 0; r < (HEIGHT/8); r++)
+  {
+    LCDCommandMode();
+    displayWrite(0x60);
+    displayWrite(r);
+    LCDDataMode();
+    for (uint8_t c = 0; c < (WIDTH); c++)
+    {
+      *csport &= ~cspinmask;
+      SPDR = *(image++);
+      while (!(SPSR & _BV(SPIF)));
+      *csport |= cspinmask;
+    }
+  }
+  displayDisable();
+#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
   uint16_t length = WIDTH * HEIGHT / 8;
   uint8_t sda_clr = I2C_PORT & ~((1 << I2C_SDA) | (1 << I2C_SCL));
   uint8_t scl = 1 << I2C_SCL;
@@ -719,14 +806,37 @@ void ArduboyCore::sendLCDCommand(uint8_t command)
 // when inverted, a pixel set to 0 will be on
 void ArduboyCore::invert(boolean inverse)
 {
+ #if defined(GU12864_800B)
+  displayEnable();
+  displayWrite(0x24);
+  if (inverse) displayWrite(0x50);
+  else displayWrite(0x40);
+  LCDDataMode();
+  displayDisable();
+ #else
   sendLCDCommand(inverse ? OLED_PIXELS_INVERTED : OLED_PIXELS_NORMAL);
+ #endif
 }
 
 // turn all display pixels on, ignoring buffer contents
 // or set to normal buffer display
 void ArduboyCore::allPixelsOn(boolean on)
 {
+#if defined(GU12864_800B)     
+  displayEnable();
+  if (on) 
+  {
+    displayWrite(0x20);
+    displayWrite(0x50);
+  }
+  else 
+    displayWrite(0x24);
+    displayWrite(0x40);
+  LCDDataMode();
+  displayDisable();
+ #else    
   sendLCDCommand(on ? OLED_ALL_PIXELS_ON : OLED_PIXELS_FROM_RAM);
+ #endif
 }
 
 // flip the display vertically or set to normal

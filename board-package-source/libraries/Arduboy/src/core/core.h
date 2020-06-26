@@ -212,7 +212,13 @@ public:
      * in a frame loop.
      */
     void static idle();
-
+#if defined(GU12864_800B)    
+    void static displayEnable();
+    
+    void static displayDisable();
+    
+    void static displayWrite(uint8_t data);
+#endif
     void static LCDDataMode(); //< put the display in data mode
 
     /// put the display in command mode
@@ -365,7 +371,7 @@ protected:
 
 
 private:
-    volatile static uint8_t *mosiport, /* *csport, */ *dcport;
+    volatile static uint8_t *mosiport,  *csport, *dcport;
     uint8_t static mosipinmask, cspinmask, dcpinmask;
 
 };
