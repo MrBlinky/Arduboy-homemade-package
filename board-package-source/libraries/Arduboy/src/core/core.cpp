@@ -263,9 +263,9 @@ void ArduboyCore::bootLCD()
   dcpinmask = digitalPinToBitMask(DC);
   SPI.setClockDivider(SPI_CLOCK_DIV2);
  #if defined(GU12864_800B)
-  delayShort(1);
+  delay(1);
   digitalWrite(RST, HIGH);
-  delayShort(10);
+  delay(10);
   displayEnable();
   for (uint8_t i = 0; i < sizeof(lcdBootProgram) + 8; i++)
   {
@@ -289,7 +289,7 @@ void ArduboyCore::bootLCD()
   LCDCommandMode();
   // run our customized boot-up command sequence against the
   // OLED to initialize it properly for Arduboy
-  for (int8_t i=0; i < sizeof(lcdBootProgram); i++) {
+  for (uint8_t i = 0; i < sizeof(lcdBootProgram); i++) {
     SPI.transfer(pgm_read_byte(lcdBootProgram + i));
   }
   LCDDataMode();
