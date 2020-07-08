@@ -105,7 +105,7 @@ An expansion connector can be added to a modified or Homemade Arduboy in the for
 
 ### Expansion connector pinout (original design)
 
-( (Homemade) Arduboy facing top - front view female pinheader)
+( (Homemade) Arduboy facing top - looking at the male pinheader)
 
 |  12 |  11 |  10 |  9  |  8  |  7  |  6  |  5  |  4  |  3  |  2  |  1  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
