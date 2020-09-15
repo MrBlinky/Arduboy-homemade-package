@@ -5,8 +5,6 @@
  */
 
 #include "Arduboy2.h"
-#include "ab_logo.c"
-#include "glcdfont.c"
 
 //========================================
 //========== class Arduboy2Base ==========
@@ -81,7 +79,7 @@ void Arduboy2Base::systemButtons()
     digitalWriteRGB(BLUE_LED, RGB_ON); // turn on blue LED
     sysCtrlSound(UP_BUTTON + B_BUTTON, GREEN_LED, 0xff);
     sysCtrlSound(DOWN_BUTTON + B_BUTTON, RED_LED, 0);
-    delayShort(200);
+    delayByte(200);
   }
 
   digitalWriteRGB(BLUE_LED, RGB_OFF); // turn off blue LED
@@ -91,9 +89,9 @@ void Arduboy2Base::sysCtrlSound(uint8_t buttons, uint8_t led, uint8_t eeVal)
 {
   if (pressed(buttons)) {
     digitalWriteRGB(BLUE_LED, RGB_OFF); // turn off blue LED
-    delayShort(200);
+    delayByte(200);
     digitalWriteRGB(led, RGB_ON); // turn on "acknowledge" LED
-    EEPROM.update(EEPROM_AUDIO_ON_OFF, eeVal);
+    EEPROM.update(eepromAudioOnOff, eeVal);
     delayShort(500);
     digitalWriteRGB(led, RGB_OFF); // turn off "acknowledge" LED
 
@@ -179,7 +177,7 @@ void Arduboy2Base::bootLogoShell(void (*drawLogo)(int16_t))
    #endif
   }
 
-  for (int16_t y = -16; y <= 24; y++) {
+  for (int16_t y = -15; y <= 24; y++) {
     if (pressed(RIGHT_BUTTON)) {
       digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_OFF); // all LEDs off
       return;
@@ -199,7 +197,7 @@ void Arduboy2Base::bootLogoShell(void (*drawLogo)(int16_t))
     display(CLEAR_BUFFER);
     (*drawLogo)(y); // call the function that actually draws the logo
     display();
-    delayShort(15);
+    delayByte(15);
   }
 
   if (showLEDs) {
@@ -225,7 +223,7 @@ void Arduboy2Base::bootLogoExtra() { }
 // wait for all buttons to be released
 void Arduboy2Base::waitNoButtons() {
   do {
-    delayShort(50); // simple button debounce
+    delayByte(50); // simple button debounce
   } while (buttonsState());
 }
 
@@ -248,7 +246,7 @@ bool Arduboy2Base::everyXFrames(uint8_t frames)
 
 bool Arduboy2Base::nextFrame()
 {
-  uint8_t now = (uint8_t) timer0_millis;
+  uint8_t now = *((uint8_t*)(&timer0_millis));
   uint8_t frameDurationMs = now - thisFrameStart;
 
   if (justRendered) {
@@ -269,7 +267,23 @@ bool Arduboy2Base::nextFrame()
   // pre-render
   justRendered = true;
   thisFrameStart = now;
+ #if defined __AVR_ARCH__
+  uint16_t* ptr = &frameCount;
+  asm volatile
+  (
+    "ld     r24, z      \n"
+    "ldd    r25, z+1    \n"
+    "adiw   r24, 1      \n"
+    "st     z, r24      \n"
+    "std    z+1, r25    \n"
+    
+    : [ptr] "+z" (ptr)
+    :
+    : "r24", "r25"
+  );
+ #else
   frameCount++;
+ #endif
 
   return true;
 }
@@ -290,23 +304,6 @@ bool Arduboy2Base::nextFrameDEV()
 int Arduboy2Base::cpuLoad()
 {
   return lastFrameDurationMs*100 / eachFrameMillis;
-}
-
-unsigned long Arduboy2Base::generateRandomSeed()
-{
-  unsigned long seed;
-
-  power_adc_enable(); // ADC on
-
-  // do an ADC read from an unconnected input pin
-  ADCSRA |= _BV(ADSC); // start conversion (ADMUX has been pre-set in boot())
-  while (bit_is_set(ADCSRA, ADSC)) { } // wait for conversion complete
-
-  seed = ((unsigned long)ADC << 16) + micros();
-
-  power_adc_disable(); // ADC off
-
-  return seed;
 }
 
 void Arduboy2Base::initRandomSeed()
@@ -332,7 +329,7 @@ void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
 
   uint16_t row_offset;
   uint8_t bit;
-
+ #if defined __AVR_ARCH__
   asm volatile
   (
     // bit = 1 << (y & 7)
@@ -349,41 +346,33 @@ void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
     "movw %[row_offset], r0            \n"
     "clr  __zero_reg__                 \n"
     "add  %A[row_offset], %[x]         \n" //row_offset += x
-#if WIDTH != 128
+   #if WIDTH != 128
     "adc  %B[row_offset], __zero_reg__ \n" // only non 128 width can overflow
-#endif
+   #endif
+    "subi r26, lo8(-(%[buf]))          \n"
+    "sbci r27, hi8(-(%[buf]))          \n"
+    "ld	  r0, X                        \n"
+    "or	  r0, %[bit]                   \n"
+    "sbrs %[col], 0                    \n"
+    "eor  r0, %[bit]                   \n"
+    "st	  X, r0                        \n"
     : [row_offset]   "=&x" (row_offset),   // upper register (ANDI)
       [bit]          "=&d" (bit),          // upper register (LDI)
       [y]            "+d"  (y)             // upper register (ANDI), must be writable
     : [width_offset] "r"   ((uint8_t)(WIDTH/8)),
-      [x]            "r"   ((uint8_t)x)
+      [x]            "r"   ((uint8_t)x),
+      [buf]          ""    (&sBuffer),
+      [col]          "r"   (color)
     :
   );
-  uint8_t data = sBuffer[row_offset] | bit;
-  if (!(color & _BV(0))) data ^= bit;
-  sBuffer[row_offset] = data;
-}
-#if 0
-// For reference, this is the C++ equivalent
-void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
-{
-  #ifdef PIXEL_SAFE_MODE
-  if (x < 0 || x > (WIDTH-1) || y < 0 || y > (HEIGHT-1))
-  {
-    return;
-  }
-  #endif
-
-  uint16_t row_offset;
-  uint8_t bit;
-
+ #else
   bit = 1 << (y & 7);
   row_offset = (y & 0xF8) * WIDTH / 8 + x;
   uint8_t data = sBuffer[row_offset] | bit;
   if (!color) data ^= bit;
   sBuffer[row_offset] = data;
+ #endif
 }
-#endif
 
 uint8_t Arduboy2Base::getPixel(uint8_t x, uint8_t y)
 {
@@ -523,13 +512,13 @@ void Arduboy2Base::drawLine
   // bresenham's algorithm - thx wikpedia
   bool steep = abs(y1 - y0) > abs(x1 - x0);
   if (steep) {
-    swap(x0, y0);
-    swap(x1, y1);
+    swapInt16(x0, y0);
+    swapInt16(x1, y1);
   }
 
   if (x0 > x1) {
-    swap(x0, x1);
-    swap(y0, y1);
+    swapInt16(x0, x1);
+    swapInt16(y0, y1);
   }
 
   int16_t dx, dy;
@@ -744,15 +733,15 @@ void Arduboy2Base::fillTriangle
   // Sort coordinates by Y order (y2 >= y1 >= y0)
   if (y0 > y1)
   {
-    swap(y0, y1); swap(x0, x1);
+    swapInt16(y0, y1); swapInt16(x0, x1);
   }
   if (y1 > y2)
   {
-    swap(y2, y1); swap(x2, x1);
+    swapInt16(y2, y1); swapInt16(x2, x1);
   }
   if (y0 > y1)
   {
-    swap(y0, y1); swap(x0, x1);
+    swapInt16(y0, y1); swapInt16(x0, x1);
   }
 
   if(y0 == y2)
@@ -812,7 +801,7 @@ void Arduboy2Base::fillTriangle
 
     if(a > b)
     {
-      swap(a,b);
+      swapInt16(a,b);
     }
 
     drawFastHLine(a, y, b-a+1, color);
@@ -832,7 +821,7 @@ void Arduboy2Base::fillTriangle
 
     if(a > b)
     {
-      swap(a,b);
+      swapInt16(a,b);
     }
 
     drawFastHLine(a, y, b-a+1, color);
@@ -844,7 +833,7 @@ void Arduboy2Base::drawBitmap
  uint8_t color)
 {
   // no need to draw at all if we're offscreen
-  if (x+w <= 0 || x > WIDTH-1 || y+h <= 0 || y > HEIGHT-1)
+  if (x + w <= 0 || x > WIDTH - 1 || y + h <= 0 || y > HEIGHT - 1)
     return;
 
   int8_t yOffset = y & 7;
@@ -885,7 +874,7 @@ void Arduboy2Base::drawSlowXYBitmap
 (int16_t x, int16_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color)
 {
   // no need to draw at all of we're offscreen
-  if (x+w < 0 || x > WIDTH-1 || y+h < 0 || y > HEIGHT-1)
+  if (x + w <= 0 || x > WIDTH - 1 || y + h <= 0 || y > HEIGHT - 1)
     return;
 
   int16_t xi, yi, byteWidth = (w + 7) / 8;
@@ -900,7 +889,7 @@ void Arduboy2Base::drawSlowXYBitmap
 
 
 // Helper for drawCompressed()
-struct BitStreamReader
+struct Arduboy2Base::BitStreamReader
 {
   const uint8_t *source;
   uint16_t sourceIndex;
@@ -944,7 +933,7 @@ void Arduboy2Base::drawCompressed(int16_t sx, int16_t sy, const uint8_t *bitmap,
   uint8_t spanColour = (uint8_t)cs.readBits(1); // starting colour
 
   // no need to draw at all if we're offscreen
-  if ((sx + width < 0) || (sx > WIDTH - 1) || (sy + height < 0) || (sy > HEIGHT - 1))
+  if ((sx + width <= 0) || (sx > WIDTH - 1) || (sy + height <= 0) || (sy > HEIGHT - 1))
     return;
 
   // sy = sy - (frame * height);
@@ -1048,6 +1037,11 @@ bool Arduboy2Base::pressed(uint8_t buttons)
   return (buttonsState() & buttons) == buttons;
 }
 
+bool Arduboy2Base::anyPressed(uint8_t buttons)
+{
+  return (buttonsState() & buttons) != 0;
+}
+
 bool Arduboy2Base::notPressed(uint8_t buttons)
 {
   return (buttonsState() & buttons) == 0;
@@ -1085,21 +1079,21 @@ bool Arduboy2Base::collide(Rect rect1, Rect rect2)
 
 uint16_t Arduboy2Base::readUnitID()
 {
-  return EEPROM.read(EEPROM_UNIT_ID) |
-         (((uint16_t)(EEPROM.read(EEPROM_UNIT_ID + 1))) << 8);
+  return EEPROM.read(eepromUnitID) |
+         (((uint16_t)(EEPROM.read(eepromUnitID + 1))) << 8);
 }
 
 void Arduboy2Base::writeUnitID(uint16_t id)
 {
-  EEPROM.update(EEPROM_UNIT_ID, (uint8_t)(id & 0xff));
-  EEPROM.update(EEPROM_UNIT_ID + 1, (uint8_t)(id >> 8));
+  EEPROM.update(eepromUnitID, (uint8_t)(id & 0xff));
+  EEPROM.update(eepromUnitID + 1, (uint8_t)(id >> 8));
 }
 
 uint8_t Arduboy2Base::readUnitName(char* name)
 {
   char val;
   uint8_t dest;
-  uint8_t src = EEPROM_UNIT_NAME;
+  uint8_t src = eepromUnitName;
 
   for (dest = 0; dest < ARDUBOY_UNIT_NAME_LEN; dest++)
   {
@@ -1115,10 +1109,10 @@ uint8_t Arduboy2Base::readUnitName(char* name)
   return dest;
 }
 
-void Arduboy2Base::writeUnitName(char* name)
+void Arduboy2Base::writeUnitName(const char* name)
 {
   bool done = false;
-  uint8_t dest = EEPROM_UNIT_NAME;
+  uint8_t dest = eepromUnitName;
 
   for (uint8_t src = 0; src < ARDUBOY_UNIT_NAME_LEN; src++)
   {
@@ -1133,44 +1127,44 @@ void Arduboy2Base::writeUnitName(char* name)
 
 bool Arduboy2Base::readShowBootLogoFlag()
 {
-  return (EEPROM.read(EEPROM_SYS_FLAGS) & SYS_FLAG_SHOW_LOGO_MASK);
+  return (EEPROM.read(eepromSysFlags) & sysFlagShowLogoMask);
 }
 
 void Arduboy2Base::writeShowBootLogoFlag(bool val)
 {
-  uint8_t flags = EEPROM.read(EEPROM_SYS_FLAGS);
+  uint8_t flags = EEPROM.read(eepromSysFlags);
 
-  bitWrite(flags, SYS_FLAG_SHOW_LOGO, val);
-  EEPROM.update(EEPROM_SYS_FLAGS, flags);
+  bitWrite(flags, sysFlagShowLogoBit, val);
+  EEPROM.update(eepromSysFlags, flags);
 }
 
 bool Arduboy2Base::readShowUnitNameFlag()
 {
-  return (EEPROM.read(EEPROM_SYS_FLAGS) & SYS_FLAG_UNAME_MASK);
+  return (EEPROM.read(eepromSysFlags) & sysFlagUnameMask);
 }
 
 void Arduboy2Base::writeShowUnitNameFlag(bool val)
 {
-  uint8_t flags = EEPROM.read(EEPROM_SYS_FLAGS);
+  uint8_t flags = EEPROM.read(eepromSysFlags);
 
-  bitWrite(flags, SYS_FLAG_UNAME, val);
-  EEPROM.update(EEPROM_SYS_FLAGS, flags);
+  bitWrite(flags, sysFlagUnameBit, val);
+  EEPROM.update(eepromSysFlags, flags);
 }
 
 bool Arduboy2Base::readShowBootLogoLEDsFlag()
 {
-  return (EEPROM.read(EEPROM_SYS_FLAGS) & SYS_FLAG_SHOW_LOGO_LEDS_MASK);
+  return (EEPROM.read(eepromSysFlags) & sysFlagShowLogoLEDsMask);
 }
 
 void Arduboy2Base::writeShowBootLogoLEDsFlag(bool val)
 {
-  uint8_t flags = EEPROM.read(EEPROM_SYS_FLAGS);
+  uint8_t flags = EEPROM.read(eepromSysFlags);
 
-  bitWrite(flags, SYS_FLAG_SHOW_LOGO_LEDS, val);
-  EEPROM.update(EEPROM_SYS_FLAGS, flags);
+  bitWrite(flags, sysFlagShowLogoLEDsBit, val);
+  EEPROM.update(eepromSysFlags, flags);
 }
 
-void Arduboy2Base::swap(int16_t& a, int16_t& b)
+void Arduboy2Base::swapInt16(int16_t& a, int16_t& b)
 {
   int16_t temp = a;
   a = b;
@@ -1234,7 +1228,7 @@ void Arduboy2::bootLogoText()
     print(F("ARDUBOY"));
     textSize = 1;
     display();
-    delayShort(11);
+    delayByte(11);
   }
 
   if (showLEDs) {
@@ -1264,11 +1258,11 @@ void Arduboy2::bootLogoExtra()
     return;
   }
 
-  c = EEPROM.read(EEPROM_UNIT_NAME);
+  c = EEPROM.read(eepromUnitName);
 
   if (c != 0xFF && c != 0x00)
   {
-    uint8_t i = EEPROM_UNIT_NAME;
+    uint8_t i = eepromUnitName;
     cursor_x = 50 - (64 - WIDTH / 2);
     cursor_y = 56;
 
@@ -1277,7 +1271,7 @@ void Arduboy2::bootLogoExtra()
       write(c);
       c = EEPROM.read(++i);
     }
-    while (i < EEPROM_UNIT_NAME + ARDUBOY_UNIT_NAME_LEN);
+    while (i < eepromUnitName + ARDUBOY_UNIT_NAME_LEN);
 
     display();
     delayShort(1000);
@@ -1314,7 +1308,7 @@ void Arduboy2::drawChar
 {
   uint8_t line;
   bool draw_background = bg != color;
-  const unsigned char* bitmap = font + c * 5;
+  const uint8_t* bitmap = font5x7 + c * 5;
 
   if ((x >= WIDTH) ||              // Clip right
       (y >= HEIGHT) ||             // Clip bottom
@@ -1351,6 +1345,16 @@ void Arduboy2::drawChar
 void Arduboy2::setCursor(int16_t x, int16_t y)
 {
   cursor_x = x;
+  cursor_y = y;
+}
+
+void Arduboy2::setCursorX(int16_t x)
+{
+  cursor_x = x;
+}
+
+void Arduboy2::setCursorY(int16_t y)
+{
   cursor_y = y;
 }
 

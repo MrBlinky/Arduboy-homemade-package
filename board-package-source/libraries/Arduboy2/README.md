@@ -14,7 +14,7 @@ For notes on the differences between the *Arduboy2* library and the original *Ar
 
 ## Library documentation
 
-Comments in the library header files are formatted for the [Doxygen](http://www.doxygen.org) document generation system. The HTML files generated using the configuration file _extras/Doxyfile_ can be found at:
+Comments in the library header files are formatted for the [Doxygen](https://www.doxygen.nl/) document generation system. The HTML files generated using the configuration file _extras/Doxyfile_ can be found at:
 
 https://MLXXXp.github.io/documents/Arduino/libraries/Arduboy2/Doxygen/html/index.html
 
@@ -45,7 +45,7 @@ At the start of the sketch, the **ARDUBOY** logo scrolls down from the top of th
 
 The RGB LED lights red then green then blue while the logo is scrolling. (If your Arduboy is one of those that has the RGB LED installed incorrectly, then it will light blue then off then red). For users who do not wish to have the RGB LED flash during the boot logo sequence, a flag can be set in system EEPROM to have it remain off. The included *SetSystemEEPROM* example sketch can be used to set this flag.
 
-A user settable *unit name* of up to 6 characters can be saved in system EEPROM memory. If set, this name will be briefly displayed at the bottom of the boot logo screen, after the logo stops scrolling down. This feature is only available if the *Arduboy2* class is used, not the *Arduboy2Base* class. This is because it requires the text display functions, which are only available in the *Arduboy2* class. A flag in system EEPROM controls whether or not the *unit name* is displayed on the boot logo screen, regardless of whether the *unit name* itself has been set. The included *SetSystemEEPROM* example sketch can be used to set both the *unit name* and this flag.
+A user settable *unit name* can be saved in system EEPROM memory. If set, this name will be briefly displayed at the bottom of the boot logo screen, after the logo stops scrolling down. This feature is only available if the *Arduboy2* class is used, not the *Arduboy2Base* class. This is because it requires the text display functions, which are only available in the *Arduboy2* class. A flag in system EEPROM controls whether or not the *unit name* is displayed on the boot logo screen, regardless of whether the *unit name* itself has been set. The included *SetSystemEEPROM* example sketch can be used to set both the *unit name* and this flag.
 
 Once the logo display sequence completes, the sketch continues.
 
@@ -109,11 +109,11 @@ Sample sketches have been included with the library as examples of how to use it
 
 `File > Examples > Arduboy2`
 
-More information on writing sketches for the Arduboy can be found in the [Arduboy Community Forum](http://community.arduboy.com/).
+More information on writing sketches for the Arduboy can be found in the [Arduboy Community Forum](https://community.arduboy.com/).
 
-### Using EEPROM in a sketch
+### Using EEPROM in a sketch <- THIS IS IMPORTANT!
 
-The Arduboy2 library reserves an area at the start of EEPROM for storing system information, such as the current audio mute state and the Unit Name and Unit ID. A sketch **must not** use this reserved area for its own purposes. A sketch may use any EEPROM past this reserved area. The first EEPROM address available for sketch use is given as the defined value *EEPROM_STORAGE_SPACE_START*
+The Arduboy2 library reserves an area at the start of EEPROM for storing system information, such as the current audio mute state and the Unit Name and Unit ID. A sketch **MUST NOT** use this reserved area for its own purposes. A sketch may use any EEPROM past this reserved area. The first EEPROM address available for sketch use is given as the defined value *EEPROM_STORAGE_SPACE_START*
 
 ### Audio control functions
 
@@ -149,7 +149,7 @@ If you want to be able to play sequences of tones or background music, using the
 
 #### Remove the text functions
 
-If your sketch doesn't use any of the functions for displaying text, such as *setCursor()* and *print()*, you can remove them. You could do this if your sketch generates whatever text it requires by some other means. Removing the text functions frees up code by not including the font table and some code that is always pulled in by inheriting the [Arduino *Print* class](http://playground.arduino.cc/Code/Printclass).
+If your sketch doesn't use any of the functions for displaying text, such as *setCursor()* and *print()*, you can remove them. You could do this if your sketch generates whatever text it requires by some other means. Removing the text functions frees up code by not including the font table and some code that is always pulled in by inheriting the [Arduino *Print* class](https://playground.arduino.cc/Code/Printclass/).
 
 To eliminate text capability in your sketch, when creating the library object simply use the *Arduboy2Base* class instead of *Arduboy2*:
 
@@ -264,7 +264,7 @@ Main differences between Arduboy2 and Arduboy V1.1 are:
 - The *beginNoLogo()* function is not included. This function could be used in Arduboy V1.1 in place of *begin()* to suppress the displaying of the ARDUBOY logo and thus free up the code that it required. Instead, Arduboy2 allows a sketch to call *boot()* and then add in any extra features that *begin()* provides by calling their functions directly after *boot()*, if desired.
 - The *ArduboyCore* and *ArduboyAudio* base classes, previously only available to, and used to derive, the *Arduboy* class, have been made publicly available for the benefit of developers who may wish to use them as the base of an entirely new library. This change doesn't affect the existing API.
 
-As of version 2.1.0 functionality from the [Team A.R.G.](http://www.team-arg.org/) *Arglib* library has been added:
+As of version 2.1.0 functionality from the Team A.R.G. *Arglib* library has been added:
 
 - The sprite drawing functions, collision detection functions, and button handling functions that Team A.R.G. incorporated from the [ArduboyExtra](https://github.com/yyyc514/ArduboyExtra) project. The *poll()* function was renamed *pollButtons()* for clarity. The *Sprites* class doesn't require a parameter for the constructor, whereas in *Arglib* a pointer to an Arduboy class object is required.
 - The *drawCompressed()* function, which allows compressed bitmaps to be drawn. Saving bitmaps in compressed form may reduce overall sketch size.
@@ -307,11 +307,11 @@ Arduboy2 arduboy;
 
 If the sketch doesn't use any *tunes* functions, there's a good chance this is all that has to be done to make it compile.
 
-### Sketch uses only *tunes.tone()* for sound
+### Sketch uses only tunes.tone() for sound
 
 If the sketch has sound but only uses *tunes.tone()*, solutions are:
 
-#### Solution 1: Switch to using Arduino *tone()*
+#### Solution 1: Switch to using Arduino tone()
 
 An easy change is to use the Arduino built in *tone()* function. You can add a function to the sketch that wraps *tone()* so that it works like *tunes.tone()*, like so:
 
@@ -374,7 +374,7 @@ See the [ArduboyTones](https://github.com/MLXXXp/ArduboyTones) README file for m
 
 See the following for how to do this:
 
-### Sketch uses *tunes.playScore()*
+### Sketch uses tunes.playScore()
 
 If the sketch uses *tunes.playScore()*, probably the easiest solution is to use the *ArduboyPlaytune* library. *ArduboyPlaytune* is essentially the code that was in the Arduboy V1.1 *tunes* subclass, which has been removed from Arduboy2. It's been cleaned up and a few enhancements have been added, but all the Arduboy V1.1 *tunes* functions are available.
 
@@ -424,7 +424,7 @@ If you don't need to play scores containing two parts, and don't require tones t
 
 The benefit of using *ArduboyTones* would be reduced code size and possibly easier addition of new sequences without the need of a MIDI to Playtune format converter.
 
-### Sketch uses the *beginNoLogo()* function instead of *begin()*
+### Sketch uses the beginNoLogo() function instead of begin()
 
 The *beginNoLogo()* function has been removed. Instead, *boot()* can be used with additional functions following it to add back in desired boot functionality. See the information above, under the heading *Remove boot up features*, for more details. Assuming the object is named *arduboy*, a direct replacement for *beginNoLogo()* would be:
 

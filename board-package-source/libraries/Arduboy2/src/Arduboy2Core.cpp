@@ -8,7 +8,15 @@
 
 #include <avr/wdt.h>
 
-const uint8_t PROGMEM lcdBootProgram[] = {
+
+//========================================
+//========== class Arduboy2Core ==========
+//========================================
+
+Arduboy2Core::Arduboy2Core() { }
+
+// Commands sent to the OLED display to initialize it
+const PROGMEM uint8_t Arduboy2Core::lcdBootProgram[] = {
   // boot defaults are commented out but left here in case they
   // might prove useful for reference
   //
@@ -145,9 +153,6 @@ const uint8_t PROGMEM lcdBootProgram[] = {
 #endif
 };
 
-
-Arduboy2Core::Arduboy2Core() { }
-
 void Arduboy2Core::boot()
 {
   #ifdef ARDUBOY_SET_CPU_8MHZ
@@ -155,7 +160,7 @@ void Arduboy2Core::boot()
   setCPUSpeed8MHz();
   #endif
 
-  // Select the ADC input here so a delay isn't required in initRandomSeed()
+  // Select the ADC input here so a delay isn't required in generateRandomSeed()
   ADMUX = RAND_SEED_IN_ADMUX;
 
   bootPins();
@@ -328,7 +333,7 @@ void Arduboy2Core::bootOLED()
 {
 #if defined(GU12864_800B)
   bitSet(RST_PORT,RST_BIT);
-  delayShort(10);
+  delayByte(10);
   displayEnable();
   for (uint8_t i = 0; i < sizeof(lcdBootProgram) + 8; i++)
   {
@@ -350,49 +355,44 @@ void Arduboy2Core::bootOLED()
     i2c_sendByte(pgm_read_byte(lcdBootProgram + i));
   i2c_stop();
 #else
-    // reset the display
-    uint8_t cmd;
-    const void* ptr = lcdBootProgram;
-    asm volatile(
-    "1:                               \n\t" //assembly loop for 2nd delayShort(5)
-    );
-    delayShort(5);                          //for a short active low reset pulse
-   #if !(defined(AB_ALTERNATE_WIRING) && defined(CART_CS_SDA))
-    asm volatile(
-    "    sbic %[rst_port], %[rst_bit] \n\t" //continue if reset is active
-    "    rjmp 2f                      \n\t" //else break
-    "    sbi  %[rst_port], %[rst_bit] \n\t" //deactivate reset
-    "    rjmp 1b                      \n\t" //loop for a recover from reset delay
-    "2:                              \n\t"
-    :
-    : [rst_port] "I" (_SFR_IO_ADDR(RST_PORT)),
-      [rst_bit]  "I" (RST_BIT)
-    :
-    );
-   #endif
+  // reset the display
+  uint8_t cmd;
+  const uint8_t* ptr = lcdBootProgram;
+  delayByte(5);                          //for a short active low reset pulse
+ #if !(defined(AB_ALTERNATE_WIRING) && defined(CART_CS_SDA))
+  bitSet(RST_PORT, RST_BIT);             //deactivate reset
+ #endif
+  delayByte(5);
  #if defined(OLED_128X64_ON_96X96) || defined(OLED_128X64_ON_128X96) || defined(OLED_128X64_ON_128X128)|| defined(OLED_128X96_ON_128X128) || defined(OLED_96X96_ON_128X128) || defined(OLED_64X128_ON_128X128)
   for (uint16_t i = 0; i < 8192; i++) SPItransfer(0); //make sure all display ram is cleared
  #endif
   //bitClear(CS_PORT, CS_BIT);               // select the display as default SPI device, already cleared by boot pins)
   LCDCommandMode();
-  asm volatile(
-    "    ldi  r25, %[size]           \n\t" // for (uint8_t i = 0; i < sizeof(lcdBootProgram); i++) 
-    "3:                              \n\t" // {
-    "    lpm  %[cmd], Z+             \n\t" //   cmd = pgm_read_byte(lcdBootProgram + i));
+ #if defined __AVR_ARCH__  
+  asm volatile
+  (
+    "3:  lpm  %[cmd], Z+             \n" 
     : [ptr] "+z" (ptr),
       [cmd] "=r" (cmd)
-    : [size] "I" (sizeof(lcdBootProgram))
-    : "r25"
+    : 
+    :
   );    
-  SPItransfer(cmd);                        //   transfer display command
+  SPItransfer(cmd);                      
   asm volatile(
-    "    dec  r25                    \n\t" // }
-    "    brne 3b                     \n\t"
+    "    cpi  r30, lo8(%[lbp_end])   \n" // check only LSB cause size < 256
+    "    brne 3b                     \n"
+    : 
+    : [lbp_end] "" (lcdBootProgram + sizeof(lcdBootProgram))
     :
-    :
-    : "r25"
   );
   LCDDataMode();
+ #else
+   for (uint8_t i = 0; i < sizeof(lcdBootProgram); i++) 
+   {
+     cmd = pgm_read_byte(lcdBootProgram + i));       
+     SPItransfer(cmd);                      
+   }
+ #endif
 #endif  
 }
 
@@ -405,18 +405,17 @@ void Arduboy2Core::bootSPI()
 }
 
 // Write to the SPI bus (MOSI pin)
-uint8_t Arduboy2Core::SPItransfer(uint8_t data)
+void Arduboy2Core::SPItransfer(uint8_t data)
 {
   SPDR = data;
   /*
    * The following NOP introduces a small delay that can prevent the wait
-   * loop form iterating when running at the maximum speed. This gives
+   * loop from iterating when running at the maximum speed. This gives
    * about 10% more speed, even if it seems counter-intuitive. At lower
    * speeds it is unnoticed.
    */
   asm volatile("nop");
   while (!(SPSR & _BV(SPIF))) { } // wait
-  return SPDR;
 }
 
 #if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
@@ -549,10 +548,6 @@ void Arduboy2Core::displayOn()
 {
   bootOLED();
 }
-
-uint8_t Arduboy2Core::width() { return WIDTH; }
-
-uint8_t Arduboy2Core::height() { return HEIGHT; }
 
 
 /* Drawing */
@@ -1048,7 +1043,7 @@ void Arduboy2Core::sendLCDCommand(uint8_t command)
   i2c_start(SSD1306_I2C_CMD);
   i2c_sendByte(command);
   i2c_stop();
-#else if !defined GU12864_800B 
+#elif !defined GU12864_800B 
   LCDCommandMode();
   SPItransfer(command);
   LCDDataMode();
@@ -1349,21 +1344,46 @@ uint8_t Arduboy2Core::buttonsState()
   return buttons;
 }
 
+unsigned long Arduboy2Core::generateRandomSeed()
+{
+  unsigned long seed;
+
+  power_adc_enable(); // ADC on
+
+  // do an ADC read from an unconnected input pin
+  ADCSRA |= _BV(ADSC); // start conversion (ADMUX has been pre-set in boot())
+  while (bit_is_set(ADCSRA, ADSC)) { } // wait for conversion complete
+
+  seed = ((unsigned long)ADC << 16) + micros();
+
+  power_adc_disable(); // ADC off
+
+  return seed;
+}
+
 // delay in ms with 16 bit duration
 void Arduboy2Core::delayShort(uint16_t ms)
 {
-  #ifndef ARDUBOY_CORE
-    delay((unsigned long) ms);
-  #else
+ #ifndef ARDUBOY_CORE
+  delay((unsigned long) ms);
+ #else
   ::delayShort(ms);
-  #endif
+ #endif
+}
+
+void Arduboy2Core::delayByte(uint8_t ms)
+{
+  delayShort(ms);
 }
 
 void Arduboy2Core::exitToBootloader()
 {
   cli();
  #ifdef ARDUBOY_CORE
-  asm volatile ("jmp exit_to_bootloader");
+  asm volatile 
+  (
+    "jmp exit_to_bootloader \n" // resuse ISR exit to bootloader code
+  );
  #else
   // set bootloader magic key
   // storing two uint8_t instead of one uint16_t saves an instruction
@@ -1382,7 +1402,11 @@ void Arduboy2Core::exitToBootloader()
 // Used by the ARDUBOY_NO_USB macro. This should not be called
 // directly from a sketch.
 
-void Arduboy2Core::mainNoUSB()
+//=========================================
+//========== class Arduboy2NoUSB ==========
+//=========================================
+
+void Arduboy2NoUSB::mainNoUSB()
 {
   // disable USB
   UDCON = _BV(DETACH);
@@ -1402,11 +1426,11 @@ void Arduboy2Core::mainNoUSB()
   bitClear(DOWN_BUTTON_DDR, DOWN_BUTTON_BIT);
 
   // Delay to give time for the pin to be pulled high if it was floating
-  delayShort(10);
+  Arduboy2Core::delayByte(10);
 
   // if the DOWN button is pressed
   if (bitRead(DOWN_BUTTON_PORTIN, DOWN_BUTTON_BIT) == 0) {
-    exitToBootloader();
+    Arduboy2Core::exitToBootloader();
   }
 
   // The remainder is a copy of the Arduino main() function with the

@@ -20,6 +20,7 @@ SpritesB	KEYWORD1
 #######################################
 
 allPixelsOn	KEYWORD2
+anyPressed	KEYWORD2
 begin	KEYWORD2
 blank	KEYWORD2
 boot	KEYWORD2
@@ -96,6 +97,8 @@ readUnitName	KEYWORD2
 safeMode	KEYWORD2
 saveOnOff	KEYWORD2
 setCursor	KEYWORD2
+setCursorX	KEYWORD2
+setCursorY	KEYWORD2
 setFrameDuration	KEYWORD2
 setFrameRate	KEYWORD2
 setRGBled	KEYWORD2
@@ -104,6 +107,7 @@ setTextColor	KEYWORD2
 setTextSize	KEYWORD2
 setTextWrap	KEYWORD2
 SPItransfer	KEYWORD2
+SPItransferAndRead	KEYWORD2
 systemButtons	KEYWORD2
 toggle	KEYWORD2
 waitNoButtons	KEYWORD2
@@ -134,6 +138,7 @@ drawSelfMasked	KEYWORD2
 ARDUBOY_LIB_VER	LITERAL1
 
 ARDUBOY_UNIT_NAME_LEN	LITERAL1
+ARDUBOY_UNIT_NAME_BUFFER_SIZE	LITERAL1
 
 EEPROM_STORAGE_SPACE_START	LITERAL1
 

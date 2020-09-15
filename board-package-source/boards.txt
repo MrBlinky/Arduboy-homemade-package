@@ -59,7 +59,7 @@ arduboy-homemade.bootloader.lock_bits=0x3F
 arduboy-homemade.build.mcu=atmega32u4
 arduboy-homemade.build.f_cpu=16000000L
 arduboy-homemade.build.board=AVR_ARDUBOY_HOMEMADE
-arduboy-homemade.build.core=arduboy
+arduboy-homemade.build.core=arduino:arduino
 
 ## Arduboy homemade based on boards ###########################################
 
@@ -71,8 +71,8 @@ arduboy-homemade.menu.based_on.leonardo.build.pid=0x8036
 arduboy-homemade.menu.based_on.leonardo.build.variant=arduboy-leonardo
 arduboy-homemade.menu.based_on.leonardo.build.usb_product="ABL{usb_product_postfix}"
 arduboy-homemade.menu.based_on.leonardo.org_bootloader_file=caterina/Caterina-Leonardo.hex
-arduboy-homemade.menu.based_on.leonardo.c3k_bootloader_file=cathy3k/arduboy3k-bootloader{bootloader_display}{bootloader_flashselect}.hex
-arduboy-homemade.menu.based_on.leonardo.c2k_bootloader_file=cathy2k/arduboy2k-bootloader.hex
+arduboy-homemade.menu.based_on.leonardo.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-menu{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.leonardo.c3kg_bootloader_file=cathy3k/arduboy3k-bootloader-game{bootloader_display}{bootloader_flashselect}.hex
 
 # micro #
 arduboy-homemade.menu.based_on.micro=Arduino/Genuino Micro
@@ -82,8 +82,8 @@ arduboy-homemade.menu.based_on.micro.build.pid=0x8037
 arduboy-homemade.menu.based_on.micro.build.variant=arduboy-micro
 arduboy-homemade.menu.based_on.micro.build.usb_product="ABM{usb_product_postfix}"
 arduboy-homemade.menu.based_on.micro.org_bootloader_file=caterina/Caterina-Micro.hex
-arduboy-homemade.menu.based_on.micro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-micro{bootloader_display}{bootloader_flashselect}.hex
-arduboy-homemade.menu.based_on.micro.c2k_bootloader_file=cathy2k/arduboy2k-bootloader-micro.hex
+arduboy-homemade.menu.based_on.micro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-menu-micro{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.micro.c3kg_bootloader_file=cathy3k/arduboy3k-bootloader-game-micro{bootloader_display}{bootloader_flashselect}.hex
 
 # SparkFun Pro Micro 5V #
 arduboy-homemade.menu.based_on.promicro=SparkFun Pro Micro 5V - Standard wiring
@@ -96,8 +96,8 @@ arduboy-homemade.menu.based_on.promicro.build.variant=arduboy-promicro
 arduboy-homemade.menu.based_on.promicro.build.usb_product="ABP{usb_product_postfix}"
 arduboy-homemade.menu.based_on.promicro.build.board=AVR_PROMICRO
 arduboy-homemade.menu.based_on.promicro.org_bootloader_file=caterina/Caterina-promicro16.hex
-arduboy-homemade.menu.based_on.promicro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader{bootloader_display}{bootloader_flashselect}.hex
-arduboy-homemade.menu.based_on.promicro.c2k_bootloader_file=cathy2k/arduboy2k-bootloader.hex
+arduboy-homemade.menu.based_on.promicro.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-menu{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.promicro.c3kg_bootloader_file=cathy3k/arduboy3k-bootloader-game{bootloader_display}{bootloader_flashselect}.hex
 
 arduboy-homemade.menu.based_on.promicro_alt=SparkFun Pro Micro 5V - Alternate wiring
 #arduboy-homemade.menu.based_on.promicro_alt.build.vid=0x1b4f
@@ -109,8 +109,8 @@ arduboy-homemade.menu.based_on.promicro_alt.build.variant=arduboy-promicro-alt
 arduboy-homemade.menu.based_on.promicro_alt.build.usb_product="ABA{usb_product_postfix}"
 arduboy-homemade.menu.based_on.promicro_alt.build.board=AVR_PROMICRO -DAB_ALTERNATE_WIRING
 arduboy-homemade.menu.based_on.promicro_alt.org_bootloader_file=caterina/Caterina-promicro16.hex
-arduboy-homemade.menu.based_on.promicro_alt.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-promicro{bootloader_display}{bootloader_flashselect}.hex
-arduboy-homemade.menu.based_on.promicro_alt.c2k_bootloader_file=cathy2k/arduboy-bootloader-promicro.hex
+arduboy-homemade.menu.based_on.promicro_alt.c3k_bootloader_file=cathy3k/arduboy3k-bootloader-menu-promicro{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.promicro_alt.c3kg_bootloader_file=cathy3k/arduboy3k-bootloader-game-promicro{bootloader_display}{bootloader_flashselect}.hex
 
 # bootloader #
 arduboy-homemade.menu.boot.org=original (Caterina)
@@ -118,22 +118,23 @@ arduboy-homemade.menu.boot.org.upload.maximum_size=28672
 arduboy-homemade.menu.boot.org.bootloader.high_fuses=0xd0
 arduboy-homemade.menu.boot.org.bootloader.file={org_bootloader_file}
 
-arduboy-homemade.menu.boot.cathy3k=Cathy3K
+arduboy-homemade.menu.boot.cathy3k=Cathy3K (starts with menu)
 arduboy-homemade.menu.boot.cathy3k.upload.maximum_size=29696
 arduboy-homemade.menu.boot.cathy3k.bootloader.high_fuses=0xd2
 arduboy-homemade.menu.boot.cathy3k.bootloader.file={c3k_bootloader_file}
 
-arduboy-homemade.menu.boot.cathy2k=Cathy2K
-arduboy-homemade.menu.boot.cathy2k.upload.maximum_size=30720
-arduboy-homemade.menu.boot.cathy2k.bootloader.high_fuses=0xd2
-arduboy-homemade.menu.boot.cathy2k.bootloader.file={c2k_bootloader_file}
+arduboy-homemade.menu.boot.cathy3kg=Cathy3K (starts with game)
+arduboy-homemade.menu.boot.cathy3kg.upload.maximum_size=29696
+arduboy-homemade.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+arduboy-homemade.menu.boot.cathy3kg.bootloader.file={c3kg_bootloader_file}
 
 # core #
+arduboy-homemade.menu.core.arduboy-core=Arduboy optimized core
+arduboy-homemade.menu.core.arduboy-core.build.core=arduboy
+
 arduboy-homemade.menu.core.arduino-core=Standard Arduino core
 arduboy-homemade.menu.core.arduino-core.build.core=arduino:arduino
 
-arduboy-homemade.menu.core.arduboy-core=Arduboy optimized core
-arduboy-homemade.menu.core.arduboy-core.build.core=arduboy
 
 # display #
 arduboy-homemade.menu.display.sh1106=SH1106
@@ -309,26 +310,26 @@ arduboy.build.extra_flags=-DARDUBOY_10 {build.flash_cs} {build.usb_flags}
 
 # Arduboy menu options #########################################################
 
-arduboy.menu.core.arduino-core=Standard Arduino core
-arduboy.menu.core.arduino-core.build.core=arduino:arduino
-
 arduboy.menu.core.arduboy-core=Arduboy optimized core
 arduboy.menu.core.arduboy-core.build.core=arduboy
+
+arduboy.menu.core.arduino-core=Standard Arduino core
+arduboy.menu.core.arduino-core.build.core=arduino:arduino
 
 arduboy.menu.boot.org=original (Caterina)
 arduboy.menu.boot.org.upload.maximum_size=28672
 arduboy.menu.boot.org.bootloader.high_fuses=0xd0
 arduboy.menu.boot.org.bootloader.file=caterina/Caterina-Leonardo.hex
                  
-arduboy.menu.boot.cathy3k=Cathy3K
+arduboy.menu.boot.cathy3k=Cathy3K (starts with menu)
 arduboy.menu.boot.cathy3k.upload.maximum_size=29696
 arduboy.menu.boot.cathy3k.bootloader.high_fuses=0xd2
-arduboy.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-sda.hex
+arduboy.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
 
-arduboy.menu.boot.cathy2k=Cathy2K
-arduboy.menu.boot.cathy2k.upload.maximum_size=30720
-arduboy.menu.boot.cathy2k.bootloader.high_fuses=0xd2
-arduboy.menu.boot.cathy2k.bootloader.file=cathy2k/arduboy2k-bootloader.hex
+arduboy.menu.boot.cathy3kg=Cathy3K (starts with game)
+arduboy.menu.boot.cathy3kg.upload.maximum_size=29696
+arduboy.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+arduboy.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-sda.hex
 
 ################################################################################
 # Arduboy DevKit board
@@ -394,25 +395,25 @@ arduboy-devkit.build.extra_flags=-DAB_DEVKIT {build.usb_flags}
 
 # DevKit menu options ##########################################################
 
-arduboy-devkit.menu.core.arduino=Standard Arduino core
-arduboy-devkit.menu.core.arduino.build.core=arduino:arduino
-
 arduboy-devkit.menu.core.arduboy=Arduboy optimized core
 arduboy-devkit.menu.core.arduboy.build.core=arduboy
+
+arduboy-devkit.menu.core.arduino=Standard Arduino core
+arduboy-devkit.menu.core.arduino.build.core=arduino:arduino
 
 arduboy-devkit.menu.boot.org=original (Caterina)
 arduboy-devkit.menu.boot.org.upload.maximum_size=28672
 arduboy-devkit.menu.boot.org.bootloader.high_fuses=0xd0
 arduboy-devkit.menu.boot.org.bootloader.file=caterina/Caterina-Leonardo.hex
                  
-arduboy-devkit.menu.boot.cathy3k=Cathy3K
+arduboy-devkit.menu.boot.cathy3k=Cathy3K (starts with menu)
 arduboy-devkit.menu.boot.cathy3k.upload.maximum_size=29696
 arduboy-devkit.menu.boot.cathy3k.bootloader.high_fuses=0xd2
-arduboy-devkit.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-devkit.hex
+arduboy-devkit.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-devkit.hex
 
-arduboy-devkit.menu.boot.cathy2k=Cathy2K
-arduboy-devkit.menu.boot.cathy2k.upload.maximum_size=30720
-arduboy-devkit.menu.boot.cathy2k.bootloader.high_fuses=0xd2
-arduboy-devkit.menu.boot.cathy2k.bootloader.file=cathy2k/arduboy2k-bootloader-devkit.hex
+arduboy-devkit.menu.boot.cathy3kg=Cathy3K (starts with game)
+arduboy-devkit.menu.boot.cathy3kg.upload.maximum_size=29696
+arduboy-devkit.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+arduboy-devkit.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-devkit.hex
 
 ################################################################################
