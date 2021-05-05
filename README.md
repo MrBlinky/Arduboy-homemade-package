@@ -23,7 +23,8 @@ You can now select **Arduboy, Arduboy DevKit** and **Homemade Arduboy boards** f
 
 ## Libraries
 
-This package contains all the currently available Arduboy libraries with changes for homemade Arduboys. ⚠️⚠️⚠️No libraries must be installed manually⚠️⚠️⚠️ If they are, they take precedence over the homemade package libraries and must be uninstalled.
+This package contains all the currently available Arduboy libraries with changes for homemade Arduboys.<br>
+⚠️⚠️⚠️No libraries must be installed manually⚠️⚠️⚠️ If they are, they take precedence over the homemade package libraries and must be uninstalled.
 
 ## Pin wiring table
 
