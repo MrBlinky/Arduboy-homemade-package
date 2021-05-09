@@ -1,5 +1,5 @@
 /* *****************************************************************************
- * FX draw balls test v1.15 by Mr.Blinky May 2019 May2021 licenced under MIT
+ * FX draw balls test v1.15 by Mr.Blinky May 2019 May2021 licenced under CC0
  * *****************************************************************************
  * 
  * This test depend on the file fxdata.bin being uploaded to the external FX flash 
