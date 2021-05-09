@@ -1,11 +1,12 @@
 /* *****************************************************************************
- * Flash cart draw balls test v1.14 by Mr.Blinky May-Jun.2019 licenced under MIT
+ * FX draw balls test v1.15 by Mr.Blinky May 2019 May2021 licenced under MIT
  * *****************************************************************************
  * 
- * This test depend on file drawballs-test.bin being uploaded with the 
- * flash-writer Python script in the develop area using the following command:
+ * This test depend on the file fxdata.bin being uploaded to the external FX flash 
+ * chip using the uploader-gui.py or flash-writer.py Python script in the
+ * development area. When using the flash writer script. Use the following command:
  * 
- * python flash-writer.py -d drawballs-single-datafile.bin
+ * python flash-writer.py -d fxdata.bin
  * 
  * This demo draws a moving background tilemap with a bunch of bouncing ball sprites around
  * 
@@ -14,20 +15,20 @@
  * A - increase the number of bounching balls up to MAX_BALLS
  * B - decrease the number of balls down to zero
  * 
- * D-Pad scroll the background
+ * D-Pad - scroll the background
  * 
  */
 
 #include <Arduboy2.h>
-#include <ArduboyFX.h>
-#include "fxdata.h"
-
+#include <ArduboyFX.h>                // Required library for accessing the FX flash chip
+#include "fxdata.h"                   // this file contains all the references to FX data
+                                      // Check out fxdata.txt to see how this is done.
 #define FRAME_RATE 60
 
 #define MAX_BALLS 55                   // 55 Balls possible at 60fps 155 at 30fps
 #define CIRCLE_POINTS 84               
-#define VISABLE_TILES_PER_COLUMN 5     // the maximum number of tiles visable horizontally
-#define VISABLE_TILES_PER_ROW 9        // the maximum number of tiles visable vertically
+#define VISABLE_TILES_PER_COLUMN 5     // the maximum number of tiles visable vertically
+#define VISABLE_TILES_PER_ROW 9        // the maximum number of tiles visable horizontally
 
 //datafile offsets
 constexpr uint8_t ballWidth = 16;
@@ -74,9 +75,9 @@ void setup() {
   {
    ball[i].x = random(113);
    ball[i].y = random(49);
-   ball[i].xspeed = random(1,3);
+   ball[i].xspeed = 1;//random(1,3);
    if (random(100) > 49) ball[i].xspeed = -ball[i].xspeed;
-   ball[i].yspeed = random(1,3);
+   ball[i].yspeed = 1; //random(1,3);
    if (random(100) > 49) ball[i].yspeed = -ball[i].yspeed;
   }                                     
 }
@@ -84,9 +85,9 @@ void setup() {
 uint8_t tilemapBuffer[VISABLE_TILES_PER_ROW]; // a small buffer to store one horizontal row of tiles from the tilemap
 
 void loop() {
-  if (!arduboy.nextFrame()) return;
+  if (!arduboy.nextFrame()) return; // return until it's time to draw a new frame
 
-  arduboy.pollButtons();
+  arduboy.pollButtons();                                                           // pollButtons required for the justPressed() function
   if ((arduboy.justPressed(A_BUTTON) && ballsVisible < MAX_BALLS)) ballsVisible++; // Pressing A button increases the number of visible balls until the maximum has been reached
   if ((arduboy.justPressed(B_BUTTON) && ballsVisible > 0)) ballsVisible--;         // Pressing B reduces the number of visible balls until none are visible
   if (arduboy.pressed(UP_BUTTON) && mapLocation.y > 16) mapLocation.y--;           // Pressing directional buttons will scroll the tilemap
@@ -100,7 +101,7 @@ void loop() {
   //draw tilemap
   for (int8_t y = 0; y < VISABLE_TILES_PER_COLUMN; y++)
   {
-    FX::readDataArray(FX_DATA_TILEMAP,           // read the visible tiles on a row from the tilemap in external flash
+    FX::readDataArray(FX_DATA_TILEMAP,           // read the visible tiles on a horizontal row from the tilemap in external flash
                       y + camera.y / tileHeight, // the tilemap row
                       camera.x / tileWidth,      // the column within tilemap row
                       tilemapWidth,              // use the width of tilemap as array element size
@@ -123,7 +124,8 @@ void loop() {
     FX::drawBitmap(ball[i].x,                      // although this function is called drawBitmap it can also draw masked sprites
                    ball[i].y, 
                    FX_DATA_BALLS,                  // the ball sprites masked bitmap offset in external flash memory
-                   0,                              // the drawballs-singe-datafile.bin file only has a single sprite frame
+                   0,                              // the fxdata was build using the single ball sprite.png image so there's only frame 0
+                   //i % 16,                       // comment above and uncomment this one if the fxdata is rebuild using the ball_16x16.png image
                    dbmMasked /* | dbmReverse */ ); // remove the '/*' and '/*' to reverse the balls into white balls
 
    //when uploading the drawballs-singe-datafile.bin into the development area,
@@ -171,6 +173,6 @@ void loop() {
   }
       
   FX::enableOLED();// only enable OLED for updating the display
-  arduboy.display(CLEAR_BUFFER);
-  FX::disableOLED();// disable so flash cart can be used at any time
+  arduboy.display(CLEAR_BUFFER); // Using CLEAR_BUFFER will clear the display buffer after it is displayed
+  FX::disableOLED();// disable display again so external flash can be accessed at any time
 }
