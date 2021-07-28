@@ -10,17 +10,16 @@
 //========== class Arduboy2Base ==========
 //========================================
 
-uint8_t Arduboy2Base::sBuffer[];
+  uint8_t Arduboy2Base::sBuffer[];
 
-Arduboy2Base::Arduboy2Base()
-{
-  currentButtonState = 0;
-  previousButtonState = 0;
+  uint8_t Arduboy2Base::currentButtonState = 0;
+  uint8_t Arduboy2Base::previousButtonState = 0;
   // frame management
-  setFrameRate(60);
-  frameCount = 0;
-  justRendered = false;
-}
+  uint16_t Arduboy2Base::frameCount = 0;
+  uint8_t Arduboy2Base::eachFrameMillis = 16;
+  uint8_t Arduboy2Base::thisFrameStart;
+  uint8_t Arduboy2Base::lastFrameDurationMs;
+  bool Arduboy2Base::justRendered = false;
 
 // functions called here should be public so users can create their
 // own init functions if they need different behavior than `begin`
@@ -1177,15 +1176,14 @@ void Arduboy2Base::swapInt16(int16_t& a, int16_t& b)
 //========== class Arduboy2 ==========
 //====================================
 
-Arduboy2::Arduboy2()
-{
-  cursor_x = 0;
-  cursor_y = 0;
-  textColor = 1;
-  textBackground = 0;
-  textSize = 1;
-  textWrap = 0;
-}
+  int16_t Arduboy2::cursor_x = 0;
+  int16_t Arduboy2::cursor_y = 0;
+  uint8_t Arduboy2::textColor = 1;
+  uint8_t Arduboy2::textBackground = 0;
+  uint8_t Arduboy2::textSize = 1;
+  bool Arduboy2::textWrap = false;
+  //bool Arduboy2::textRaw = false;
+
 
 // bootLogoText() should be kept in sync with bootLogoShell()
 // if changes are made to one, equivalent changes should be made to the other
