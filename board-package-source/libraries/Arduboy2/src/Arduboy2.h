@@ -218,7 +218,7 @@ class Arduboy2Base : public Arduboy2Core
  friend class Arduboy2Audio;
 
  public:
-  Arduboy2Base();
+  //Arduboy2Base();
 
   /** \brief
    * An object created to provide audio control functions within this class.
@@ -418,7 +418,7 @@ class Arduboy2Base : public Arduboy2Core
 
   // Called by bootLogoShell() to allow derived classes to display additional
   // information after the logo stops scrolling down.
-  virtual void bootLogoExtra();
+  static void bootLogoExtra();
 
   /** \brief
    * Wait until all buttons have been released.
@@ -1452,7 +1452,6 @@ class Arduboy2 : public Print, public Arduboy2Base
  friend class Arduboy2Ex;
 
  public:
-  Arduboy2();
 
   /** \class Print
    * \brief
