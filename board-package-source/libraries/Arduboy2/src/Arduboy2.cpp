@@ -839,6 +839,7 @@ void Arduboy2Base::drawBitmap
   int8_t yOffset = y & 7;
   int8_t sRow = y >> 3;
   uint8_t rows = h >> 3;
+  if (h % 8 != 0) rows++;
   for (int a = 0; a < rows; a++) {
     int bRow = sRow + a;
     if (bRow > (HEIGHT/8)-1) break;
