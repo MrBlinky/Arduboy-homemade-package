@@ -229,7 +229,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see Arduboy2Audio
    */
-  Arduboy2Audio audio;
+   static Arduboy2Audio audio;
 
   /** \brief
    * Initialize the hardware, display the boot logo, provide boot utilities, etc.
@@ -247,7 +247,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see boot()
    */
-  void begin();
+  static void begin();
 
   /** \brief
    * Turn the RGB LED and display fully on to act as a small flashlight/torch.
@@ -275,7 +275,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see begin() boot() safeMode()
    */
-  void flashlight();
+  static void flashlight();
 
   /** \brief
    * Handle buttons held on startup for system control.
@@ -293,7 +293,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see begin() boot()
    */
-  void systemButtons();
+  static void systemButtons();
 
   /** \brief
    * Display the boot logo sequence using `drawBitmap()`.
@@ -311,7 +311,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see begin() boot() bootLogoShell() Arduboy2::bootLogoText()
    */
-  void bootLogo();
+  static void bootLogo();
 
   /** \brief
    * Display the boot logo sequence using `drawCompressed()`.
@@ -323,7 +323,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see bootLogo() begin() boot()
    */
-  void bootLogoCompressed();
+  static void bootLogoCompressed();
 
   /** \brief
    * Display the boot logo sequence using `Sprites::drawSelfMasked()`.
@@ -347,7 +347,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see bootLogo() begin() boot() Sprites
    */
-  void bootLogoSpritesOverwrite();
+  static void bootLogoSpritesOverwrite();
 
   /** \brief
    * Display the boot logo sequence using `SpritesB::drawSelfMasked()`.
@@ -359,7 +359,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see bootLogo() begin() boot() SpritesB
    */
-  void bootLogoSpritesBSelfMasked();
+  static void bootLogoSpritesBSelfMasked();
 
   /** \brief
    * Display the boot logo sequence using `SpritesB::drawOverwrite()`.
@@ -371,7 +371,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see bootLogo() begin() boot() SpritesB
    */
-  void bootLogoSpritesBOverwrite();
+  static void bootLogoSpritesBOverwrite();
 
   /** \brief
    * Display the boot logo sequence using the provided function
@@ -414,7 +414,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see bootLogo() boot() Arduboy2::bootLogoExtra()
    */
-  void bootLogoShell(void (*drawLogo)(int16_t));
+  static void bootLogoShell(void (*drawLogo)(int16_t));
 
   // Called by bootLogoShell() to allow derived classes to display additional
   // information after the logo stops scrolling down.
@@ -437,7 +437,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see begin() boot()
    */
-  void waitNoButtons();
+  static void waitNoButtons();
 
   /** \brief
    * Clear the display buffer.
@@ -447,7 +447,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see display(bool)
    */
-  void clear();
+  static void clear();
 
   /** \brief
    * Copy the contents of the display buffer to the display.
@@ -458,7 +458,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see display(bool)
    */
-  void display();
+  static void display();
 
   /** \brief
    * Copy the contents of the display buffer to the display. The display buffer
@@ -478,7 +478,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see display() clear()
    */
-  void display(bool clear);
+  static void display(bool clear);
 
   /** \brief
    * Set a single pixel in the display buffer to the specified color.
@@ -492,7 +492,7 @@ class Arduboy2Base : public Arduboy2Core
    * specified color. The values WHITE or BLACK can be used for the color.
    * If the `color` parameter isn't included, the pixel will be set to WHITE.
    */
-  static void drawPixel(int16_t x, int16_t y, uint8_t color = WHITE);
+  static static void drawPixel(int16_t x, int16_t y, uint8_t color = WHITE);
 
   /** \brief
    * Returns the state of the given pixel in the screen buffer.
@@ -502,7 +502,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \return WHITE if the pixel is on or BLACK if the pixel is off.
    */
-  uint8_t getPixel(uint8_t x, uint8_t y);
+  static uint8_t getPixel(uint8_t x, uint8_t y);
 
   /** \brief
    * Draw a circle of a given radius.
@@ -512,7 +512,7 @@ class Arduboy2Base : public Arduboy2Core
    * \param r The radius of the circle in pixels.
    * \param color The circle's color (optional; defaults to WHITE).
    */
-  void drawCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color = WHITE);
+  static void drawCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color = WHITE);
 
   /** \brief
    * Draw a filled-in circle of a given radius.
@@ -522,7 +522,7 @@ class Arduboy2Base : public Arduboy2Core
    * \param r The radius of the circle in pixels.
    * \param color The circle's color (optional; defaults to WHITE).
    */
-  void fillCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color = WHITE);
+  static void fillCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color = WHITE);
 
   /** \brief
    * Draw a line between two specified points.
@@ -536,7 +536,7 @@ class Arduboy2Base : public Arduboy2Core
    * Bresenham's algorithm.
    * The start and end points can be at any location with respect to the other.
    */
-  void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t color = WHITE);
+  static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t color = WHITE);
 
   /** \brief
    * Draw a rectangle of a specified width and height.
@@ -547,7 +547,7 @@ class Arduboy2Base : public Arduboy2Core
    * \param h The height of the rectangle.
    * \param color The color of the pixel (optional; defaults to WHITE).
    */
-  void drawRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t color = WHITE);
+  static void drawRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t color = WHITE);
 
   /** \brief
    * Draw a vertical line.
@@ -557,7 +557,7 @@ class Arduboy2Base : public Arduboy2Core
    * \param h The height of the line.
    * \param color The color of the line (optional; defaults to WHITE).
    */
-  void drawFastVLine(int16_t x, int16_t y, uint8_t h, uint8_t color = WHITE);
+  static void drawFastVLine(int16_t x, int16_t y, uint8_t h, uint8_t color = WHITE);
 
   /** \brief
    * Draw a horizontal line.
@@ -567,7 +567,7 @@ class Arduboy2Base : public Arduboy2Core
    * \param w The width of the line.
    * \param color The color of the line (optional; defaults to WHITE).
    */
-  void drawFastHLine(int16_t x, int16_t y, uint8_t w, uint8_t color = WHITE);
+  static void drawFastHLine(int16_t x, int16_t y, uint8_t w, uint8_t color = WHITE);
 
   /** \brief
    * Draw a filled-in rectangle of a specified width and height.
@@ -578,14 +578,14 @@ class Arduboy2Base : public Arduboy2Core
    * \param h The height of the rectangle.
    * \param color The color of the pixel (optional; defaults to WHITE).
    */
-  void fillRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t color = WHITE);
+  static void fillRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t color = WHITE);
 
   /** \brief
    * Fill the screen buffer with the specified color.
    *
    * \param color The fill color (optional; defaults to WHITE).
    */
-  void fillScreen(uint8_t color = WHITE);
+  static void fillScreen(uint8_t color = WHITE);
 
   /** \brief
    * Draw a rectangle with rounded corners.
@@ -597,7 +597,7 @@ class Arduboy2Base : public Arduboy2Core
    * \param r The radius of the semicircles forming the corners.
    * \param color The color of the rectangle (optional; defaults to WHITE).
    */
-  void drawRoundRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t r, uint8_t color = WHITE);
+  static void drawRoundRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t r, uint8_t color = WHITE);
 
   /** \brief
    * Draw a filled-in rectangle with rounded corners.
@@ -609,7 +609,7 @@ class Arduboy2Base : public Arduboy2Core
    * \param r The radius of the semicircles forming the corners.
    * \param color The color of the rectangle (optional; defaults to WHITE).
    */
-  void fillRoundRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t r, uint8_t color = WHITE);
+  static void fillRoundRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t r, uint8_t color = WHITE);
 
   /** \brief
    * Draw a triangle given the coordinates of each corner.
@@ -622,7 +622,7 @@ class Arduboy2Base : public Arduboy2Core
    * A triangle is drawn by specifying each of the three corner locations.
    * The corners can be at any position with respect to the others.
    */
-  void drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t color = WHITE);
+  static void drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t color = WHITE);
 
   /** \brief
    * Draw a filled-in triangle given the coordinates of each corner.
@@ -635,7 +635,7 @@ class Arduboy2Base : public Arduboy2Core
    * A triangle is drawn by specifying each of the three corner locations.
    * The corners can be at any position with respect to the others.
    */
-  void fillTriangle (int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t color = WHITE);
+  static void fillTriangle (int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t color = WHITE);
 
   /** \brief
    * Draw a bitmap from an array in program memory.
@@ -688,7 +688,7 @@ class Arduboy2Base : public Arduboy2Core
    * that allows them to be directly written to the screen. It is recommended
    * you use `drawBitmap()` when possible.
    */
-  void drawSlowXYBitmap(int16_t x, int16_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color = WHITE);
+  static void drawSlowXYBitmap(int16_t x, int16_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color = WHITE);
 
   /** \brief
    * Draw a bitmap from an array of compressed data.
@@ -733,7 +733,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see sBuffer
    */
-  uint8_t* getBuffer();
+  static uint8_t* getBuffer();
 
   /** \brief
    * Seed the random number generator with a random value.
@@ -749,7 +749,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see generateRandomSeed()
    */
-  void initRandomSeed();
+  static void initRandomSeed();
 
   /** \brief
    * Set the frame rate used by the frame control functions.
@@ -777,7 +777,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see nextFrame() setFrameDuration()
    */
-  void setFrameRate(uint8_t rate);
+  static void setFrameRate(uint8_t rate);
 
   /** \brief
    * Set the frame rate, used by the frame control functions, by giving
@@ -797,7 +797,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see nextFrame() setFrameRate()
    */
-  void setFrameDuration(uint8_t duration);
+  static void setFrameDuration(uint8_t duration);
 
   /** \brief
    * Indicate that it's time to render the next frame.
@@ -824,7 +824,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see setFrameRate() setFrameDuration() nextFrameDEV()
    */
-  bool nextFrame();
+  static bool nextFrame();
 
   /** \brief
    * Indicate that it's time to render the next frame, and visually indicate
@@ -851,7 +851,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see nextFrame() cpuLoad() setFrameRate()
    */
-  bool nextFrameDEV();
+  static bool nextFrameDEV();
 
   /** \brief
    * Indicate if the specified number of frames has elapsed.
@@ -878,7 +878,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see setFrameRate() nextFrame()
    */
-  bool everyXFrames(uint8_t frames);
+  static bool everyXFrames(uint8_t frames);
 
   /** \brief
    * Return the load on the CPU as a percentage.
@@ -901,7 +901,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see setFrameRate() nextFrame()
    */
-  int cpuLoad();
+  static int cpuLoad();
 
   /** \brief
    * Test if the all of the specified buttons are pressed.
@@ -922,7 +922,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see anyPressed() notPressed()
    */
-  bool pressed(uint8_t buttons);
+  static bool pressed(uint8_t buttons);
 
   /** \brief
    * Test if any of the specified buttons are pressed.
@@ -944,7 +944,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see pressed() notPressed()
    */
-  bool anyPressed(uint8_t buttons);
+  static bool anyPressed(uint8_t buttons);
 
   /** \brief
    * Test if the specified buttons are not pressed.
@@ -966,7 +966,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see pressed() anyPressed()
    */
-  bool notPressed(uint8_t buttons);
+  static bool notPressed(uint8_t buttons);
 
   /** \brief
    * Poll the buttons and track their state over time.
@@ -1001,7 +1001,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see justPressed() justReleased()
    */
-  void pollButtons();
+  static void pollButtons();
 
   /** \brief
    * Check if a button has just been pressed.
@@ -1023,7 +1023,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see pollButtons() justReleased()
    */
-  bool justPressed(uint8_t button);
+  static bool justPressed(uint8_t button);
 
   /** \brief
    * Check if a button has just been released.
@@ -1051,7 +1051,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see pollButtons() justPressed()
    */
-  bool justReleased(uint8_t button);
+  static bool justReleased(uint8_t button);
 
   /** \brief
    * Test if a point falls within a rectangle.
@@ -1098,7 +1098,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see writeUnitID() readUnitName()
    */
-  uint16_t readUnitID();
+  static uint16_t readUnitID();
 
   /** \brief
    * Write a unit ID to system EEPROM.
@@ -1112,7 +1112,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see readUnitID() writeUnitName()
    */
-  void writeUnitID(uint16_t id);
+  static void writeUnitID(uint16_t id);
 
   /** \brief
    * Read the unit name from system EEPROM.
@@ -1158,7 +1158,7 @@ class Arduboy2Base : public Arduboy2Core
    * \see writeUnitName() readUnitID() Arduboy2::bootLogoExtra()
    * ARDUBOY_UNIT_NAME_BUFFER_SIZE ARDUBOY_UNIT_NAME_LEN Arduboy2::font5x7
    */
-  uint8_t readUnitName(char* name);
+  static uint8_t readUnitName(char* name);
 
   /** \brief
    * Write a unit name to system EEPROM.
@@ -1189,7 +1189,7 @@ class Arduboy2Base : public Arduboy2Core
    * \see readUnitName() writeUnitID() Arduboy2::bootLogoExtra()
    * ARDUBOY_UNIT_NAME_BUFFER_SIZE ARDUBOY_UNIT_NAME_LEN Arduboy2::font5x7
    */
-  void writeUnitName(const char* name);
+  static void writeUnitName(const char* name);
 
   /** \brief
    * Read the "Show Boot Logo" flag in system EEPROM.
@@ -1205,7 +1205,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see writeShowBootLogoFlag() bootLogo()
    */
-  bool readShowBootLogoFlag();
+  static bool readShowBootLogoFlag();
 
   /** \brief
    * Write the "Show Boot Logo" flag in system EEPROM.
@@ -1221,7 +1221,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see readShowBootLogoFlag() bootLogo()
    */
-  void writeShowBootLogoFlag(bool val);
+  static void writeShowBootLogoFlag(bool val);
 
   /** \brief
    * Read the "Show Unit Name" flag in system EEPROM.
@@ -1237,7 +1237,7 @@ class Arduboy2Base : public Arduboy2Core
    * \see writeShowUnitNameFlag() writeUnitName() readUnitName()
    * Arduboy2::bootLogoExtra()
    */
-  bool readShowUnitNameFlag();
+  static bool readShowUnitNameFlag();
 
   /** \brief
    * Write the "Show Unit Name" flag in system EEPROM.
@@ -1253,7 +1253,7 @@ class Arduboy2Base : public Arduboy2Core
    * \see readShowUnitNameFlag() writeUnitName() readUnitName()
    * Arduboy2::bootLogoExtra()
    */
-  void writeShowUnitNameFlag(bool val);
+  static void writeShowUnitNameFlag(bool val);
 
   /** \brief
    * Read the "Show LEDs with boot logo" flag in system EEPROM.
@@ -1268,7 +1268,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see writeShowBootLogoLEDsFlag()
    */
-  bool readShowBootLogoLEDsFlag();
+  static bool readShowBootLogoLEDsFlag();
 
   /** \brief
    * Write the "Show LEDs with boot logo" flag in system EEPROM.
@@ -1284,7 +1284,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see readShowBootLogoLEDsFlag()
    */
-  void writeShowBootLogoLEDsFlag(bool val);
+  static void writeShowBootLogoLEDsFlag(bool val);
 
   /** \brief
    * A counter which is incremented once per frame.
@@ -1319,7 +1319,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see nextFrame() everyXFrames()
    */
-  uint16_t frameCount;
+  static uint16_t frameCount;
 
   /** \brief
    * The display buffer array in RAM.
@@ -1360,7 +1360,7 @@ class Arduboy2Base : public Arduboy2Core
 
  protected:
   // helper function for sound enable/disable system control
-  void sysCtrlSound(uint8_t buttons, uint8_t led, uint8_t eeVal);
+  static void sysCtrlSound(uint8_t buttons, uint8_t led, uint8_t eeVal);
 
   // functions passed to bootLogoShell() to draw the logo
   static void drawLogoBitmap(int16_t y);
@@ -1371,29 +1371,29 @@ class Arduboy2Base : public Arduboy2Core
   static void drawLogoSpritesBOverwrite(int16_t y);
 
   // draw one or more "corners" of a circle
-  void drawCircleHelper(int16_t x0, int16_t y0, uint8_t r, uint8_t corners,
+  static void drawCircleHelper(int16_t x0, int16_t y0, uint8_t r, uint8_t corners,
                         uint8_t color = WHITE);
 
   // draw one or both vertical halves of a filled-in circle or
   // rounded rectangle edge
-  void fillCircleHelper(int16_t x0, int16_t y0, uint8_t r,
+  static void fillCircleHelper(int16_t x0, int16_t y0, uint8_t r,
                         uint8_t sides, int16_t delta, uint8_t color = WHITE);
 
   // helper for drawCompressed()
   struct BitStreamReader;
 
   // swap the values of two int16_t variables passed by reference
-  void swapInt16(int16_t& a, int16_t& b);
+  static void swapInt16(int16_t& a, int16_t& b);
 
   // For button handling
-  uint8_t currentButtonState;
-  uint8_t previousButtonState;
+  static uint8_t currentButtonState;
+  static uint8_t previousButtonState;
 
   // For frame functions
-  uint8_t eachFrameMillis;
-  uint8_t thisFrameStart;
-  bool justRendered;
-  uint8_t lastFrameDurationMs;
+  static uint8_t eachFrameMillis;
+  static uint8_t thisFrameStart;
+  static bool justRendered;
+  static uint8_t lastFrameDurationMs;
 
   // ----- Map of EEPROM addresses for system use-----
 
@@ -1607,7 +1607,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    * \see Print write() setTextColor() setTextBackground() setTextSize()
    * font5x7
    */
-  void drawChar(int16_t x, int16_t y, unsigned char c, uint8_t color, uint8_t bg, uint8_t size);
+  static void drawChar(int16_t x, int16_t y, unsigned char c, uint8_t color, uint8_t bg, uint8_t size);
 
   /** \brief
    * Set the location of the text cursor.
@@ -1627,7 +1627,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setCursorX() setCursorY() getCursorX() getCursorY()
    */
-  void setCursor(int16_t x, int16_t y);
+  static void setCursor(int16_t x, int16_t y);
 
   /** \brief
    * Set the X coordinate of the text cursor location.
@@ -1642,7 +1642,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setCursor() setCursorY() getCursorX() getCursorY()
    */
-  void setCursorX(int16_t x);
+  static void setCursorX(int16_t x);
 
   /** \brief
    * Set the Y coordinate of the text cursor location.
@@ -1657,7 +1657,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setCursor() setCursorX() getCursorX() getCursorY()
    */
-  void setCursorY(int16_t y);
+  static void setCursorY(int16_t y);
 
   /** \brief
    * Get the X coordinate of the current text cursor position.
@@ -1670,7 +1670,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see getCursorY() setCursor() setCursorX() setCursorY()
    */
-  int16_t getCursorX();
+  static int16_t getCursorX();
 
   /** \brief
    * Get the Y coordinate of the current text cursor position.
@@ -1683,7 +1683,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see getCursorX() setCursor() setCursorX() setCursorY()
    */
-  int16_t getCursorY();
+  static int16_t getCursorY();
 
   /** \brief
    * Set the text foreground color.
@@ -1692,7 +1692,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setTextBackground() getTextColor()
    */
-  void setTextColor(uint8_t color);
+  static void setTextColor(uint8_t color);
 
   /** \brief
    * Get the currently set text foreground color.
@@ -1701,7 +1701,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setTextColor()
    */
-  uint8_t getTextColor();
+  static uint8_t getTextColor();
 
   /** \brief
    * Set the text background color.
@@ -1710,7 +1710,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setTextColor() getTextBackground()
    */
-  void setTextBackground(uint8_t bg);
+  static void setTextBackground(uint8_t bg);
 
   /** \brief
    * Get the currently set text background color.
@@ -1719,7 +1719,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setTextBackground()
    */
-  uint8_t getTextBackground();
+  static uint8_t getTextBackground();
 
   /** \brief
    * Set the text character size.
@@ -1737,7 +1737,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see getTextSize()
    */
-  void setTextSize(uint8_t s);
+  static void setTextSize(uint8_t s);
 
   /** \brief
    * Get the currently set text size.
@@ -1746,7 +1746,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setTextSize()
    */
-  uint8_t getTextSize();
+  static uint8_t getTextSize();
 
   /** \brief
    * Set or disable text wrap mode.
@@ -1765,7 +1765,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see getTextWrap()
    */
-  void setTextWrap(bool w);
+  static void setTextWrap(bool w);
 
   /** \brief
    * Get the currently set text wrap mode.
@@ -1774,12 +1774,12 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see setTextWrap()
    */
-  bool getTextWrap();
+  static bool getTextWrap();
 
   /** \brief
    * Clear the display buffer and set the text cursor to location 0, 0
    */
-  void clear();
+  static void clear();
 
   /** \brief
    * The font used for text functions.
@@ -1824,12 +1824,12 @@ class Arduboy2 : public Print, public Arduboy2Base
   static const PROGMEM uint8_t font5x7[];
 
  protected:
-  int16_t cursor_x;
-  int16_t cursor_y;
-  uint8_t textColor;
-  uint8_t textBackground;
-  uint8_t textSize;
-  bool textWrap;
+  static int16_t cursor_x;
+  static int16_t cursor_y;
+  static uint8_t textColor;
+  static uint8_t textBackground;
+  static uint8_t textSize;
+  static bool textWrap;
 };
 
 extern volatile unsigned long timer0_millis;
