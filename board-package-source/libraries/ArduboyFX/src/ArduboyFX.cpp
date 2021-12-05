@@ -669,7 +669,7 @@ void FX::readDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t 
 }
 
 
-uint16_t FX::readIndexedUInt8(uint24_t address, uint8_t index)
+uint8_t FX::readIndexedUInt8(uint24_t address, uint8_t index)
 {
   seekDataArray(address, index, 0, sizeof(uint8_t));
   return readEnd();

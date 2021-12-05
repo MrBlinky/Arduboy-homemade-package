@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Arduboy hardware test toy v1.0 September 2017 by Mr.Blinky
+  Arduboy hardware test toy v1.1 Sep. 2017 - Nov.2021 by Mr.Blinky
 *******************************************************************************/
 
 #include <Arduboy2.h>
@@ -14,6 +14,7 @@ Sprites sprites;
 void setup() 
 {
   arduboy.begin();
+  arduboy.setRGBled(0,0,0);
   arduboy.setFrameRate(FRAMERATE);
   arduboy.audio.on; 
 }
@@ -110,6 +111,8 @@ void loop()
     arduboy.setRGBled(pgm_read_byte(rgbValues + rgbLed.red), pgm_read_byte(rgbValues + rgbLed.green), pgm_read_byte(rgbValues + rgbLed.blue));
     rxled_on ? RXLED1 : RXLED0;
     txled_on ? TXLED1 : TXLED0;
+    SPEAKER_1_PORT &= ~_BV(SPEAKER_1_BIT);    
+    SPEAKER_2_PORT |= _BV(SPEAKER_2_BIT);
     for (int i = 0; i < 50; i++) 
     {
       speaker1_on ? SPEAKER_1_PORT ^= _BV(SPEAKER_1_BIT) : SPEAKER_1_PORT &= ~_BV(SPEAKER_1_BIT);
@@ -117,7 +120,9 @@ void loop()
       speaker2_on ? SPEAKER_2_PORT ^= _BV(SPEAKER_2_BIT) : SPEAKER_2_PORT |= _BV(SPEAKER_2_BIT);
       #endif
       delayMicroseconds(300);
-    }  
+    }
+    SPEAKER_1_PORT &= ~_BV(SPEAKER_1_BIT);    
+    SPEAKER_2_PORT &= ~_BV(SPEAKER_2_BIT);    
     hardwareChange = false;
   }
 }

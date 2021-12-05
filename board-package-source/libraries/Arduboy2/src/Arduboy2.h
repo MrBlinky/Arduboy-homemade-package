@@ -34,7 +34,7 @@
  * #endif
  * \endcode
  */
-#define ARDUBOY_LIB_VER 50300
+#define ARDUBOY_LIB_VER 60000
 
 // EEPROM settings
 /** \brief
@@ -73,10 +73,6 @@
  * Sketches can use locations from here to the end of EEPROM space.
  */
 #define EEPROM_STORAGE_SPACE_START 16
-
-// If defined, it is safe to draw outside of the screen boundaries.
-// Pixels that would exceed the display limits will be ignored.
-#define PIXEL_SAFE_MODE
 
 // pixel colors
 #define BLACK 0  /**< Color value for an unlit pixel for draw functions. */
@@ -218,7 +214,6 @@ class Arduboy2Base : public Arduboy2Core
  friend class Arduboy2Audio;
 
  public:
-  //Arduboy2Base();
 
   /** \brief
    * An object created to provide audio control functions within this class.
@@ -229,7 +224,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see Arduboy2Audio
    */
-   static Arduboy2Audio audio;
+  static Arduboy2Audio audio;
 
   /** \brief
    * Initialize the hardware, display the boot logo, provide boot utilities, etc.
@@ -241,13 +236,42 @@ class Arduboy2Base : public Arduboy2Core
    * and system control features and initializes audio control.
    *
    * \note
-   * To free up some code space for use by the sketch, `boot()` can be used
-   * instead of `begin()` to allow the elimination of some of the things that
-   * aren't really required, such as displaying the boot logo.
+   * \parblock
+   * If it becomes necessary to free up some code space for use by the sketch,
+   * `boot()` can be used instead of `begin()` to allow the elimination of
+   * some of the things that aren't absolutely required.
+   *
+   * See the README file or main page, in section
+   * _Substitute or remove boot up features_, for more details.
+   * \endparblock
    *
    * \see boot()
    */
   static void begin();
+
+  /** \brief
+   * Helper function that calls the inital functions used by `begin()`
+   *
+   * \details
+   * This function calls all the functions used by `begin()` up to the point of
+   * calling `bootLogo()`. It could be called by a sketch to make it easy to
+   * use one of the alternative `bootLogo...()` functions or a user provided
+   * one.
+   *
+   * For example, if a sketch uses `Sprites` class functions but doesn't use
+   * `drawBitmap()`, some program space may be saved by using the following in
+   * place of `begin()`:
+   *
+   * \code{.cpp}
+   * arduboy.beginDoFirst();
+   * arduboy.bootLogoSpritesSelfMasked();  // or:
+   * //arduboy.bootLogoSpritesOverwrite(); // (whatever saves more memory)
+   * arduboy.waitNoButtons();
+   * \endcode
+   *
+   * \see begin() boot()
+   */
+  static void beginDoFirst();
 
   /** \brief
    * Turn the RGB LED and display fully on to act as a small flashlight/torch.
@@ -257,8 +281,8 @@ class Arduboy2Base : public Arduboy2Core
    * display pixels fully on. If the UP button is detected, this function
    * does not exit. The Arduboy must be restarted after flashlight mode is used.
    *
-   * This function is called by `begin()` and can be called by a sketch
-   * after `boot()`.
+   * This function is called by `begin()` and should be called by a sketch
+   * after `boot()` unless `safeMode()` is called instead.
    *
    * \note
    * \parblock
@@ -267,10 +291,9 @@ class Arduboy2Base : public Arduboy2Core
    * This problem occurs with certain sketches that use large amounts of RAM.
    * Being in flashlight mode when uploading a new sketch can fix this problem.
    *
-   * Therefore, for sketches that potentially could cause this problem, and use
-   * `boot()` instead of `begin()`, it is recommended that a call to
-   * `flashlight()` be included after calling `boot()`. If program space is
-   * limited, `safeMode()` can be used instead of `flashlight()`.
+   * Therefore, for sketches that use `boot()` instead of `begin()`, a call to
+   * `flashlight()` should be included after calling `boot()`. If program space
+   * is limited, `safeMode()` can be used instead of `flashlight()`.
    * \endparblock
    *
    * \see begin() boot() safeMode()
@@ -335,7 +358,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see bootLogo() begin() boot() Sprites
    */
-  void bootLogoSpritesSelfMasked();
+  static void bootLogoSpritesSelfMasked();
 
   /** \brief
    * Display the boot logo sequence using `Sprites::drawOverwrite()`.
@@ -374,10 +397,13 @@ class Arduboy2Base : public Arduboy2Core
   static void bootLogoSpritesBOverwrite();
 
   /** \brief
-   * Display the boot logo sequence using the provided function
+   * Display the boot logo sequence using the provided function.
    *
    * \param drawLogo A reference to a function which will draw the boot logo
    * at the given Y position.
+   *
+   * \return `true` if the sequence runs to completion. `false` if the sequence
+   * is aborted or bypassed.
    *
    * \details
    * This common function executes the sequence to display the boot logo.
@@ -414,11 +440,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see bootLogo() boot() Arduboy2::bootLogoExtra()
    */
-  static void bootLogoShell(void (*drawLogo)(int16_t));
-
-  // Called by bootLogoShell() to allow derived classes to display additional
-  // information after the logo stops scrolling down.
-  static void bootLogoExtra();
+  static bool bootLogoShell(void (&drawLogo)(int16_t));
 
   /** \brief
    * Wait until all buttons have been released.
@@ -445,9 +467,18 @@ class Arduboy2Base : public Arduboy2Core
    * \details
    * The entire contents of the screen buffer are cleared to BLACK.
    *
-   * \see display(bool)
+   * \see display(bool) fillScreen()
    */
   static void clear();
+
+  /** \brief
+   * Fill the screen buffer with the specified color.
+   *
+   * \param color The fill color (optional; defaults to WHITE).
+   *
+   * \see clear()
+   */
+  static void fillScreen(uint8_t color = WHITE);
 
   /** \brief
    * Copy the contents of the display buffer to the display.
@@ -511,6 +542,8 @@ class Arduboy2Base : public Arduboy2Core
    * \param y0 The Y coordinate of the circle's center.
    * \param r The radius of the circle in pixels.
    * \param color The circle's color (optional; defaults to WHITE).
+   *
+   * \see fillCircle()
    */
   static void drawCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color = WHITE);
 
@@ -521,6 +554,8 @@ class Arduboy2Base : public Arduboy2Core
    * \param y0 The Y coordinate of the circle's center.
    * \param r The radius of the circle in pixels.
    * \param color The circle's color (optional; defaults to WHITE).
+   *
+   * \see drawCircle()
    */
   static void fillCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color = WHITE);
 
@@ -535,19 +570,10 @@ class Arduboy2Base : public Arduboy2Core
    * Draw a line from the start point to the end point using
    * Bresenham's algorithm.
    * The start and end points can be at any location with respect to the other.
+   *
+   * \see drawFastHLine() drawFastVLine()
    */
   static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t color = WHITE);
-
-  /** \brief
-   * Draw a rectangle of a specified width and height.
-   *
-   * \param x The X coordinate of the upper left corner.
-   * \param y The Y coordinate of the upper left corner.
-   * \param w The width of the rectangle.
-   * \param h The height of the rectangle.
-   * \param color The color of the pixel (optional; defaults to WHITE).
-   */
-  static void drawRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t color = WHITE);
 
   /** \brief
    * Draw a vertical line.
@@ -556,6 +582,8 @@ class Arduboy2Base : public Arduboy2Core
    * \param y The Y coordinate of the upper start point.
    * \param h The height of the line.
    * \param color The color of the line (optional; defaults to WHITE).
+   *
+   * \see drawFastHLine() drawLine()
    */
   static void drawFastVLine(int16_t x, int16_t y, uint8_t h, uint8_t color = WHITE);
 
@@ -566,8 +594,23 @@ class Arduboy2Base : public Arduboy2Core
    * \param y The Y coordinate of the left start point.
    * \param w The width of the line.
    * \param color The color of the line (optional; defaults to WHITE).
+   *
+   * \see drawFastVLine() drawLine()
    */
   static void drawFastHLine(int16_t x, int16_t y, uint8_t w, uint8_t color = WHITE);
+
+  /** \brief
+   * Draw a rectangle of a specified width and height.
+   *
+   * \param x The X coordinate of the upper left corner.
+   * \param y The Y coordinate of the upper left corner.
+   * \param w The width of the rectangle.
+   * \param h The height of the rectangle.
+   * \param color The color of the pixel (optional; defaults to WHITE).
+   *
+   * \see fillRect() drawRoundRect() fillRoundRect()
+   */
+  static void drawRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t color = WHITE);
 
   /** \brief
    * Draw a filled-in rectangle of a specified width and height.
@@ -577,15 +620,10 @@ class Arduboy2Base : public Arduboy2Core
    * \param w The width of the rectangle.
    * \param h The height of the rectangle.
    * \param color The color of the pixel (optional; defaults to WHITE).
+   *
+   * \see drawRect() drawRoundRect() fillRoundRect()
    */
   static void fillRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t color = WHITE);
-
-  /** \brief
-   * Fill the screen buffer with the specified color.
-   *
-   * \param color The fill color (optional; defaults to WHITE).
-   */
-  static void fillScreen(uint8_t color = WHITE);
 
   /** \brief
    * Draw a rectangle with rounded corners.
@@ -596,6 +634,8 @@ class Arduboy2Base : public Arduboy2Core
    * \param h The height of the rectangle.
    * \param r The radius of the semicircles forming the corners.
    * \param color The color of the rectangle (optional; defaults to WHITE).
+   *
+   * \see fillRoundRect() drawRect() fillRect()
    */
   static void drawRoundRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t r, uint8_t color = WHITE);
 
@@ -608,6 +648,8 @@ class Arduboy2Base : public Arduboy2Core
    * \param h The height of the rectangle.
    * \param r The radius of the semicircles forming the corners.
    * \param color The color of the rectangle (optional; defaults to WHITE).
+   *
+   * \see drawRoundRect() drawRect() fillRect()
    */
   static void fillRoundRect(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t r, uint8_t color = WHITE);
 
@@ -621,6 +663,8 @@ class Arduboy2Base : public Arduboy2Core
    * \details
    * A triangle is drawn by specifying each of the three corner locations.
    * The corners can be at any position with respect to the others.
+   *
+   * \see fillTriangle()
    */
   static void drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t color = WHITE);
 
@@ -634,8 +678,10 @@ class Arduboy2Base : public Arduboy2Core
    * \details
    * A triangle is drawn by specifying each of the three corner locations.
    * The corners can be at any position with respect to the others.
+   *
+   * \see drawTriangle()
    */
-  static void fillTriangle (int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t color = WHITE);
+  static void fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t color = WHITE);
 
   /** \brief
    * Draw a bitmap from an array in program memory.
@@ -644,7 +690,7 @@ class Arduboy2Base : public Arduboy2Core
    * \param y The Y coordinate of the top left pixel affected by the bitmap.
    * \param bitmap A pointer to the bitmap array in program memory.
    * \param w The width of the bitmap in pixels.
-   * \param h The height of the bitmap in pixels.
+   * \param h The height of the bitmap in pixels. Must be a multiple of 8.
    * \param color The color of pixels for bits set to 1 in the bitmap.
    *              If the value is INVERT, bits set to 1 will invert the
    *              corresponding pixel. (optional; defaults to WHITE).
@@ -655,9 +701,12 @@ class Arduboy2Base : public Arduboy2Core
    * corresponding pixel will be left unchanged.
    *
    * Each byte in the array specifies a vertical column of 8 pixels, with the
-   * least significant bit at the top.
+   * least significant bit at the top. The height of the image must be a
+   * multiple of 8 pixels (8, 16, 24, 32, ...). The width can be any size.
    *
    * The array must be located in program memory by using the PROGMEM modifier.
+   *
+   * \see drawCompressed() drawSlowXYBitmap() Sprites
    */
   static void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color = WHITE);
 
@@ -687,6 +736,8 @@ class Arduboy2Base : public Arduboy2Core
    * slower than `drawBitmap()`, which uses bitmaps that are stored in a format
    * that allows them to be directly written to the screen. It is recommended
    * you use `drawBitmap()` when possible.
+   *
+   * \see drawBitmap() drawCompressed()
    */
   static void drawSlowXYBitmap(int16_t x, int16_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color = WHITE);
 
@@ -703,6 +754,9 @@ class Arduboy2Base : public Arduboy2Core
    * Draw a bitmap starting at the given coordinates using an array that has
    * been compressed using an RLE algorthm implemented by Team A.R.G.
    *
+   * The height of the image must be a multiple of 8 pixels (8, 16, 24,
+   * 32, ...). The width can be any size.
+   *
    * Bits set to 1 in the provided bitmap array (after decoding) will have
    * their corresponding pixel set to the specified color. For bits set to 0
    * in the array, the corresponding pixel will be left unchanged.
@@ -713,6 +767,8 @@ class Arduboy2Base : public Arduboy2Core
    * C source code for a command line program named `Cabi`, which can convert
    * a PNG bitmap image file to source code suitable for use with
    * `drawCompressed()`, is included in the `extras` directory of the library.
+   *
+   * \see drawBitmap() drawSlowXYBitmap()
    */
   static void drawCompressed(int16_t sx, int16_t sy, const uint8_t *bitmap, uint8_t color = WHITE);
 
@@ -759,7 +815,7 @@ class Arduboy2Base : public Arduboy2Core
    * \details
    * Set the frame rate, in frames per second, used by `nextFrame()` to update
    * frames at a given rate. If this function or `setFrameDuration()`
-   * isn't used, the default rate will be 60 (actually 62.5, see note below).
+   * isn't used, the default rate will be 60 (actually 62.5; see note below).
    *
    * Normally, the frame rate would be set to the desired value once, at the
    * start of the game, but it can be changed at any time to alter the frame
@@ -806,7 +862,8 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \details
    * When this function returns `true`, the amount of time has elapsed to
-   * display the next frame, as specified by `setFrameRate()`.
+   * display the next frame, as specified by `setFrameRate()` or
+   * `setFrameDuration()`.
    *
    * This function will normally be called at the start of the rendering loop
    * which would wait for `true` to be returned before rendering and
@@ -838,18 +895,20 @@ class Arduboy2Base : public Arduboy2Core
    * development of a sketch. It does the same thing as `nextFrame()` but
    * additionally will light the yellow TX LED (at the bottom, to the left
    * of the USB connector) whenever a frame takes longer to generate than the
-   * time allotted per frame, as determined by the `setFrameRate()` function.
+   * time allotted per frame, as determined by the `setFrameRate()` or
+   * `setFrameDuration()` function.
    *
    * Therefore, whenever the TX LED comes on (while not communicating over
    * USB), it indicates that the sketch is running slower than the desired
-   * rate set by `setFrameRate()`. In this case the developer may wish to set
-   * a slower frame rate, or reduce or optimize the code for such frames.
+   * rate set by `setFrameRate()` or `setFrameDuration()`. In this case the
+   * developer may wish to set a slower frame rate, or reduce or optimize the
+   * code for such frames.
    *
    * \note
    * Once a sketch is ready for release, it would be expected that
    * `nextFrameDEV()` calls be restored to `nextFrame()`.
    *
-   * \see nextFrame() cpuLoad() setFrameRate()
+   * \see nextFrame() cpuLoad() setFrameRate() setFrameDuration()
    */
   static bool nextFrameDEV();
 
@@ -876,7 +935,7 @@ class Arduboy2Base : public Arduboy2Core
    * }
    * \endcode
    *
-   * \see setFrameRate() nextFrame()
+   * \see setFrameRate() setFrameDuration() nextFrame()
    */
   static bool everyXFrames(uint8_t frames);
 
@@ -899,7 +958,7 @@ class Arduboy2Base : public Arduboy2Core
    * that the frame rate should be made slower or the frame processing code
    * should be optimized to run faster.
    *
-   * \see setFrameRate() nextFrame()
+   * \see nextFrameDEV() setFrameRate() setFrameDuration() nextFrame()
    */
   static int cpuLoad();
 
@@ -973,7 +1032,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \details
    * Read and save the current state of the buttons and also keep track of the
-   * button state when this function was previouly called. These states are
+   * button state when this function was previously called. These states are
    * used by the `justPressed()` and `justReleased()` functions to determine
    * if a button has changed state between now and the previous call to
    * `pollButtons()`.
@@ -999,7 +1058,7 @@ class Arduboy2Base : public Arduboy2Core
    * a frame rate of 60 or lower (or possibly somewhat higher), should be
    * sufficient.
    *
-   * \see justPressed() justReleased()
+   * \see justPressed() justReleased() currentButtonState previousButtonState
    */
   static void pollButtons();
 
@@ -1322,6 +1381,76 @@ class Arduboy2Base : public Arduboy2Core
   static uint16_t frameCount;
 
   /** \brief
+   * Used by `pollButtons()` to hold the current button state.
+   *
+   * \details
+   * Holds the last button state read by the `pollButtons()` function.
+   *
+   * A sketch normally does not need to read or manipulate this variable and
+   * just lets `pollButtons()` handle it. Access to it is provided for special
+   * circumstances. See `previousButtonState` for further discussion.
+   *
+   * \see previousButtonState pollButtons() justPressed() justReleased()
+   */
+  static uint8_t currentButtonState;
+
+  /** \brief
+   * Used by `pollButtons()` to hold the previous button state.
+   *
+   * \details
+   * Holds the button state saved by the `pollButtons()` function from the
+   * previous to last call to it.
+   *
+   * A sketch normally does not need to read or manipulate this variable and
+   * just lets `pollButtons()` handle it. Access to it is provided for special
+   * circumstances.
+   *
+   * For example, the time between calls to `pollButtons()` must be long
+   * enough to allow sufficient time to "debounce" the buttons.
+   * `pollButtons()` is normally called once every frame but at a high frame
+   * rate the time between frames may be too short for this. Calling
+   * `pollButtons()` every 2nd frame could provide a long enough time but
+   * then a call to `justPressed()` in each frame would make it look like a
+   * button was pressed twice. To remedy this, after `justPressed()` detects
+   * a press, `previousButtonState` could be modified to acknowledge the
+   * button press.
+   *
+   * \code{.cpp}
+   * void setup() {
+   *   arduboy.begin();
+   *   arduboy.setFrameRate(120); // too fast for button debounce
+   * }
+   *
+   * void loop() {
+   *   if (!arduboy.nextFrame()) {
+   *     return;
+   *   }
+   *
+   *   if (arduboy.everyXFrames(2)) { // only poll every 2nd frame
+   *     arduboy.pollButtons();       // to slow down poll frequency
+   *   }
+   *
+   *   if (justPressedOnce(A_BUTTON)) {
+   *     // handle button press as normal...
+   *   }
+   *
+   *   // remainder of loop() code...
+   * }
+   *
+   * bool justPressedOnce(uint8_t button) {
+   *   bool pressed = arduboy.justPressed(button);
+   *   if (pressed) {
+   *     arduboy.previousButtonState |= button; // set state as pressed
+   *   }
+   *   return pressed;
+   * }
+   * \endcode
+   *
+   * \see currentButtonState pollButtons() justPressed() justReleased()
+   */
+  static uint8_t previousButtonState;
+
+  /** \brief
    * The display buffer array in RAM.
    *
    * \details
@@ -1385,15 +1514,11 @@ class Arduboy2Base : public Arduboy2Core
   // swap the values of two int16_t variables passed by reference
   static void swapInt16(int16_t& a, int16_t& b);
 
-  // For button handling
-  static uint8_t currentButtonState;
-  static uint8_t previousButtonState;
-
   // For frame functions
   static uint8_t eachFrameMillis;
   static uint8_t thisFrameStart;
-  static bool justRendered;
   static uint8_t lastFrameDurationMs;
+  static bool justRendered;
 
   // ----- Map of EEPROM addresses for system use-----
 
@@ -1413,7 +1538,7 @@ class Arduboy2Base : public Arduboy2Core
   static constexpr uint16_t eepromUnitName = 10;
     // -- User EEPROM space starts at address 16 --
 
-  // --- map of the bits in the eepromSysFlags byte --
+  // --- Map of the bits in the eepromSysFlags byte --
     // Display the unit name on the logo screen
   static constexpr uint8_t sysFlagUnameBit = 0;
   static constexpr uint8_t sysFlagUnameMask = _BV(sysFlagUnameBit);
@@ -1465,14 +1590,17 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * Print will use the `write()` function to actually draw each character
    * in the screen buffer, using the library's `font5x7` font.
-   * Two character values are handled specially (and thus the font symbols that
-   * they represent can't be displayed):
+   * Two character values are handled specially:
    *
-   * - ASCII newline or line feed (`\n`, 0x0A, inverse white circle).
+   * - ASCII newline/line feed (`\n`, 0x0A, inverse white circle).
    *   This will move the text cursor position to the start of the next line,
    *   based on the current text size.
    * - ASCII carriage return (`\r`, 0x0D, musical eighth note).
    *   This character will be ignored.
+   *
+   * To override the special handling of the above values, to allow the
+   * characters they represent to be printed, text _raw_ mode can be selected
+   * using the `setTextRawMode()` function.
    *
    * See:
    * https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
@@ -1481,17 +1609,126 @@ class Arduboy2 : public Print, public Arduboy2Base
    * \code{.cpp}
    * int value = 42;
    *
-   * arduboy.println("Hello World"); // Prints "Hello World" and then moves the
+   * arduboy.println("Hello World"); // Prints "Hello World" and then sets the
    *                                 // text cursor to the start of the next line
-   * arduboy.print(value);       // Prints "42"
-   * arduboy.print('\n');        // Moves the text cursor to the start of the next line
-   * arduboy.print(78, HEX);     // Prints "4E" (78 in hexadecimal)
-   * arduboy.print("\x03\xEA");  // Prints a heart symbol and a Greek uppercase omega
+   * arduboy.print(value);      // Prints "42"
+   * arduboy.print('\n');       // Sets the text cursor to the start of the next line
+   * arduboy.print(78, HEX);    // Prints "4E" (78 in hexadecimal)
+   * arduboy.print("\x03\xEA"); // Prints a heart symbol and a Greek uppercase omega
+   *
+   * arduboy.setTextRawMode(true);  // Set text "raw" mode
+   * arduboy.print("\r\n")          // Prints a "musical eighth note"
+   *                                // followed by an "inverse white circle"
+   *                                // because we're in "raw" mode
+   * arduboy.setTextRawMode(false); // Exit text "raw" mode
    * \endcode
    *
-   * \see Arduboy2::write() Arduboy2::font5x7
+   * \see Arduboy2::setTextSize() Arduboy2::setTextColor()
+   * Arduboy2::setTextBackground() Arduboy2::setTextWrap()
+   * Arduboy2::setTextRawMode() Arduboy2::write() Arduboy2::font5x7
    */
   using Print::write;
+
+  /** \brief
+   * Initialize the hardware, display the boot logo, provide boot utilities, etc.
+   *
+   * \details
+   * This function should be called once near the start of the sketch,
+   * usually in `setup()`, before using any other functions in this class.
+   * It initializes the display, displays the boot logo, provides "flashlight"
+   * and system control features and initializes audio control.
+   *
+   * \note
+   * \parblock
+   * If it becomes necessary to free up some code space for use by the sketch,
+   * `boot()` can be used instead of `begin()` to allow the elimination of
+   * some of the things that aren't absolutely required.
+   *
+   * See the README file or main page, in section
+   * _Substitute or remove boot up features_, for more details.
+   * \endparblock
+   *
+   * \see boot()
+   */
+  void begin();
+
+  /** \brief
+   * Display the boot logo sequence using `drawBitmap()`.
+   *
+   * \details
+   * This function is called by `begin()` and can be called by a sketch
+   * after `boot()`.
+   *
+   * The Arduboy logo scrolls down from the top of the screen to the center
+   * while the RGB LEDs light in sequence.
+   *
+   * The `bootLogoShell()` helper function is used to perform the actual
+   * sequence. The documentation for `bootLogoShell()` provides details on how
+   * it operates.
+   *
+   * \see begin() boot() bootLogoShell() Arduboy2::bootLogoText()
+   */
+  void bootLogo();
+
+  /** \brief
+   * Display the boot logo sequence using `drawCompressed()`.
+   *
+   * \details
+   * This function can be called by a sketch after `boot()` as an alternative to
+   * `bootLogo()`. This may reduce code size if the sketch itself uses
+   * `drawCompressed()`.
+   *
+   * \see bootLogo() begin() boot()
+   */
+  void bootLogoCompressed();
+
+  /** \brief
+   * Display the boot logo sequence using `Sprites::drawSelfMasked()`.
+   *
+   * \details
+   * This function can be called by a sketch after `boot()` as an alternative to
+   * `bootLogo()`. This may reduce code size if the sketch itself uses
+   * `Sprites` class functions.
+   *
+   * \see bootLogo() begin() boot() Sprites
+   */
+  void bootLogoSpritesSelfMasked();
+
+  /** \brief
+   * Display the boot logo sequence using `Sprites::drawOverwrite()`.
+   *
+   * \details
+   * This function can be called by a sketch after `boot()` as an alternative to
+   * `bootLogo()`. This may reduce code size if the sketch itself uses
+   * `Sprites` class functions.
+   *
+   * \see bootLogo() begin() boot() Sprites
+   */
+  void bootLogoSpritesOverwrite();
+
+  /** \brief
+   * Display the boot logo sequence using `SpritesB::drawSelfMasked()`.
+   *
+   * \details
+   * This function can be called by a sketch after `boot()` as an alternative to
+   * `bootLogo()`. This may reduce code size if the sketch itself uses
+   * `SpritesB` class functions.
+   *
+   * \see bootLogo() begin() boot() SpritesB
+   */
+  void bootLogoSpritesBSelfMasked();
+
+  /** \brief
+   * Display the boot logo sequence using `SpritesB::drawOverwrite()`.
+   *
+   * \details
+   * This function can be called by a sketch after `boot()` as an alternative to
+   * `bootLogo()`. This may reduce code size if the sketch itself uses
+   * `SpritesB` class functions.
+   *
+   * \see bootLogo() begin() boot() SpritesB
+   */
+  void bootLogoSpritesBOverwrite();
 
   /** \brief
    * Display the boot logo sequence using printed text instead of a bitmap.
@@ -1528,7 +1765,8 @@ class Arduboy2 : public Print, public Arduboy2Base
    * Show the unit name at the bottom of the boot logo screen.
    *
    * \details
-   * This function is called by `bootLogoShell()` and `bootLogoText()`.
+   * This function is called by the `bootLogo...()` functions if the logo
+   * sequence runs to completion.
    *
    * If a unit name has been saved in system EEPROM, it will be displayed at
    * the bottom of the screen. This function pauses for a short time to allow
@@ -1537,14 +1775,16 @@ class Arduboy2 : public Print, public Arduboy2Base
    * If the "Show Unit Name" flag in system EEPROM is cleared, this function
    * will return without showing the unit name or pausing.
    *
-   * \note
    * This function would not normally be called directly from within a sketch
-   * itself.
+   * except from a sketch provided `bootlogo...()` function that renders the
+   * boot logo using a function that's not part of the Arduboy2 library.
+   * The README file or main page describes how this would be done, at the
+   * end of the _Substitute or remove boot up features_ section.
    *
    * \see readUnitName() writeUnitName() bootLogo() bootLogoShell()
    * bootLogoText() writeShowUnitNameFlag() begin()
    */
-  virtual void bootLogoExtra();
+  void bootLogoExtra();
 
   /** \brief
    * Write a single character at the current text cursor position.
@@ -1556,27 +1796,31 @@ class Arduboy2 : public Print, public Arduboy2Base
    * \details
    * This is the Arduboy implemetation of the Arduino virtual `write()`
    * function. The single character specified is written to the the screen
-   * buffer at the current text cursor position. The text cursor is then
-   * moved to the next character position in the screen buffer. This new cursor
-   * position will depend on the current text size and possibly the current
-   * wrap mode.
+   * buffer at the current text cursor position or possibly the start of the
+   * next line if text wrap mode is on. The text cursor is then set to the
+   * next character position.
    *
    * Characters are rendered using the library's `font5x7` font.
-   * Two character values are handled specially (and thus the font symbols that
-   * they represent can't be displayed):
+   * Two character values are handled specially:
    *
-   * - ASCII newline or line feed (`\n`, 0x0A, inverse white circle).
+   * - ASCII newline/line feed (`\n`, 0x0A, inverse white circle).
    *   This will move the text cursor position to the start of the next line,
    *   based on the current text size.
    * - ASCII carriage return (`\r`, 0x0D, musical eighth note).
    *   This character will be ignored.
+   *
+   * To override the special handling of the above values, to allow the
+   * characters they represent to be printed, text _raw_ mode can be selected
+   * using the `setTextRawMode()` function.
+   *
    *
    * \note
    * This function is rather low level and, although it's available as a public
    * function, it wouldn't normally be used. In most cases the Arduino Print
    * class should be used for writing text.
    *
-   * \see Print setTextSize() setTextWrap() drawChar()
+   * \see Print setTextSize() setTextColor() setTextBackground() setTextWrap()
+   * setTextRawMode() drawChar() font5x7
    */
   virtual size_t write(uint8_t);
 
@@ -1592,9 +1836,9 @@ class Arduboy2 : public Print, public Arduboy2Base
    * \param size The size of the character to draw.
    *
    * \details
-   * The specified character is drawn starting at the provided
-   * coordinate. The point specified by the X and Y coordinates will be the
-   * top left corner of the character. The character will be rendered using the
+   * The specified character is drawn starting at the provided coordinate.
+   * The point specified by the X and Y coordinates will be the top left
+   * corner of the character. The character will be rendered using the
    * library's `font5x7` font.
    *
    * \note
@@ -1603,10 +1847,9 @@ class Arduboy2 : public Print, public Arduboy2Base
    * normally be used. In most cases the Arduino Print class should be used for
    * writing text.
    *
-   * \see Print write() setTextColor() setTextBackground() setTextSize()
-   * font5x7
+   * \see Print write() font5x7
    */
-  static void drawChar(int16_t x, int16_t y, unsigned char c, uint8_t color, uint8_t bg, uint8_t size);
+  static void drawChar(int16_t x, int16_t y, uint8_t c, uint8_t color, uint8_t bg, uint8_t size);
 
   /** \brief
    * Set the location of the text cursor.
@@ -1688,6 +1931,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    * Set the text foreground color.
    *
    * \param color The color to be used for following text.
+   * The values `WHITE` or `BLACK` should be used.
    *
    * \see setTextBackground() getTextColor()
    */
@@ -1698,7 +1942,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \return The color that will be used to display any following text.
    *
-   * \see setTextColor()
+   * \see setTextColor() getTextBackground()
    */
   static uint8_t getTextColor();
 
@@ -1706,6 +1950,15 @@ class Arduboy2 : public Print, public Arduboy2Base
    * Set the text background color.
    *
    * \param bg The background color to be used for following text.
+   * The values `WHITE` or `BLACK` should be used.
+   *
+   * The background pixels of following characters will be set to the
+   * specified color.
+   *
+   * However, if the background color is set to be the same as the text color,
+   * the background will be transparent. Only the foreground pixels will be
+   * drawn. The background pixels will remain as they were before the character
+   * was drawn.
    *
    * \see setTextColor() getTextBackground()
    */
@@ -1716,7 +1969,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \return The background color that will be used to display any following text.
    *
-   * \see setTextBackground()
+   * \see setTextBackground() getTextColor()
    */
   static uint8_t getTextBackground();
 
@@ -1726,15 +1979,13 @@ class Arduboy2 : public Print, public Arduboy2Base
    * \param s The text size multiplier. Must be 1 or higher.
    *
    * \details
-   * Setting a text size of 1 will result in standard size characters which
-   * occupy 6x8 pixels (the result of 5x7 characters with spacing on the
-   * right and bottom edges).
+   * Setting a text size of 1 will result in standard size characters with
+   * one pixel for each bit in the bitmap for a character. The value specified
+   * is a multiplier. A value of 2 will double the width and height.
+   * A value of 3 will triple the dimensions, etc.
    *
-   * The value specified is a multiplier. A value of 2 will double the
-   * size so they will occupy 12x16 pixels. A value of 3 will result in
-   * 18x24, etc.
-   *
-   * \see getTextSize()
+   * \see getTextSize() getCharacterWidth() getCharacterHeight()
+   * getCharacterSpacing() getLineSpacing() font5x7
    */
   static void setTextSize(uint8_t s);
 
@@ -1743,7 +1994,8 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \return The size that will be used for any following text.
    *
-   * \see setTextSize()
+   * \see setTextSize() getCharacterWidth() getCharacterHeight()
+   * getCharacterSpacing() getLineSpacing() font5x7
    */
   static uint8_t getTextSize();
 
@@ -1753,14 +2005,15 @@ class Arduboy2 : public Print, public Arduboy2Base
    * \param w `true` enables text wrap mode. `false` disables it.
    *
    * \details
-   * Text wrap mode is enabled by specifying `true`. In wrap mode, the text
-   * cursor will be moved to the start of the next line (based on the current
-   * text size) if the following character wouldn't fit entirely at the end of
-   * the current line.
+   * Text wrap mode is enabled by specifying `true`. In wrap mode, if a
+   * character to be drawn would end up partially or fully past the right edge
+   * of the screen (based on the current text size), it will be placed at the
+   * start of the next line. The text cursor will be adjusted accordingly.
    *
-   * If wrap mode is disabled, characters will continue to be written to the
-   * same line. A character at the right edge of the screen may only be
-   * partially displayed and additional characters will be off screen.
+   * If wrap mode is disabled, characters will always be written at the current
+   * text cursor position. A character near the right edge of the screen may
+   * only be partially displayed and characters drawn at a position past the
+   * right edge of the screen will remain off screen.
    *
    * \see getTextWrap()
    */
@@ -1776,9 +2029,136 @@ class Arduboy2 : public Print, public Arduboy2Base
   static bool getTextWrap();
 
   /** \brief
-   * Clear the display buffer and set the text cursor to location 0, 0
+   * Set or disable text raw mode, allowing special characters to be displayed.
+   *
+   * \param raw `true` enables text raw mode. `false` disables it.
+   *
+   * \details
+   * In text _raw_ mode, character values that would normally be treated
+   * specially will instead be displayed. The special characters are:
+   *
+   * - ASCII newline/line feed (`\n`, 0x0A, inverse white circle).
+   * - ASCII carriage return (`\r`, 0x0D, musical eighth note).
+   *
+   * All other characters can be displayed regardless of whether raw mode
+   * is enabled or not.
+   *
+   * \see getTextRawMode() Print
+   */
+  static void setTextRawMode(bool raw);
+
+  /** \brief
+   * Get the current state of text raw mode.
+   *
+   * \return `true` if text raw mode is enabled, `false` if disabled.
+   *
+   * \see setTextRawMode()
+   */
+  static bool getTextRawMode();
+
+  /** \brief
+   * Clear the display buffer and set the text cursor to location 0, 0.
    */
   static void clear();
+
+  /** \brief
+   * Get the width, in pixels, of a character in the library's font.
+   *
+   * \param textSize The text size the character would be drawn at
+   * (optional; defaults to 1).
+   *
+   * \return The width, in pixels, that a character will occupy, not including
+   * inter-character spacing.
+   *
+   * \details
+   * Returns the width, in pixels, occupied by a character in the font used by
+   * the library for text functions. The result will be based on the provided
+   * text size, or size 1 if not included. Since the font is monospaced, all
+   * characters will occupy the same width for a given text size.
+   *
+   * The width does not include the spacing added after each character by the
+   * library text functions. The `getCharacterSpacing()` function can be used
+   * to obtain the character spacing value.
+   *
+   * \see getCharacterHeight() getCharacterSpacing()
+   * getTextSize() setTextSize() font5x7
+   */
+  static constexpr uint8_t getCharacterWidth(uint8_t textSize = 1)
+  {
+    return characterWidth * textSize;
+  }
+
+  /** \brief
+   * Get the number of pixels added after each character to provide spacing.
+   *
+   * \param textSize The text size the character would be drawn at
+   * (optional; defaults to 1).
+   *
+   * \return The number of pixels of space added after each character.
+   *
+   * \details
+   * Returns the number of pixels added to the right of each character,
+   * to provide spacing, when drawn by the library text functions.
+   * The result will be based on the provided text size, or size 1 if not
+   * included.
+   *
+   * \see getCharacterWidth() getLineSpacing()
+   * getTextSize() setTextSize() font5x7
+   */
+  static constexpr uint8_t getCharacterSpacing(uint8_t textSize = 1)
+  {
+    return characterSpacing * textSize;
+  }
+
+  /** \brief
+   * Get the height, in pixels, of a character in the library's font.
+   *
+   * \param textSize The text size the character would be drawn at
+   * (optional; defaults to 1).
+   *
+   * \return The height, in pixels, that a character will occupy.
+   *
+   * \details
+   * Returns the height, in pixels, that a character will occupy when drawn
+   * using the library text functions. The result will be based on the
+   * provided text size, or size 1 if not included.
+   *
+   * \see getCharacterWidth() getLineSpacing()
+   * getTextSize() setTextSize() font5x7
+   */
+  static constexpr uint8_t getCharacterHeight(uint8_t textSize = 1)
+  {
+    return characterHeight * textSize;
+  }
+
+  /** \brief
+   * Get the number of pixels added below each character to provide
+   * line spacing.
+   *
+   * \param textSize The text size the character would be drawn at
+   * (optional; defaults to 1).
+   *
+   * \return The number of pixels of space added below each character.
+   *
+   * \details
+   * Returns the number of pixels added below each character, to provide
+   * spacing for wrapped lines, when drawn by the library text functions.
+   * The result will be based on the provided text size, or size 1 if
+   * not included.
+   *
+   * \note
+   * For this library, the value returned will be 0 because no spacing is added
+   * between lines. This function is included so that it can be used to write
+   * code that would be easily portable for use with a suite of equivalent
+   * functions that rendered text with added line spacing.
+   *
+   * \see getCharacterHeight() getCharacterSpacing()
+   * getTextSize() setTextSize() font5x7
+   */
+  static constexpr uint8_t getLineSpacing(uint8_t textSize = 1)
+  {
+    return lineSpacing * textSize;
+  }
 
   /** \brief
    * The font used for text functions.
@@ -1793,7 +2173,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    * The character set represented is code page 437, also known as OEM 437,
    * OEM-US, PC-8 or DOS Latin US. This is an 8 bit set which includes all
    * printable ASCII characters plus many accented characters, symbols and
-   * line drawing characters. 
+   * line drawing characters.
    *
    * The data for this font is from file `glcdfont.c` in the
    * [Adafruit GFX graphics library](https://github.com/adafruit/Adafruit-GFX-Library).
@@ -1808,17 +2188,22 @@ class Arduboy2 : public Print, public Arduboy2Base
    * \note
    * \parblock
    * The library's text functions, except `drawChar()`, handle two character
-   * values specially (and thus the font symbols that they represent can't be
-   * displayed using these functions):
+   * values specially:
    *
-   * - ASCII newline or line feed (`\n`, 0x0A, inverse white circle).
+   * - ASCII newline/line feed (`\n`, 0x0A, inverse white circle).
    *   This will move the text cursor position to the start of the next line,
    *   based on the current text size.
    * - ASCII carriage return (`\r`, 0x0D, musical eighth note).
    *   This character will be ignored.
+   *
+   * To override the special handling of the above values, to allow the
+   * characters they represent to be printed, text _raw_ mode can be selected
+   * using the `setTextRawMode()` function.
    * \endparblock
    *
-   * \see Print write() readUnitName() writeUnitName()
+   * \see Print write() drawChar() setTextRawMode()
+   * getCharacterWidth() getCharacterHeight()
+   * getCharacterSpacing() getLineSpacing() readUnitName() writeUnitName()
    */
   static const PROGMEM uint8_t font5x7[];
 
@@ -1829,6 +2214,19 @@ class Arduboy2 : public Print, public Arduboy2Base
   static uint8_t textBackground;
   static uint8_t textSize;
   static bool textWrap;
+  static bool textRaw;
+
+  // Width and height of a font5x7 character
+  // (not including inter-character spacing)
+  static constexpr uint8_t characterWidth = 5;
+  static constexpr uint8_t characterHeight = 8;
+  // Width of inter-character spacing
+  static constexpr uint8_t characterSpacing = 1;
+  // Height of inter-line spacing
+  static constexpr uint8_t lineSpacing = 0;
+  // Character sizes including spacing
+  static constexpr uint8_t fullCharacterWidth = characterWidth + characterSpacing;
+  static constexpr uint8_t fullCharacterHeight = characterHeight + lineSpacing;
 };
 
 extern volatile unsigned long timer0_millis;

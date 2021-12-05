@@ -45,7 +45,7 @@ void BeepPin1::noTone()
 }
 
 
-// Speaker pin 2, Timer 4A, Port C bit 7, Arduino pin 13
+// Speaker pin 2, Timer 4A, Port C bit 7, Arduino pin 13 or Port D bit 7, Arduino pin 6 for alternate wiring
 
 uint8_t BeepPin2::duration = 0;
 
@@ -53,6 +53,9 @@ void BeepPin2::begin()
 {
   TCCR4A = 0; // normal mode. Disable PWM
   TCCR4B = bit(CS43); // divide by 128 clock prescale
+ #ifdef AB_ALTERNATE_WIRING
+  TCCR4C = 0; // normal mode
+ #endif
   TCCR4D = 0; // normal mode
   TC4H = 0;  // toggle pin at count = 0
   OCR4A = 0; //  "
@@ -66,22 +69,30 @@ void BeepPin2::tone(uint16_t count)
 void BeepPin2::tone(uint16_t count, uint8_t dur)
 {
   duration = dur;
-  TCCR4A = bit(COM4A0); // set toggle on compare mode (which connects the pin)
-  TC4H = highByte(count); // load the count (10 bits),
+ #ifdef AB_ALTERNATE_WIRING
+  TCCR4C = bit(COM4D0); // set toggle on compare mode (which connects pin 6)
+ #else
+  TCCR4A = bit(COM4A0); // set toggle on compare mode (which connects pin 13)
+ #endif
+ TC4H = highByte(count); // load the count (10 bits),
   OCR4C = lowByte(count); //  which determines the frequency
 }
 
 void BeepPin2::timer()
 {
   if (duration && (--duration == 0)) {
-    TCCR4A = 0; // set normal mode (which disconnects the pin)
+    noTone();
   }
 }
 
 void BeepPin2::noTone()
 {
   duration = 0;
+ #ifdef AB_ALTERNATE_WIRING
+  TCCR4C = 0; // set normal mode (which disconnects the pin)
+ #else
   TCCR4A = 0; // set normal mode (which disconnects the pin)
+ #endif
 }
 
 

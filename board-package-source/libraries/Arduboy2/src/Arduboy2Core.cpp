@@ -8,12 +8,13 @@
 
 #include <avr/wdt.h>
 
+#ifndef OLED_CONTRAST
+# define OLED_CONTRAST 0xCF
+#endif
 
 //========================================
 //========== class Arduboy2Core ==========
 //========================================
-
-Arduboy2Core::Arduboy2Core() { }
 
 // Commands sent to the OLED display to initialize it
 const PROGMEM uint8_t Arduboy2Core::lcdBootProgram[] = {
@@ -27,13 +28,13 @@ const PROGMEM uint8_t Arduboy2Core::lcdBootProgram[] = {
   0x47,                         // set brightness
   0x64, 0x00,                   // set x position 0
   0x84,                         // address mode set: X increment
-#elif defined(OLED_SH1106)
+#elif defined(OLED_SH1106) || (OLED_SH1106_I2C)
   0x8D, 0x14,                   // Charge Pump Setting v = enable (0x14)
   0xA1,                         // Set Segment Re-map
   0xC8,                         // Set COM Output Scan Direction
-  0x81, 0xCF,                   // Set Contrast v = 0xCF
+  0x81, OLED_CONTRAST,          // Set Contrast v = 0xCF
   0xD9, 0xF1,                   // Set Precharge = 0xF1
-  OLED_SET_COLUMN_ADDRESS_LO,   //Set column address for left most pixel 
+  OLED_SET_COLUMN_ADDRESS_LO,   //Set column address for left most pixel
   0xAF                          // Display On
 #elif defined(LCD_ST7565)
   0xC8,                         //SET_COM_REVERSE
@@ -78,7 +79,7 @@ const PROGMEM uint8_t Arduboy2Core::lcdBootProgram[] = {
   0xA8, 0x7F,       //Set MUX ratio 128MUX
   //0xB2, 0x23,
   //0xB3, 0xF0,     //set devider clock | oscillator frequency
-  0x81, 0xCF,       //Set contrast
+  0x81, OLED_CONTRAST, //Set contrast
   //0xBC, 0x1F,     //set precharge voltage
   //0x82, 0xFE,     //set second Precharge speed
   0xB1, 0x21,       //reset and 1st precharge phase length  phase 2:2 DCLKs, Phase 1: 1 DCLKs
@@ -124,7 +125,7 @@ const PROGMEM uint8_t Arduboy2Core::lcdBootProgram[] = {
   // 0xDA, 0x12,
 
   // Set Contrast v = 0xCF
-  0x81, 0xCF,
+  0x81, OLED_CONTRAST,
 
   // Set Precharge = 0xF1
   0xD9, 0xF1,
@@ -224,11 +225,11 @@ void Arduboy2Core::bootPins()
           _BV(TX_LED_BIT) | //TX LED off for Arduboy and non Micro based Arduino
          #endif          
           _BV(CART_BIT) | 
-         #if !(defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX))
+         #if !(defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C))
           _BV(DC_BIT) |
          #endif
           0) & ~( // Port D INPUTs or LOW outputs
-         #if !(defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX))
+         #if !(defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C))
           _BV(CS_BIT) |  // oled display enabled
           _BV(RST_BIT) | // reset active
          #endif
@@ -238,7 +239,7 @@ void Arduboy2Core::bootPins()
          #if defined(LCD_ST7565)
           _BV(POWER_LED_BIT) |
          #endif
-         #if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+         #if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
           _BV(I2C_SCL) |
           _BV(I2C_SDA) |
          #endif
@@ -246,7 +247,7 @@ void Arduboy2Core::bootPins()
 
   // Port D outputs
   DDRD = (
-        #if !(defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX))
+        #if !(defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C))
          _BV(DC_BIT) | 
         #endif
         #if !(defined(AB_ALTERNATE_WIRING) && (CART_CS_SDA))
@@ -262,7 +263,7 @@ void Arduboy2Core::bootPins()
          _BV(CART_BIT) |
          _BV(TX_LED_BIT) |
          0) & ~(// Port D inputs
-         #if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+         #if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
           _BV(I2C_SCL) | // SDA and SCL as inputs without pullups
           _BV(I2C_SDA) | // (both externally pulled up)
          #endif
@@ -349,7 +350,7 @@ void Arduboy2Core::bootOLED()
       displayWrite(pgm_read_byte(lcdBootProgram + i - 8));
   }
   displayDisable();
-#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
   i2c_start(SSD1306_I2C_CMD);
   for (uint8_t i = 0; i < sizeof(lcdBootProgram); i++)
     i2c_sendByte(pgm_read_byte(lcdBootProgram + i));
@@ -418,7 +419,7 @@ void Arduboy2Core::SPItransfer(uint8_t data)
   while (!(SPSR & _BV(SPIF))) { } // wait
 }
 
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
 void Arduboy2Core::i2c_start(uint8_t mode)
 {
   I2C_SDA_LOW();       // disable posible internal pullup, ensure SDA low on enabling output
@@ -467,7 +468,7 @@ void Arduboy2Core::safeMode()
 {
   if (buttonsState() == UP_BUTTON)
   {
-    digitalWriteRGB(RED_LED, RGB_ON);
+    setRGBledRedOn();
 
 #ifndef ARDUBOY_CORE // for Arduboy core timer 0 should remain enabled
     // prevent the bootloader magic number from being overwritten by timer 0
@@ -529,13 +530,13 @@ void Arduboy2Core::displayOff()
   displayWrite(0x20);
   displayWrite(0x00);
   displayDisable();
-#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#elif defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
   i2c_start(SSD1306_I2C_CMD);    
   i2c_sendByte(0xAE); // display off
   i2c_sendByte(0x8D); // charge pump:
   i2c_sendByte(0x10); //   disable
   i2c_stop();
-#else    
+#else
   LCDCommandMode();
   SPItransfer(0xAE); // display off
   SPItransfer(0x8D); // charge pump:
@@ -554,7 +555,7 @@ void Arduboy2Core::displayOn()
 
 void Arduboy2Core::paint8Pixels(uint8_t pixels)
 {
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
   i2c_start(SSD1306_I2C_DATA);
   i2c_sendByte(pixels);
   i2c_stop();
@@ -587,6 +588,19 @@ void Arduboy2Core::paintScreen(const uint8_t *image)
   for (int i = 0; i < (HEIGHT * WIDTH) / 8; i++)
     i2c_sendByte(pgm_read_byte(image+i));
   i2c_stop();
+#elif  defined (OLED_SH1106_I2C)
+  for (int page = 0; page < HEIGHT/8; page++)
+  {
+    i2c_start(SSD1306_I2C_CMD);
+    i2c_sendByte(OLED_SET_PAGE_ADDRESS + page); // set page
+    i2c_sendByte(OLED_SET_COLUMN_ADDRESS_HI);   // only reset hi nibble to zero
+    i2c_stop();
+    const uint8_t *line = image + page*WIDTH;
+    i2c_start(SSD1306_I2C_DATA);
+    for (int i = 0; i < WIDTH; i++)
+      i2c_sendByte(pgm_read_byte(line+i));
+    i2c_stop();
+  }
 #elif defined(OLED_SH1106) || defined(LCD_ST7565)
   for (uint8_t i = 0; i < HEIGHT / 8; i++)
   {
@@ -807,7 +821,28 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
   );
  #endif
   i2c_stop();
-  
+#elif  defined (OLED_SH1106_I2C)
+  for (int page = 0; page < HEIGHT/8; page++)
+  {
+    i2c_start(SSD1306_I2C_CMD);
+    i2c_sendByte(OLED_SET_PAGE_ADDRESS + page); // set page
+    i2c_sendByte(OLED_SET_COLUMN_ADDRESS_HI);
+    i2c_stop();
+    i2c_start(SSD1306_I2C_DATA);
+    if (clear)
+    {
+      for (int i = 0; i < WIDTH; i++)
+      {
+        i2c_sendByte(*image);
+        *(image++) = 0;
+      }
+    } else
+    {
+      for (int i = 0; i < WIDTH; i++)
+        i2c_sendByte(*(image++));
+    }
+    i2c_stop();
+  }
 #elif defined(OLED_SH1106) || defined(LCD_ST7565)
   //Assembly optimized page mode display code with clear support.
   //Each byte transfer takes 18 cycles
@@ -1025,7 +1060,19 @@ void Arduboy2Core::blank()
   for (int i = 0; i < (HEIGHT * WIDTH) / 8; i++)
     i2c_sendByte(0);
   i2c_stop();
-#else  
+#elif  defined (OLED_SH1106_I2C)
+  for (int page = 0; page < HEIGHT/8; page++)
+  {
+    i2c_start(SSD1306_I2C_CMD);
+    i2c_sendByte(OLED_SET_PAGE_ADDRESS + page); // set page
+    i2c_sendByte(OLED_SET_COLUMN_ADDRESS_HI);   // only reset hi nibble to zero
+    i2c_stop();
+    i2c_start(SSD1306_I2C_DATA);
+    for (int i = 0; i < WIDTH; i++)
+      i2c_sendByte(0);
+    i2c_stop();
+  }
+#else
  #if defined (OLED_SH1106)
   for (int i = 0; i < (HEIGHT * 132) / 8; i++)
  #elif defined(OLED_96X96) || defined(OLED_128X96) || defined(OLED_128X128)|| defined(OLED_128X64_ON_96X96) || defined(OLED_128X64_ON_128X96) || defined(OLED_128X64_ON_128X128)|| defined(OLED_128X96_ON_128X128) || defined(OLED_96X96_ON_128X128) || defined(OLED_64X128_ON_128X128)
@@ -1039,7 +1086,7 @@ void Arduboy2Core::blank()
 
 void Arduboy2Core::sendLCDCommand(uint8_t command)
 {
-#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined(OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
   i2c_start(SSD1306_I2C_CMD);
   i2c_sendByte(command);
   i2c_stop();
@@ -1109,6 +1156,60 @@ void Arduboy2Core::flipHorizontal(bool flipped)
 
 /* RGB LED */
 
+void Arduboy2Core::setRGBledRedOn()
+{
+ #ifndef LCD_ST7565
+  bitClear(RED_LED_PORT, RED_LED_BIT); // Red on
+ #else
+  bitSet(RED_LED_PORT, RED_LED_BIT); // Red on        
+ #endif
+}
+
+void Arduboy2Core::setRGBledRedOff()
+{
+ #ifndef LCD_ST7565
+  bitSet(RED_LED_PORT, RED_LED_BIT); // Red off     
+ #else
+  bitClear(RED_LED_PORT, RED_LED_BIT); // Red off
+ #endif
+}
+
+void Arduboy2Core::setRGBledGreenOn()
+{
+ #ifndef LCD_ST7565
+  bitClear(GREEN_LED_PORT, GREEN_LED_BIT); // Green on
+ #else
+  bitSet(GREEN_LED_PORT, GREEN_LED_BIT); // Green on        
+ #endif
+}
+
+void Arduboy2Core::setRGBledGreenOff()
+{
+ #ifndef LCD_ST7565
+  bitSet(GREEN_LED_PORT, GREEN_LED_BIT); // Green off     
+ #else
+  bitClear(GREEN_LED_PORT, GREEN_LED_BIT); // Green off
+ #endif
+}
+
+void Arduboy2Core::setRGBledBlueOn()
+{
+ #ifndef LCD_ST7565
+  bitClear(BLUE_LED_PORT, BLUE_LED_BIT); // Blue on
+ #else
+  bitSet(BLUE_LED_PORT, BLUE_LED_BIT); // Blue on        
+ #endif
+}
+
+void Arduboy2Core::setRGBledBlueOff()
+{
+ #ifndef LCD_ST7565
+  bitSet(BLUE_LED_PORT, BLUE_LED_BIT); // Blue off     
+ #else
+  bitClear(BLUE_LED_PORT, BLUE_LED_BIT); // Blue off
+ #endif
+}
+
 void Arduboy2Core::setRGBled(uint8_t red, uint8_t green, uint8_t blue)
 {
 #ifdef LCD_ST7565
@@ -1120,93 +1221,35 @@ void Arduboy2Core::setRGBled(uint8_t red, uint8_t green, uint8_t blue)
   }
 #endif
 #ifdef ARDUBOY_10 // RGB, all the pretty colors
-  uint8_t pwmstate = TCCR0A;
+  // timer 0: Fast PWM, OC0A clear on compare / set at top
+  // We must stay in Fast PWM mode because timer 0 is used for system timing.
+  // We can't use "inverted" mode because it won't allow full shut off.
  #ifndef AB_ALTERNATE_WIRING
-  pwmstate &= ~_BV(COM0A1); //default to digital pin for min and max values
- #else  
-  pwmstate &= ~_BV(COM0B1);
+  TCCR0A = _BV(COM0A1) | _BV(WGM01) | _BV(WGM00);
+  #ifndef LCD_ST7565
+   OCR0A = 255 - green;
+  #else
+   OCR0A = green;
+  #endif
+ #else
+  TCCR0A = _BV(COM0B1) | _BV(WGM01) | _BV(WGM00);
+  #ifndef LCD_ST7565
+   OCR0B = 255 - green;
+  #else
+   OCR0B = green;
+  #endif
  #endif
-  if (green == 0)
-   #if defined(LCD_ST7565)
-    bitClear(GREEN_LED_PORT, GREEN_LED_BIT); 
-   #else
-    bitSet(GREEN_LED_PORT, GREEN_LED_BIT); 
-   #endif
-  else if (green == 255)
-   #if defined(LCD_ST7565)
-    bitSet(GREEN_LED_PORT, GREEN_LED_BIT); 
-   #else
-    bitClear(GREEN_LED_PORT, GREEN_LED_BIT);
-   #endif
-  else 
-  {
-   #ifndef AB_ALTERNATE_WIRING
-    pwmstate |= _BV(COM0A1); //configure pin as pwm pin
-    #if defined(LCD_ST7565)
-    OCR0A = green;           //set pwm duty
-    #else
-    OCR0A = 255 - green;     //set pwm duty
-    #endif
-   #else
-	pwmstate |= _BV(COM0B1);
-	OCR0B = 255 - green;            
-   #endif
-  }
-  TCCR0A = pwmstate;
-  pwmstate = TCCR1A & ~(_BV(COM1B1) | _BV(COM1A1)); //default to digital pins for min and max values
-  if (red == 0)
-  {
-   #if defined(LCD_ST7565)
-    bitClear(RED_LED_PORT, RED_LED_BIT);
-   #else
-    bitSet(RED_LED_PORT, RED_LED_BIT);
-   #endif
-  }
-  else if (red == 255)
-  {
-   #if defined(LCD_ST7565)
-    bitSet(RED_LED_PORT, RED_LED_BIT);
-   #else
-    bitClear(RED_LED_PORT, RED_LED_BIT);
-   #endif
-  }
-  else
-  {
-    pwmstate |= _BV(COM1B1); //configure pin as pwm pin
-    OCR1BH = 0;
-   #if defined(LCD_ST7565)
-    OCR1BL = red;            //set pwm duty
-   #else
-    OCR1BL = 255 - red;      //set pwm duty
-   #endif
-  } 
-  if (blue == 0) 
-  {
-   #if defined(LCD_ST7565)
-    bitClear(BLUE_LED_PORT, BLUE_LED_BIT);
-   #else
-    bitSet(BLUE_LED_PORT, BLUE_LED_BIT);
-   #endif
-  }
-  else if (blue == 255) 
-  {
-   #if defined(LCD_ST7565)
-    bitSet(BLUE_LED_PORT, BLUE_LED_BIT);
-   #else
-    bitClear(BLUE_LED_PORT, BLUE_LED_BIT);
-   #endif
-  }
-  else
-  {
-    pwmstate |= _BV(COM1A1); //configure pin as pwm pin
-    OCR1AH = 0;
-   #if defined(LCD_ST7565)
-    OCR1AL = blue;           //set pwm duty
-   #else
-    OCR1AL = 255 - blue;     //set pwm duty
-   #endif
-  } 
-  TCCR1A = pwmstate;
+  // timer 1: Phase correct PWM 8 bit
+  // OC1A and OC1B set on up-counting / clear on down-counting (inverted). This
+  // allows the value to be directly loaded into the OCR with common anode LED.
+  TCCR1A = _BV(COM1A1) | _BV(COM1A0) | _BV(COM1B1) | _BV(COM1B0) | _BV(WGM10);
+ #ifndef LCD_ST7565
+  OCR1AL = blue;
+  OCR1BL = red;
+ #else
+  OCR1AL = 255 - blue;
+  OCR1BL = 255 - red;
+ #endif
 #elif defined(AB_DEVKIT)
   // only blue on DevKit, which is not PWM capable
   (void)red;    // parameter unused
@@ -1324,7 +1367,11 @@ uint8_t Arduboy2Core::buttonsState()
   // up, right, left, down
   buttons = ((~PINF) &
               (_BV(UP_BUTTON_BIT) | _BV(RIGHT_BUTTON_BIT) |
-               _BV(LEFT_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT)));
+               _BV(LEFT_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT) |
+              #ifdef SUPPORT_XY_BUTTONS
+               _BV(X_BUTTON_BIT) | _BV(Y_BUTTON_BIT) |
+              #endif              
+               0));
   // A
   if (bitRead(A_BUTTON_PORTIN, A_BUTTON_BIT) == 0) { buttons |= A_BUTTON; }
   // B
@@ -1421,6 +1468,7 @@ void Arduboy2NoUSB::mainNoUSB()
   // This would normally be done in the USB code that uses the TX and RX LEDs
   //TX_RX_LED_INIT; // configured by bootpins
 
+ #ifndef ARDUBOY_CORE // (Arduboy  core supports UP + DOWN to enter bootloader)
   // Set the DOWN button pin for INPUT_PULLUP
   bitSet(DOWN_BUTTON_PORT, DOWN_BUTTON_BIT);
   bitClear(DOWN_BUTTON_DDR, DOWN_BUTTON_BIT);
@@ -1432,7 +1480,7 @@ void Arduboy2NoUSB::mainNoUSB()
   if (bitRead(DOWN_BUTTON_PORTIN, DOWN_BUTTON_BIT) == 0) {
     Arduboy2Core::exitToBootloader();
   }
-
+ #endif
   // The remainder is a copy of the Arduino main() function with the
   // USB code and other unneeded code commented out.
   // init() was called above.

@@ -11,7 +11,6 @@
 #include <avr/power.h>
 #include <avr/sleep.h>
 
-extern volatile unsigned char bootloader_timer;
 
 // main hardware compile flags
 
@@ -78,7 +77,7 @@ extern volatile unsigned char bootloader_timer;
 #define SPI_SCK_PORT PORTB
 #define SPI_SCK_BIT PORTB1
 
-#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
  #define I2C_PORT  PORTD
  #define I2C_DDR   DDRD
  #define I2C_PIN   PIND
@@ -147,6 +146,10 @@ extern volatile unsigned char bootloader_timer;
 #define DOWN_BUTTON _BV(4)  /**< The Down button value for functions requiring a bitmask */
 #define A_BUTTON _BV(3)     /**< The A button value for functions requiring a bitmask */
 #define B_BUTTON _BV(2)     /**< The B button value for functions requiring a bitmask */
+#ifdef SUPPORT_XY_BUTTONS
+ #define X_BUTTON _BV(1)
+ #define Y_BUTTON _BV(0)
+#endif
 
 #define PIN_LEFT_BUTTON A2
 #define LEFT_BUTTON_PORT PORTF
@@ -183,6 +186,20 @@ extern volatile unsigned char bootloader_timer;
 #define B_BUTTON_PORTIN PINB
 #define B_BUTTON_DDR DDRB
 #define B_BUTTON_BIT PORTB4
+
+#ifdef SUPPORT_XY_BUTTONS
+ #define PIN_X_BUTTON A4
+ #define X_BUTTON_PORT PORTF
+ #define X_BUTTON_PORTIN PINF
+ #define X_BUTTON_DDR DDRF
+ #define X_BUTTON_BIT PORTF1
+ 
+ #define PIN_Y_BUTTON A5
+ #define Y_BUTTON_PORT PORTF
+ #define Y_BUTTON_PORTIN PINF
+ #define Y_BUTTON_DDR DDRF
+ #define Y_BUTTON_BIT PORTF0
+#endif
 
 #define PIN_SPEAKER_1 5  /**< The pin number of the first lead of the speaker */
 
@@ -330,12 +347,13 @@ extern volatile unsigned char bootloader_timer;
 #define OLED_HORIZ_NORMAL 0xA1 // normal segment re-map
 
 #define OLED_SET_PAGE_ADDRESS      0xB0
-#ifdef OLED_SH1106
+#if defined(OLED_SH1106) || defined(OLED_SH1106_I2C)
   #define OLED_SET_COLUMN_ADDRESS_LO 0x02 //SH1106 only: 1st pixel starts on column 2
 #else
   #define OLED_SET_COLUMN_ADDRESS_LO 0x00 
 #endif
 #define OLED_SET_COLUMN_ADDRESS_HI 0x10
+
 // -----
 #if defined (OLED_96X96) || (OLED_96X96_ON_128X128)
   #define WIDTH 96
@@ -445,7 +463,6 @@ class Arduboy2Core : public Arduboy2NoUSB
   friend class Arduboy2Ex;
 
   public:
-    Arduboy2Core();
 
     /** \brief
      * Idle the CPU to save power.
@@ -473,7 +490,7 @@ class Arduboy2Core : public Arduboy2NoUSB
      *
      * \see LCDCommandMode() SPItransfer()
      */
-    void static inline LCDDataMode() __attribute__((always_inline))
+    static void inline LCDDataMode() __attribute__((always_inline))
     {
      #if defined(GU12864_800B)
       bitClear(DC_PORT, DC_BIT);
@@ -503,7 +520,7 @@ class Arduboy2Core : public Arduboy2NoUSB
      *
      * \see LCDDataMode() sendLCDCommand() SPItransfer()
      */
-    void static inline LCDCommandMode() __attribute__((always_inline))
+    static void inline LCDCommandMode() __attribute__((always_inline))
     {
      #ifdef GU12864_800B
       bitSet(DC_PORT, DC_BIT);
@@ -522,7 +539,7 @@ class Arduboy2Core : public Arduboy2NoUSB
      * or as data to be placed on the screen, depending on the command/data
      * mode.
      *
-     * \see LCDDataMode() LCDCommandMode() sendLCDCommand()
+     * \see LCDDataMode() LCDCommandMode() sendLCDCommand() SPItransferAndRead()
      */
     static void SPItransfer(uint8_t data);
 
@@ -548,17 +565,17 @@ class Arduboy2Core : public Arduboy2NoUSB
      */
     static uint8_t SPItransferAndRead(uint8_t data);
 
-#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
-    void static i2c_start(uint8_t mode);
+#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
+    static void i2c_start(uint8_t mode);
     
-    void static inline i2c_stop() __attribute__((always_inline))
+    static void inline i2c_stop() __attribute__((always_inline))
     {
       // SDA and SCL both are already low, from writing ACK bit no need to change state
       I2C_SDA_AS_INPUT(); // switch to input so SDA is pulled up externally first for stop condition
       I2C_SCL_AS_INPUT(); // pull up SCL externally
     }
     
-    void static i2c_sendByte(uint8_t byte);
+    static void i2c_sendByte(uint8_t byte);
 #endif
     
 //#endif
@@ -794,6 +811,13 @@ class Arduboy2Core : public Arduboy2NoUSB
      */
     static void sendLCDCommand(uint8_t command);
 
+    static void setRGBledRedOn();
+    static void setRGBledRedOff();
+    static void setRGBledGreenOn();
+    static void setRGBledGreenOff();
+    static void setRGBledBlueOn();
+    static void setRGBledBlueOff();
+
     /** \brief
      * Set the light output of the RGB LED.
      *
@@ -932,14 +956,21 @@ class Arduboy2Core : public Arduboy2NoUSB
      * \details
      * This function initializes the display, buttons, etc.
      *
-     * This function is called by begin() so isn't normally called within a
+     * This function is called by `begin()` so isn't normally called within a
      * sketch. However, in order to free up some code space, by eliminating
      * some of the start up features, it can be called in place of begin().
-     * The functions that begin() would call after boot() can then be called
-     * to add back in some of the start up features, if desired.
-     * See the README file or documentation on the main page for more details.
+     * The functions that `begin()` would call after `boot()` can then be
+     * called to add back in some of the start up features as space permits.
      *
-     * \see Arduboy2Base::begin()
+     * See the README file or main page, in section
+     * _Substitute or remove boot up features_, for more details.
+     *
+     * \warning
+     * If this function is used, it is recommended that at least `flashlight()`
+     * or `safeMode()` be called after it to provide a means to upload a new
+     * sketch if the bootloader "magic number" problem is encountered.
+     *
+     * \see Arduboy2::begin() Arduboy2Base::flashlight() safeMode()
      */
     static void boot();
 
@@ -953,8 +984,8 @@ class Arduboy2Core : public Arduboy2NoUSB
      * sketch, for sketches that interfere with the bootloader "magic number".
      * The problem occurs with certain sketches that use large amounts of RAM.
      *
-     * This function should be called after `boot()` in sketches that
-     * potentially could cause the problem.
+     * This function should be called after `boot()` in sketches that don't
+     * call `flashlight()`.
      *
      * It is intended to replace the `flashlight()` function when more
      * program space is required. If possible, it is more desirable to use
@@ -995,11 +1026,11 @@ class Arduboy2Core : public Arduboy2NoUSB
      * of Arduino `delay()` will save a few bytes of code.
      */
    #ifndef ARDUBOY_CORE
-    void static delayShort(uint16_t ms) __attribute__ ((noinline));
+    static void delayShort(uint16_t ms) __attribute__ ((noinline));
    #else   
-    void static delayShort(uint16_t ms);
+    static void delayShort(uint16_t ms);
    #endif 
-    void static delayByte(uint8_t ms) __attribute__ ((noinline));
+    static void delayByte(uint8_t ms) __attribute__ ((noinline));
 
     /** \brief
      * Exit the sketch and start the bootloader
@@ -1029,9 +1060,9 @@ class Arduboy2Core : public Arduboy2NoUSB
 
     static const PROGMEM uint8_t lcdBootProgram[];
 #if defined(GU12864_800B)
-    void static displayWrite(uint8_t d);
-    void static displayEnable();
-    void static displayDisable();
+    static void displayWrite(uint8_t d);
+    static void displayEnable();
+    static void displayDisable();
 #endif
 };
 

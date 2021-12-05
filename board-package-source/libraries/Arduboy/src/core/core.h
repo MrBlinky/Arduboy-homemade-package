@@ -43,7 +43,7 @@
   #define RST 6
 #endif
 #define DC 4
-#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
  //bitbanged I2C pins
  #define I2C_PORT  PORTD
  #define I2C_DDR   DDRD
@@ -166,7 +166,7 @@
 #define OLED_VERTICAL_NORMAL 0xC8 // normal COM scan direction (Same for SH1106)
 
 #define OLED_SET_PAGE_ADDRESS      0xB0 // (Same for SH1106)
-#if defined OLED_SH1106
+#if defined(OLED_SH1106) || defined(OLED_SH1106_I2C)
   #define OLED_SET_COLUMN_ADDRESS_LO 0x02 //SH1106: 1st pixel starts on column 2
 #else
   #define OLED_SET_COLUMN_ADDRESS_LO 0x00 
@@ -231,7 +231,7 @@ public:
      */
     void static LCDCommandMode();
 
-#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX)
+#if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
     void static i2c_start(uint8_t mode);
     
     void static inline i2c_stop() __attribute__((always_inline))

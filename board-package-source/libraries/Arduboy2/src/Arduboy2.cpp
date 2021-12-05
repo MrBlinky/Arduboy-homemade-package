@@ -10,37 +10,32 @@
 //========== class Arduboy2Base ==========
 //========================================
 
-  uint8_t Arduboy2Base::sBuffer[];
+uint8_t Arduboy2Base::sBuffer[];
 
-  uint8_t Arduboy2Base::currentButtonState = 0;
-  uint8_t Arduboy2Base::previousButtonState = 0;
-  // frame management
-  uint16_t Arduboy2Base::frameCount = 0;
-  uint8_t Arduboy2Base::eachFrameMillis = 16;
-  uint8_t Arduboy2Base::thisFrameStart;
-  uint8_t Arduboy2Base::lastFrameDurationMs;
-  bool Arduboy2Base::justRendered = false;
+uint16_t Arduboy2Base::frameCount = 0;
+
+uint8_t Arduboy2Base::currentButtonState = 0;
+uint8_t Arduboy2Base::previousButtonState = 0;
+
+uint8_t Arduboy2Base::eachFrameMillis = 16;
+uint8_t Arduboy2Base::thisFrameStart;
+uint8_t Arduboy2Base::lastFrameDurationMs;
+bool Arduboy2Base::justRendered = false;
 
 // functions called here should be public so users can create their
 // own init functions if they need different behavior than `begin`
-// provides by default
+// provides by default.
+//
+// This code and it's documentation should be kept in sync with
+// Aruduboy2::begin()
 void Arduboy2Base::begin()
 {
-  boot(); // raw hardware
-
-  //using CLEAR_BUFFER so a sketch can be optimized when using CLEAR_BUFFER exclusivly
-  display(CLEAR_BUFFER); //sBuffer is global, so cleared automatically. 
-                         
-  flashlight(); // light the RGB LED and screen if UP button is being held.
-
-  // check for and handle buttons held during start up for system control
-  systemButtons();
-
-  audio.begin();
+  beginDoFirst();
 
   bootLogo();
   // alternative logo functions. Work the same as bootLogo() but may reduce
-  // memory size if the sketch uses the same bitmap drawing function
+  // memory size if the sketch uses the same bitmap drawing function or
+  // `Sprites`/`SpritesB` class
 //  bootLogoCompressed();
 //  bootLogoSpritesSelfMasked();
 //  bootLogoSpritesOverwrite();
@@ -48,6 +43,20 @@ void Arduboy2Base::begin()
 //  bootLogoSpritesBOverwrite();
 
   waitNoButtons(); // wait for all buttons to be released
+}
+
+void Arduboy2Base::beginDoFirst()
+{
+  boot(); // raw hardware
+
+  display(); // blank the display (sBuffer is global, so cleared automatically)
+
+  flashlight(); // light the RGB LED and screen if UP button is being held.
+
+  // check for and handle buttons held during start up for system control
+  systemButtons();
+
+  audio.begin();
 }
 
 void Arduboy2Base::flashlight()
@@ -60,7 +69,9 @@ void Arduboy2Base::flashlight()
  #else
   sendLCDCommand(OLED_ALL_PIXELS_ON); // smaller than allPixelsOn()
  #endif
-  digitalWriteRGB(RGB_ON, RGB_ON, RGB_ON);
+  setRGBledRedOn();
+  setRGBledGreenOn();
+  setRGBledBlueOn();
 
   // prevent the bootloader magic number from being overwritten by timer 0
   // when a timer variable overlaps the magic number location, for when
@@ -75,19 +86,19 @@ void Arduboy2Base::flashlight()
 void Arduboy2Base::systemButtons()
 {
   while (pressed(B_BUTTON)) {
-    digitalWriteRGB(BLUE_LED, RGB_ON); // turn on blue LED
+    setRGBledBlueOn();
     sysCtrlSound(UP_BUTTON + B_BUTTON, GREEN_LED, 0xff);
     sysCtrlSound(DOWN_BUTTON + B_BUTTON, RED_LED, 0);
     delayByte(200);
   }
 
-  digitalWriteRGB(BLUE_LED, RGB_OFF); // turn off blue LED
+  setRGBledBlueOff();
 }
 
 void Arduboy2Base::sysCtrlSound(uint8_t buttons, uint8_t led, uint8_t eeVal)
 {
   if (pressed(buttons)) {
-    digitalWriteRGB(BLUE_LED, RGB_OFF); // turn off blue LED
+    setRGBledBlueOff();
     delayByte(200);
     digitalWriteRGB(led, RGB_ON); // turn on "acknowledge" LED
     EEPROM.update(eepromAudioOnOff, eeVal);
@@ -160,35 +171,29 @@ void Arduboy2Base::drawLogoSpritesBOverwrite(int16_t y)
 
 // bootLogoText() should be kept in sync with bootLogoShell()
 // if changes are made to one, equivalent changes should be made to the other
-void Arduboy2Base::bootLogoShell(void (*drawLogo)(int16_t))
+bool Arduboy2Base::bootLogoShell(void (&drawLogo)(int16_t))
 {
   bool showLEDs = readShowBootLogoLEDsFlag();
 
   if (!readShowBootLogoFlag()) {
-    return;
+    return false;
   }
 
   if (showLEDs) {
-   #if defined(LCD_ST7565)
-    digitalWriteRGB(RGB_ON, RGB_OFF, RGB_OFF);
-   #else
-    digitalWriteRGB(RED_LED, RGB_ON);
-   #endif
+    setRGBledRedOn();
   }
 
   for (int16_t y = -15; y <= 24; y++) {
     if (pressed(RIGHT_BUTTON)) {
-      digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_OFF); // all LEDs off
-      return;
+      setRGBledRedOff();
+      setRGBledGreenOff();
+      //setRGBledblueOff(); // Blue LED not turned on inside loop
+      return false;
     }
 
     if (showLEDs && y == 4) {
-     #if defined(LCD_ST7565)
-      digitalWriteRGB(RGB_OFF, RGB_ON, RGB_OFF);
-     #else
-      digitalWriteRGB(RED_LED, RGB_OFF);    // red LED off
-      digitalWriteRGB(GREEN_LED, RGB_ON);   // green LED on
-     #endif
+      setRGBledRedOff();
+      setRGBledGreenOn();
     }
 
     // Using display(CLEAR_BUFFER) instead of clear() may save code space.
@@ -200,27 +205,17 @@ void Arduboy2Base::bootLogoShell(void (*drawLogo)(int16_t))
   }
 
   if (showLEDs) {
-   #if defined(LCD_ST7565)
-    digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_ON);
-   #else
-    digitalWriteRGB(GREEN_LED, RGB_OFF);  // green LED off
-    digitalWriteRGB(BLUE_LED, RGB_ON);    // blue LED on
-   #endif
+    setRGBledGreenOff();
+    setRGBledBlueOn();
   }
   delayShort(400);
- #if defined(LCD_ST7565)
-  digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_OFF);
- #else
-  digitalWriteRGB(BLUE_LED, RGB_OFF);
- #endif
-  bootLogoExtra();
+  setRGBledBlueOff();
+  return true;
 }
 
-// Virtual function overridden by derived class
-void Arduboy2Base::bootLogoExtra() { }
-
 // wait for all buttons to be released
-void Arduboy2Base::waitNoButtons() {
+void Arduboy2Base::waitNoButtons()
+{
   do {
     delayByte(50); // simple button debounce
   } while (buttonsState());
@@ -319,12 +314,10 @@ void Arduboy2Base::clear()
 
 void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
 {
-  #ifdef PIXEL_SAFE_MODE
   if (x < 0 || x > (WIDTH-1) || y < 0 || y > (HEIGHT-1))
   {
     return;
   }
-  #endif
 
   uint16_t row_offset;
   uint8_t bit;
@@ -644,7 +637,7 @@ void Arduboy2Base::fillScreen(uint8_t color)
   // {
   //   color = 0xFF; // all pixels on
   // }
-  // for (int16_t i = 0; i < WIDTH * HEIGTH / 8; i++)
+  // for (int16_t i = 0; i < WIDTH * HEIGHT / 8; i++)
   // {
   //    sBuffer[i] = color;
   // }
@@ -837,8 +830,7 @@ void Arduboy2Base::drawBitmap
 
   int8_t yOffset = y & 7;
   int8_t sRow = y >> 3;
-  uint8_t rows = h >> 3;
-  if (h % 8 != 0) rows++;
+  uint8_t rows = (h+7) >> 3;
   for (int a = 0; a < rows; a++) {
     int bRow = sRow + a;
     if (bRow > (HEIGHT/8)-1) break;
@@ -887,17 +879,18 @@ void Arduboy2Base::drawSlowXYBitmap
   }
 }
 
-
 // Helper for drawCompressed()
-struct Arduboy2Base::BitStreamReader
+class Arduboy2Base::BitStreamReader
 {
+ private:
   const uint8_t *source;
   uint16_t sourceIndex;
   uint8_t bitBuffer;
   uint8_t byteBuffer;
 
-  BitStreamReader(const uint8_t *source)
-    : source(source), sourceIndex(), bitBuffer(), byteBuffer()
+ public:
+  BitStreamReader(const uint8_t *bitmap)
+    : source(bitmap), sourceIndex(), bitBuffer(), byteBuffer()
   {
   }
 
@@ -906,17 +899,17 @@ struct Arduboy2Base::BitStreamReader
     uint16_t result = 0;
     for (uint8_t i = 0; i < bitCount; i++)
     {
-      if (this->bitBuffer == 0)
+      if (bitBuffer == 0)
       {
-        this->bitBuffer = 0x1;
-        this->byteBuffer = pgm_read_byte(&this->source[this->sourceIndex]);
-        ++this->sourceIndex;
+        bitBuffer = 0x1;
+        byteBuffer = pgm_read_byte(&source[sourceIndex]);
+        ++sourceIndex;
       }
 
-      if ((this->byteBuffer & this->bitBuffer) != 0)
+      if ((byteBuffer & bitBuffer) != 0)
         result |= (1 << i);
 
-      this->bitBuffer += this->bitBuffer;
+      bitBuffer += bitBuffer;
     }
     return result;
   }
@@ -925,7 +918,7 @@ struct Arduboy2Base::BitStreamReader
 void Arduboy2Base::drawCompressed(int16_t sx, int16_t sy, const uint8_t *bitmap, uint8_t color)
 {
   // set up decompress state
-  BitStreamReader cs = BitStreamReader(bitmap);
+  BitStreamReader cs(bitmap);
 
   // read header
   int width = (int)cs.readBits(8) + 1;
@@ -1176,14 +1169,84 @@ void Arduboy2Base::swapInt16(int16_t& a, int16_t& b)
 //========== class Arduboy2 ==========
 //====================================
 
-  int16_t Arduboy2::cursor_x = 0;
-  int16_t Arduboy2::cursor_y = 0;
-  uint8_t Arduboy2::textColor = 1;
-  uint8_t Arduboy2::textBackground = 0;
-  uint8_t Arduboy2::textSize = 1;
-  bool Arduboy2::textWrap = false;
-  //bool Arduboy2::textRaw = false;
+int16_t Arduboy2::cursor_x = 0;
+int16_t Arduboy2::cursor_y = 0;
+uint8_t Arduboy2::textColor = WHITE;
+uint8_t Arduboy2::textBackground = BLACK;
+uint8_t Arduboy2::textSize = 1;
+bool Arduboy2::textWrap = false;
+bool Arduboy2::textRaw = false;
 
+// functions called here should be public so users can create their
+// own init functions if they need different behavior than `begin`
+// provides by default.
+//
+// This code and it's documentation should be kept in sync with
+// Aruduboy2Base::begin()
+void Arduboy2::begin()
+{
+  beginDoFirst();
+
+  bootLogo();
+  // alternative logo functions. Work the same as bootLogo() but may reduce
+  // memory size if the sketch uses the same bitmap drawing function or
+  // `Sprites`/`SpritesB` class
+//  bootLogoCompressed();
+//  bootLogoSpritesSelfMasked();
+//  bootLogoSpritesOverwrite();
+//  bootLogoSpritesBSelfMasked();
+//  bootLogoSpritesBOverwrite();
+
+  waitNoButtons();
+}
+
+void Arduboy2::bootLogo()
+{
+  if (bootLogoShell(drawLogoBitmap))
+  {
+    bootLogoExtra();
+  }
+}
+
+void Arduboy2::bootLogoCompressed()
+{
+  if (bootLogoShell(drawLogoCompressed))
+  {
+    bootLogoExtra();
+  }
+}
+
+void Arduboy2::bootLogoSpritesSelfMasked()
+{
+  if (bootLogoShell(drawLogoSpritesSelfMasked))
+  {
+    bootLogoExtra();
+  }
+}
+
+void Arduboy2::bootLogoSpritesOverwrite()
+{
+  if (bootLogoShell(drawLogoSpritesOverwrite))
+  {
+    bootLogoExtra();
+  }
+}
+
+void Arduboy2::bootLogoSpritesBSelfMasked()
+{
+  if (bootLogoShell(drawLogoSpritesBSelfMasked))
+  {
+    bootLogoExtra();
+  }
+}
+
+void Arduboy2::bootLogoSpritesBOverwrite()
+{
+  if (bootLogoShell(drawLogoSpritesBOverwrite))
+  {
+    bootLogoExtra();
+  }
+}
 
 // bootLogoText() should be kept in sync with bootLogoShell()
 // if changes are made to one, equivalent changes should be made to the other
@@ -1196,26 +1259,20 @@ void Arduboy2::bootLogoText()
   }
 
   if (showLEDs) {
-   #if defined(LCD_ST7565)
-    digitalWriteRGB(RGB_ON, RGB_OFF, RGB_OFF);
-   #else
-    digitalWriteRGB(RED_LED, RGB_ON);
-   #endif
+    setRGBledRedOn();
   }
 
   for (int8_t y = -16; y <= 24; y++) {
     if (pressed(RIGHT_BUTTON)) {
-      digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_OFF); // all LEDs off
+      setRGBledRedOff();
+      setRGBledGreenOff();
+      //setRGBledBlueOff(); //not turned on inside loop
       return;
     }
 
     if (showLEDs && y == 4) {
-     #if defined(LCD_ST7565)
-      digitalWriteRGB(RGB_OFF, RGB_ON, RGB_OFF);
-     #else
-      digitalWriteRGB(RED_LED, RGB_OFF);    // red LED off
-      digitalWriteRGB(GREEN_LED, RGB_ON);   // green LED on
-     #endif
+      setRGBledRedOff();
+      setRGBledGreenOn();
     }
 
     // Using display(CLEAR_BUFFER) instead of clear() may save code space.
@@ -1231,20 +1288,11 @@ void Arduboy2::bootLogoText()
   }
 
   if (showLEDs) {
-   #if defined(LCD_ST7565)
-    digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_ON);
-   #else
-    digitalWriteRGB(GREEN_LED, RGB_OFF);  // green LED off
-    digitalWriteRGB(BLUE_LED, RGB_ON);    // blue LED on
-   #endif
+    setRGBledGreenOff();
+    setRGBledBlueOn();
   }
   delayShort(400);
- #if defined(LCD_ST7565)
-  digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_OFF);
- #else
-  digitalWriteRGB(BLUE_LED, RGB_OFF);
- #endif
-
+  setRGBledBlueOff();
   bootLogoExtra();
 }
 
@@ -1279,64 +1327,106 @@ void Arduboy2::bootLogoExtra()
 
 size_t Arduboy2::write(uint8_t c)
 {
-  if (c == '\n')
+  if ((c == '\r') && !textRaw)
   {
-    cursor_y += textSize * 8;
+    return 1;
+  }
+
+  if (((c == '\n') && !textRaw) ||
+      (textWrap && (cursor_x > (WIDTH - (characterWidth * textSize)))))
+  {
     cursor_x = 0;
+    cursor_y += fullCharacterHeight * textSize;
   }
-  else if (c == '\r')
-  {
-    // skip em
-  }
-  else
+
+  if ((c != '\n') || textRaw)
   {
     drawChar(cursor_x, cursor_y, c, textColor, textBackground, textSize);
-    cursor_x += textSize * 6;
-    if (textWrap && (cursor_x > (WIDTH - textSize * 6)))
-    {
-      // calling ourselves recursively for 'newline' is
-      // 12 bytes smaller than doing the same math here
-      write('\n');
-    }
+    cursor_x += fullCharacterWidth * textSize;
   }
+
   return 1;
 }
 
 void Arduboy2::drawChar
-  (int16_t x, int16_t y, unsigned char c, uint8_t color, uint8_t bg, uint8_t size)
+  (int16_t x, int16_t y, uint8_t c, uint8_t color, uint8_t bg, uint8_t size)
 {
-  uint8_t line;
-  bool draw_background = bg != color;
-  const uint8_t* bitmap = font5x7 + c * 5;
-
+// It is assumed that rendering characters fully off screen will be rare,
+// so let drawPixel() handle off screen checks, to reduce code size at the
+// expense of slower off screen character handling.
+#if 0
   if ((x >= WIDTH) ||              // Clip right
       (y >= HEIGHT) ||             // Clip bottom
-      ((x + 5 * size - 1) < 0) ||  // Clip left
-      ((y + 8 * size - 1) < 0)     // Clip top
+      ((x + characterWidth * size - 1) < 0) ||  // Clip left
+      ((y + characterHeight * size - 1) < 0)    // Clip top
      )
   {
     return;
   }
+#endif
 
-  for (uint8_t i = 0; i < 6; i++ )
+  bool drawBackground = bg != color;
+  const uint8_t* bitmap =
+    &font5x7[c * characterWidth * ((characterHeight + 8 - 1) / 8)];
+
+  for (uint8_t i = 0; i < fullCharacterWidth; i++)
   {
-    line = pgm_read_byte(bitmap++);
-    if (i == 5) {
-      line = 0x0;
+    uint8_t column;
+
+    if (characterHeight <= 8)
+    {
+      column = (i < characterWidth) ? pgm_read_byte(bitmap++) : 0;
+    }
+    else
+    {
+      column = 0;
     }
 
-    for (uint8_t j = 0; j < 8; j++)
+    // draw the character by columns. Top to bottom, left to right
+    // including character spacing on the right
+    for (uint8_t j = 0; j < characterHeight; j++)
     {
-      uint8_t draw_color = (line & 0x1) ? color : bg;
+      if (characterHeight > 8)
+      {
+        // at this point variable "column" will be 0, either from initialization
+        // or by having eight 0 bits shifted in by the >>= operation below
+        if ((j % 8 == 0) && (i < characterWidth))
+        {
+          column = pgm_read_byte(bitmap++);
+        }
+      }
 
-      if (draw_color || draw_background) {
-        for (uint8_t a = 0; a < size; a++ ) {
-          for (uint8_t b = 0; b < size; b++ ) {
-            drawPixel(x + (i * size) + a, y + (j * size) + b, draw_color);
+      // pixelIsSet should be a bool but at the time of writing,
+      // the GCC AVR compiler generates less code if it's a uint8_t
+      uint8_t pixelIsSet = column & 0x01;
+
+      if (pixelIsSet || drawBackground)
+      {
+        for (uint8_t a = 0; a < size; a++)
+        {
+          for (uint8_t b = 0; b < size; b++)
+          {
+            drawPixel(x + (i * size) + a, y + (j * size) + b,
+                      pixelIsSet ? color : bg);
           }
         }
       }
-      line >>= 1;
+      column >>= 1;
+    }
+
+    // draw the inter-line spacing pixels for this column if required
+    if (drawBackground)
+    {
+      for (uint8_t j = characterHeight; j < fullCharacterHeight; j++)
+      {
+        for (uint8_t a = 0; a < size; a++)
+        {
+          for (uint8_t b = 0; b < size; b++)
+          {
+            drawPixel(x + (i * size) + a, y + (j * size) + b, bg);
+          }
+        }
+      }
     }
   }
 }
@@ -1406,6 +1496,16 @@ void Arduboy2::setTextWrap(bool w)
 bool Arduboy2::getTextWrap()
 {
   return textWrap;
+}
+
+void Arduboy2::setTextRawMode(bool raw)
+{
+  textRaw = raw;
+}
+
+bool Arduboy2::getTextRawMode()
+{
+  return textRaw;
 }
 
 void Arduboy2::clear()
