@@ -125,6 +125,8 @@ class FX
 
     static uint8_t readByte(); //read a single byte from flash memory
 
+    static void displayPrefetch(uint24_t address, uint8_t* target, uint16_t len, bool clear);
+
     static void begin(); // Initializes flash memory. Use only when program does not require data and save areas in flash memory
 
     static void begin(uint16_t programDataPage); // Initializes flash memory. Use when program depends on data in flash memory

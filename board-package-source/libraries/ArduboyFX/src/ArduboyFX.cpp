@@ -695,3 +695,50 @@ uint32_t FX::readIndexedUInt32(uint24_t address, uint8_t index)
   seekDataArray(address, index, 0, sizeof(uint24_t));
   return readPendingLastUInt32();
 }
+
+void FX::displayPrefetch(uint24_t address, uint8_t* target, uint16_t len, bool clear)
+{
+  seekData(address);
+  asm volatile
+  ( "dbg:\n"
+    "   ldi     r30, lo8(%[sbuf])               \n" // uint8_t* ptr = Arduboy2::sBuffer;
+    "   ldi     r31, hi8(%[sbuf])               \n"
+    "   ldi     r25, hi8(%[end])                \n" 
+    "   in      r0, %[spsr]                     \n" // wait(); //for 1st target data recieved (can't enable OLED mid transfer)
+    "   sbrs	r0, %[spif]                     \n"
+    "   rjmp	.-6                             \n"
+    "   cbi     %[csport], %[csbit]             \n" // enableOLED();
+    "1:                                         \n" // while (true) {
+    "   ld      r0, Z                   ;2  \   \n" // uint8_t displaydata = *ptr;
+    "   in      r24, %[spdr]            ;1  /3  \n" // uint8_t targetdata = SPDR;
+    "   out     %[spdr], r0             ;1  \   \n" // SPDR = displaydata;
+    "   cpse    %[clear], r1            ;1-2    \n" // if (clear) displaydata = 0;
+    "   mov     r0, r1                  ;1      \n"
+    "   st      Z+, r0                  ;2      \n" // *ptr++ = displaydata;
+    "   subi    %A[len], 1              ;1      \n" // if (--len >= 0) *target++ = targetdata;
+    "   sbci    %B[len], 0              ;1      \n"
+    "   brmi    3f                      ;1-2    \n" // branch ahead and back to 2 to burn 4 cycles
+    "   nop                             ;1      \n"
+    "   st      %a[target]+, r24        ;2  /11 \n"
+    "2:                                         \n"
+    "   cpi     r30, lo8(%[end])        ;1  \   \n" // if (ptr >= Arduboy2::sBuffer + WIDTH * HEIGHT / 8) break;
+    "   cpc     r31, r25                ;1      \n"
+    "   brcs    1b                      ;1-2/4  \n" // } 
+    "3:                                         \n"
+    "   brmi    2b                      ;1-2    \n" // branch only when coming from above brmi
+    : [target]   "+e" (target),
+      [len]      "+d" (len)
+    : [sbuf]     ""   (Arduboy2::sBuffer),
+      [end]      ""   (Arduboy2::sBuffer + WIDTH * HEIGHT / 8),
+      [clear]    "r" (clear),
+      [spsr]     "I" (_SFR_IO_ADDR(SPSR)),
+      [spif]     "I" (SPIF),
+      [spdr]     "I" (_SFR_IO_ADDR(SPDR)),
+      [csport]   "I" (_SFR_IO_ADDR(CS_PORT)),
+      [csbit]    "I" (CS_BIT)
+    : "r24", "r25", "r30", "r31"
+  );
+  disableOLED();
+  disable();
+  SPSR;
+}
