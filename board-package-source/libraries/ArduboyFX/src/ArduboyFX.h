@@ -201,7 +201,7 @@ class FX
     
     static void readDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t elementSize, uint8_t* buffer, size_t length);
     
-    static uint16_t readIndexedUInt8(uint24_t address, uint8_t index);
+    static uint8_t readIndexedUInt8(uint24_t address, uint8_t index);
     
     static uint16_t readIndexedUInt16(uint24_t address, uint8_t index);
     
