@@ -265,9 +265,10 @@ uint24_t FX::readPendingUInt24()
   asm volatile
   (
     "call ArduboyFX_cpp_readPendingUInt16   \n"
-    "mov  %C[val], r25                      \n"
     "mov  %B[val], r24                      \n"
     "call ArduboyFX_cpp_readPendingUInt8    \n"
+    "mov  %A[val], r24                      \n"
+    "mov  %C[val], r25                      \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt16),
       "" (readPendingUInt8)
@@ -287,9 +288,10 @@ uint24_t FX::readPendingLastUInt24()
   asm volatile
   (
     "call ArduboyFX_cpp_readPendingUInt16    \n"
-    "mov  %C[val], r25                       \n"
     "mov  %B[val], r24                       \n"
     "call ArduboyFX_cpp_readPendingLastUInt8 \n"
+    "mov  %A[val], r24                       \n"
+    "mov  %C[val], r25                       \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt16),
       "" (readPendingLastUInt8)
