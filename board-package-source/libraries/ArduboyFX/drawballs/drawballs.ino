@@ -12,7 +12,7 @@
  * Phyton script and the fxdata.bin file can be uploaded using the uploader-gui.py, 
  * fxdata-upload.py or flash-writer.py Python script using the -d switch.
  * 
- * This demo draws a moving background tilemap with a bunch of bouncing ball sprites around
+ * This demo draws a moving background tilemap with a bunch of bouncing ball sprites.
  * 
  * Button controls:
  * 
@@ -25,7 +25,7 @@
 
 #include <Arduboy2.h>
 #include <ArduboyFX.h>                // Required library for accessing the FX flash chip
-#include "fxdata/fxdata.h"            // this file contains all the references to FX data
+#include "fxdata.h"                   // this file contains all the references to FX data
                                       // Check out fxdata.txt to see how this is done.
 #define FRAME_RATE 60
 
@@ -72,7 +72,7 @@ uint8_t pos;
 void setup() {
   arduboy.begin();
   arduboy.setFrameRate(FRAME_RATE);
-  FX::begin(FX_DATA_PAGE); // // initialise FX chip
+  FX::begin(FX_DATA_PAGE); // wakeup external flash chip, initialize datapage, detect presence of external flash chip
   
   for (uint8_t i=0; i < MAX_BALLS; i++) // initialize ball sprites
   {

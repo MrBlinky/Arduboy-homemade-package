@@ -20,12 +20,14 @@ uint8_t FX::readByte()
 
 void FX::begin()
 {
+  disableOLED();
   wakeUp();
 }
 
 
 void FX::begin(uint16_t developmentDataPage)
 {
+  disableOLED();
   if (pgm_read_word(FX_DATA_VECTOR_KEY_POINTER) == FX_VECTOR_KEY_VALUE)
   {
     programDataPage = (pgm_read_byte(FX_DATA_VECTOR_PAGE_POINTER) << 8) | pgm_read_byte(FX_DATA_VECTOR_PAGE_POINTER + 1);
@@ -40,6 +42,7 @@ void FX::begin(uint16_t developmentDataPage)
 
 void FX::begin(uint16_t developmentDataPage, uint16_t developmentSavePage)
 {
+  disableOLED();
   if (pgm_read_word(FX_DATA_VECTOR_KEY_POINTER) == FX_VECTOR_KEY_VALUE)
   {
     programDataPage = (pgm_read_byte(FX_DATA_VECTOR_PAGE_POINTER) << 8) | pgm_read_byte(FX_DATA_VECTOR_PAGE_POINTER + 1);
@@ -85,7 +88,7 @@ void FX::noFXReboot()
       {
         if (*(uint8_t *)&timer0_millis & 0x80) bitSet(PORTB, RED_LED_BIT);
         else bitClear(PORTB, RED_LED_BIT);
-      } 
+      }
       while (bitRead(DOWN_BUTTON_PORTIN, DOWN_BUTTON_BIT)); // wait for DOWN button to enter bootloader
       Arduboy2Core::exitToBootloader();
     }
@@ -170,7 +173,7 @@ void FX::seekDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t 
    address += size ? index * size + offset : index * 256 + offset;
   #endif
   seekData(address);
-}   
+}
 
 
 void FX::seekSave(uint24_t address)
@@ -559,7 +562,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     "   st      %a[buffer], %B[bitmap]              \n"
     "5: ;render_next:                               \n"
     "   clr     r1                                  \n" // restore zero reg
-    "   subi    %A[buffer], lo8(%[displaywidth]-1)  \n" 
+    "   subi    %A[buffer], lo8(%[displaywidth]-1)  \n"
     "   sbci    %B[buffer], hi8(%[displaywidth]-1)  \n"
     "   dec     r25                                 \n"
     "   brne    2b ;render_column                   \n" // for (c < renderheigt) loop
@@ -574,7 +577,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     "   sbi     %[fxport], %[fxbit]                 \n" // disable external flash
     "   cp      r1, %[renderheight]                 \n" // while (renderheight > 0)
     "   brge    .+2                                 \n"
-    "   rjmp    1b ;render_row                      \n" 
+    "   rjmp    1b ;render_row                      \n"
    :
     [address]      "+r" (address),
     [mode]         "+r" (mode),
@@ -588,7 +591,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     [yshift]       "r" (yshift),
     [renderwidth]  "r" (renderwidth),
     [buffer]       "e" (Arduboy2Base::sBuffer + displayoffset),
-    
+
     [fxport]       "I" (_SFR_IO_ADDR(FX_PORT)),
     [fxbit]        "I" (FX_BIT),
     [cmd]          "I" (SFC_READ),
@@ -700,10 +703,10 @@ void FX::displayPrefetch(uint24_t address, uint8_t* target, uint16_t len, bool c
 {
   seekData(address);
   asm volatile
-  ( "dbg:\n"
+  (
     "   ldi     r30, lo8(%[sbuf])               \n" // uint8_t* ptr = Arduboy2::sBuffer;
     "   ldi     r31, hi8(%[sbuf])               \n"
-    "   ldi     r25, hi8(%[end])                \n" 
+    "   ldi     r25, hi8(%[end])                \n"
     "   in      r0, %[spsr]                     \n" // wait(); //for 1st target data recieved (can't enable OLED mid transfer)
     "   sbrs	r0, %[spif]                     \n"
     "   rjmp	.-6                             \n"
@@ -723,7 +726,7 @@ void FX::displayPrefetch(uint24_t address, uint8_t* target, uint16_t len, bool c
     "2:                                         \n"
     "   cpi     r30, lo8(%[end])        ;1  \   \n" // if (ptr >= Arduboy2::sBuffer + WIDTH * HEIGHT / 8) break;
     "   cpc     r31, r25                ;1      \n"
-    "   brcs    1b                      ;1-2/4  \n" // } 
+    "   brcs    1b                      ;1-2/4  \n" // }
     "3:                                         \n"
     "   brmi    2b                      ;1-2    \n" // branch only when coming from above brmi
     : [target]   "+e" (target),
@@ -741,4 +744,18 @@ void FX::displayPrefetch(uint24_t address, uint8_t* target, uint16_t len, bool c
   disableOLED();
   disable();
   SPSR;
+}
+
+void FX::display()
+{
+  enableOLED();
+  Arduboy2Base::display();
+  disableOLED();
+}
+
+void FX::display(bool clear)
+{
+  enableOLED();        
+  Arduboy2Base::display(clear);
+  disableOLED();
 }

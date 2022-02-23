@@ -1,15 +1,19 @@
 /* *****************************************************************************
- * FX drawBitmap test v1.3 by Mr.Blinky Apr 2019-May 2021 licenced under CC0
+ * FX drawBitmap test v1.31 by Mr.Blinky Apr 2019-Feb 2022 licenced under CC0
  * *****************************************************************************
  * 
  * The map and whale images used in this example were made by 2bitcrook and are
  * licenced under CC-BY-NC-SA licence.
   
- * This test depend on the file fxdata.bin being uploaded to the external FX flash 
- * chip using the uploader-gui.py or flash-writer.py Python script in the
- * development area. When using the flash writer script. Use the following command:
+ * Before this example sketch is uploaded and run on the Arduboy FX, make sure 
+ * the fxdata this sketch has been build and uploaded to the Arduboy FX. 
  * 
- * python flash-writer.py -d fxdata.bin
+ * If the Arduboy FX Arduino plugin has been installed you can simply choose the 
+ * 'Build and upload Arduboy FX data' from the Arduino IDE Tools menu.
+ * 
+ * Alternatively the fxdata.txt script file can be build using the fxdata-build.py 
+ * Phyton script and the fxdata.bin file can be uploaded using the uploader-gui.py, 
+ * fxdata-upload.py or flash-writer.py Python script using the -d switch.
  * 
  * This example uses a 816 by 368 pixel image as background and a 
  * 107 x 69 image for masked sprite. Both can be moved around using the button combos
@@ -24,9 +28,9 @@
  * 
  ******************************************************************************/
 
-#include <Arduboy2.h>     // required to build for Arduboy
-#include <ArduboyFX.h>    // required to access the FX external flash
-#include "fxdata.h"       // this file contains all references to FX data
+#include <Arduboy2.h>       // required to build for Arduboy
+#include <ArduboyFX.h>      // required to access the FX external flash
+#include "fxdata/fxdata.h"  // this file contains all references to FX data
 
 #define FRAME_RATE 120
 
@@ -39,8 +43,7 @@ int y [2];
 void setup() {
   arduboy.begin();
   arduboy.setFrameRate(FRAME_RATE);
-  FX::disableOLED();        // OLED must be disabled before external flash is accessed. OLED display should only be enabled prior updating the display.
-  FX::begin(FX_DATA_PAGE);  //external flash chip may be in power down mode so wake it up (Cathy bootloader puts chip into powerdown mode)
+  FX::begin(FX_DATA_PAGE);  // initialise FX chip
 }
 
 void loop() {
@@ -79,7 +82,5 @@ void loop() {
     arduboy.setCursor(0,8);
     arduboy.print(y[select]);
   }
-  FX::enableOLED();              // only enable OLED for updating the display
-  arduboy.display(CLEAR_BUFFER); // Using CLEAR_BUFFER will clear the display buffer after it is displayed
-  FX::disableOLED();             // disable display again so external flash can be accessed at any time
+  FX::display(CLEAR_BUFFER); // Using CLEAR_BUFFER will clear the display buffer after it is displayed
 }

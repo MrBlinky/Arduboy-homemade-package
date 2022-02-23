@@ -62,8 +62,8 @@
 
 // A large map background image:
 
-image_t map   = "assets/map.png"
+image_t mapGfx = "../assets/map.png"
 
 // chompies masked sprite image:
 
-image_t whale = "assets/whale.png"
+image_t whaleGfx = "../assets/whale.png"
