@@ -262,8 +262,8 @@
           },
           "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.1.zip",
           "archiveFileName": "arduboy-homemade-1.3.1.zip",
-          "checksum": "SHA-256:ad9f30ab35d70f98ec9e5f0d6cc5ccf4eb8e4352fcbdea912250b03218d4c412",
-          "size": "1321816",
+          "checksum": "SHA-256:b713b328efb48e92d567bb445d9f21e713706ccd3eb81519fa4fbaef7cb6250c",
+          "size": "1321824",
           "boards": [
             {"name": "Arduboy production"},
             {"name": "Arduboy DevKit"},
