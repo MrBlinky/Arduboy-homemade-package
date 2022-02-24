@@ -194,11 +194,11 @@
  #define X_BUTTON_DDR DDRF
  #define X_BUTTON_BIT PORTF1
  
- #define PIN_Y_BUTTON A5
- #define Y_BUTTON_PORT PORTF
- #define Y_BUTTON_PORTIN PINF
- #define Y_BUTTON_DDR DDRF
- #define Y_BUTTON_BIT PORTF0
+ #define PIN_Y_BUTTON 11
+ #define Y_BUTTON_PORT PORTB
+ #define Y_BUTTON_PORTIN PINB
+ #define Y_BUTTON_DDR DDRB
+ #define Y_BUTTON_BIT PORTB7
 #endif
 
 #define PIN_SPEAKER_1 5  /**< The pin number of the first lead of the speaker */
@@ -311,11 +311,19 @@
 // ----- Pins common on Arduboy and DevKit -----
 
 // Unconnected analog input used for noise by initRandomSeed()
+#ifndef SUPPORT_XY_BUTTONS
 #define RAND_SEED_IN A4
 #define RAND_SEED_IN_PORT PORTF
 #define RAND_SEED_IN_BIT PORTF1
 // Value for ADMUX to read the random seed pin: 2.56V reference, ADC1
 #define RAND_SEED_IN_ADMUX (_BV(REFS0) | _BV(REFS1) | _BV(MUX0))
+#else
+#define RAND_SEED_IN A5
+#define RAND_SEED_IN_PORT PORTF
+#define RAND_SEED_IN_BIT PORTF0
+// Value for ADMUX to read the random seed pin: 2.56V reference, ADC1
+#define RAND_SEED_IN_ADMUX (_BV(REFS0) | _BV(REFS1))
+#endif
 
 // SPI interface
 #define SPI_MISO_PORT PORTB

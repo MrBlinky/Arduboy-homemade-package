@@ -198,6 +198,9 @@ void Arduboy2Core::bootPins()
          #ifndef AB_ALTERNATE_WIRING
           _BV(GREEN_LED_BIT) | 
          #endif
+         #ifdef SUPPORT_XY_BUTTONS
+          _BV(Y_BUTTON_BIT) | 
+         #endif
          #ifndef ARDUINO_AVR_MICRO
           _BV(RX_LED_BIT) | //RX LED off for Arduboy and non Micro based Arduino
          #endif          
@@ -212,7 +215,11 @@ void Arduboy2Core::bootPins()
         #endif
          _BV(SPI_MOSI_BIT) | _BV(SPI_SCK_BIT)  | _BV(RX_LED_BIT)) &
   // Port B inputs
-         ~(_BV(B_BUTTON_BIT) | _BV(SPI_MISO_BIT));
+         ~(_BV(B_BUTTON_BIT) | _BV(SPI_MISO_BIT)
+         #ifdef SUPPORT_XY_BUTTONS
+          | _BV(Y_BUTTON_BIT)
+         #endif
+         );
 
   // Port C
   // Speaker: Not set here. Controlled by audio class
@@ -278,7 +285,11 @@ void Arduboy2Core::bootPins()
 
   // Port F INPUT_PULLUP or HIGH
   PORTF = (_BV(LEFT_BUTTON_BIT) | _BV(RIGHT_BUTTON_BIT) |
-          _BV(UP_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT)) &
+          _BV(UP_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT)
+         #ifdef SUPPORT_XY_BUTTONS
+          | _BV(X_BUTTON_BIT)  
+         #endif
+          ) &
   // Port F INPUT or LOW
           ~(_BV(RAND_SEED_IN_BIT));
   
@@ -287,6 +298,9 @@ void Arduboy2Core::bootPins()
   // Port F inputs
          ~(_BV(LEFT_BUTTON_BIT) | _BV(RIGHT_BUTTON_BIT) |
          _BV(UP_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT) |
+         #ifdef SUPPORT_XY_BUTTONS
+          _BV(X_BUTTON_BIT) | 
+         #endif
          _BV(RAND_SEED_IN_BIT));
 
 #elif defined(AB_DEVKIT)
@@ -1369,13 +1383,17 @@ uint8_t Arduboy2Core::buttonsState()
               (_BV(UP_BUTTON_BIT) | _BV(RIGHT_BUTTON_BIT) |
                _BV(LEFT_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT) |
               #ifdef SUPPORT_XY_BUTTONS
-               _BV(X_BUTTON_BIT) | _BV(Y_BUTTON_BIT) |
+               _BV(X_BUTTON_BIT) |
               #endif              
                0));
   // A
   if (bitRead(A_BUTTON_PORTIN, A_BUTTON_BIT) == 0) { buttons |= A_BUTTON; }
   // B
   if (bitRead(B_BUTTON_PORTIN, B_BUTTON_BIT) == 0) { buttons |= B_BUTTON; }
+ #ifdef SUPPORT_XY_BUTTONS
+  // Y 
+  if (bitRead(Y_BUTTON_PORTIN, Y_BUTTON_BIT) == 0) { buttons |= Y_BUTTON; }
+ #endif
 #elif defined(AB_DEVKIT)
   // down, left, up
   buttons = ((~PINB) &

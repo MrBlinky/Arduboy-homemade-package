@@ -441,3 +441,169 @@ arduboy-devkit.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
 arduboy-devkit.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-devkit.hex
 
 ################################################################################
+# 8BitCADE XL board
+################################################################################
+
+8bitcadexl.name=8BitCADE XL
+
+#Arduino Leonardo
+8bitcadexl.vid.0=0x2341
+8bitcadexl.pid.0=0x0036
+8bitcadexl.vid.1=0x2341
+8bitcadexl.pid.1=0x8036
+8bitcadexl.vid.2=0x2A03
+8bitcadexl.pid.2=0x0036
+8bitcadexl.vid.3=0x2A03
+8bitcadexl.pid.3=0x8036
+
+8bitcadexl.upload.tool=arduino:avrdude
+8bitcadexl.upload.protocol=avr109
+8bitcadexl.upload.maximum_size=29696
+8bitcadexl.upload.maximum_data_size=2560
+8bitcadexl.upload.speed=57600
+8bitcadexl.upload.disable_flushing=true
+8bitcadexl.upload.use_1200bps_touch=true
+8bitcadexl.upload.wait_for_upload_port=true
+
+8bitcadexl.bootloader.tool=arduino:avrdude
+8bitcadexl.bootloader.low_fuses=0xff
+8bitcadexl.bootloader.high_fuses=0xd2
+8bitcadexl.bootloader.extended_fuses=0xcb
+8bitcadexl.bootloader.file=cathy3k/arduboy3k-bootloader-menu-promicro.hex
+8bitcadexl.bootloader.unlock_bits=0x3F
+8bitcadexl.bootloader.lock_bits=0x2F
+
+8bitcadexl.build.mcu=atmega32u4
+8bitcadexl.build.f_cpu=16000000L
+8bitcadexl.build.variant=arduboy-promicro-alt
+8bitcadexl.build.board=AVR_PROMICRO -DAB_ALTERNATE_WIRING
+8bitcadexl.build.vid=0x2341
+8bitcadexl.build.pid=0x8036
+8bitcadexl.build.usb_product="8bitCADE"
+8bitcadexl.build.core=arduino:arduino
+8bitcadexl.build.flash_cs=-DCART_CS_RX
+8bitcadexl.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1309 {build.flash_cs} {build.contrast} {build.usb_flags}
+
+# Arduboy menu options #########################################################
+
+#core select
+
+8bitcadexl.menu.core.arduboy-core=Arduboy optimized core
+8bitcadexl.menu.core.arduboy-core.build.core=arduboy
+
+8bitcadexl.menu.core.arduino-core=Standard Arduino core
+8bitcadexl.menu.core.arduino-core.build.core=arduino:arduino
+
+#bootloader select
+
+8bitcadexl.menu.boot.cathy3k=Cathy3K (starts with menu)
+8bitcadexl.menu.boot.cathy3k.upload.maximum_size=29696
+8bitcadexl.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+8bitcadexl.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-promicro.hex
+
+8bitcadexl.menu.boot.cathy3kg=Cathy3K (starts with game)
+8bitcadexl.menu.boot.cathy3kg.upload.maximum_size=29696
+8bitcadexl.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+8bitcadexl.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-promicro.hex
+
+# Display contrast adjustment #
+
+8bitcadexl.menu.contrast.normal=Normal
+8bitcadexl.menu.contrast.normal.build.contrast=
+
+8bitcadexl.menu.contrast.dimmed=Dimmed
+8bitcadexl.menu.contrast.dimmed.build.contrast=-DOLED_CONTRAST=0x7F
+
+8bitcadexl.menu.contrast.low=Low
+8bitcadexl.menu.contrast.low.build.contrast=-DOLED_CONTRAST=0x2F
+
+8bitcadexl.menu.contrast.lowest=Lowest
+8bitcadexl.menu.contrast.lowest.build.contrast=-DOLED_CONTRAST=0x00
+
+8bitcadexl.menu.contrast.highest=Highest
+8bitcadexl.menu.contrast.highest.build.contrast=-DOLED_CONTRAST=0xFF
+
+################################################################################
+# 8BitCADE XL Level UP board
+################################################################################
+
+8bitcadexlup.name=8BitCADE XL Level UP
+
+#Arduino Leonardo
+8bitcadexlup.vid.0=0x2341
+8bitcadexlup.pid.0=0x0036
+8bitcadexlup.vid.1=0x2341
+8bitcadexlup.pid.1=0x8036
+8bitcadexlup.vid.2=0x2A03
+8bitcadexlup.pid.2=0x0036
+8bitcadexlup.vid.3=0x2A03
+8bitcadexlup.pid.3=0x8036
+
+8bitcadexlup.upload.tool=arduino:avrdude
+8bitcadexlup.upload.protocol=avr109
+8bitcadexlup.upload.maximum_size=29696
+8bitcadexlup.upload.maximum_data_size=2560
+8bitcadexlup.upload.speed=57600
+8bitcadexlup.upload.disable_flushing=true
+8bitcadexlup.upload.use_1200bps_touch=true
+8bitcadexlup.upload.wait_for_upload_port=true
+
+8bitcadexlup.bootloader.tool=arduino:avrdude
+8bitcadexlup.bootloader.low_fuses=0xff
+8bitcadexlup.bootloader.high_fuses=0xd2
+8bitcadexlup.bootloader.extended_fuses=0xcb
+8bitcadexlup.bootloader.file=cathy3k/arduboy3k-bootloader-menu-promicro.hex
+8bitcadexlup.bootloader.unlock_bits=0x3F
+8bitcadexlup.bootloader.lock_bits=0x2F
+
+8bitcadexlup.build.mcu=atmega32u4
+8bitcadexlup.build.f_cpu=16000000L
+8bitcadexlup.build.variant=arduboy-promicro-alt
+8bitcadexlup.build.board=AVR_PROMICRO -DAB_ALTERNATE_WIRING
+8bitcadexlup.build.vid=0x2341
+8bitcadexlup.build.pid=0x8036
+8bitcadexlup.build.usb_product="8bitCADE"
+8bitcadexlup.build.core=arduino:arduino
+8bitcadexlup.build.flash_cs=-DCART_CS_RX
+8bitcadexlup.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1309 -DSUPPORT_XY_BUTTONS {build.flash_cs} {build.contrast} {build.usb_flags}
+
+# Arduboy menu options #########################################################
+
+#core select
+
+8bitcadexlup.menu.core.arduboy-core=Arduboy optimized core
+8bitcadexlup.menu.core.arduboy-core.build.core=arduboy
+
+8bitcadexlup.menu.core.arduino-core=Standard Arduino core
+8bitcadexlup.menu.core.arduino-core.build.core=arduino:arduino
+
+#bootloader select
+
+8bitcadexlup.menu.boot.cathy3k=Cathy3K (starts with menu)
+8bitcadexlup.menu.boot.cathy3k.upload.maximum_size=29696
+8bitcadexlup.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+8bitcadexlup.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-promicro.hex
+
+8bitcadexlup.menu.boot.cathy3kg=Cathy3K (starts with game)
+8bitcadexlup.menu.boot.cathy3kg.upload.maximum_size=29696
+8bitcadexlup.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+8bitcadexlup.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-promicro.hex
+
+# Display contrast adjustment #
+
+8bitcadexlup.menu.contrast.normal=Normal
+8bitcadexlup.menu.contrast.normal.build.contrast=
+
+8bitcadexlup.menu.contrast.dimmed=Dimmed
+8bitcadexlup.menu.contrast.dimmed.build.contrast=-DOLED_CONTRAST=0x7F
+
+8bitcadexlup.menu.contrast.low=Low
+8bitcadexlup.menu.contrast.low.build.contrast=-DOLED_CONTRAST=0x2F
+
+8bitcadexlup.menu.contrast.lowest=Lowest
+8bitcadexlup.menu.contrast.lowest.build.contrast=-DOLED_CONTRAST=0x00
+
+8bitcadexlup.menu.contrast.highest=Highest
+8bitcadexlup.menu.contrast.highest.build.contrast=-DOLED_CONTRAST=0xFF
+
+################################################################################
