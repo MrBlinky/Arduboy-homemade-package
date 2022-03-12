@@ -501,14 +501,15 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     "   clc                                         \n" // yshift == 1, clear carry
     "   ror     %[mode]                             \n" // carry to mode dbfExtraRow
     "                                               \n"
-    "   ldi     %[rowmask], 0x02                    \n" // rowmask = 0xFF >> (height & 7);
-    "   sbrs    %[height], 1                        \n"
+    "   ldi     %[rowmask], 0x02                    \n" // rowmask = 0xFF >> (8 - (height & 7));
+    "   sbrc    %[height], 1                        \n"
     "   ldi     %[rowmask], 0x08                    \n"
-    "   sbrs    %[height], 2                        \n"
+    "   sbrc    %[height], 2                        \n"
     "   swap    %[rowmask]                          \n"
     "   sbrs    %[height], 0                        \n"
-    "   lsl     %[rowmask]                          \n"
+    "   lsr     %[rowmask]                          \n"
     "   dec     %[rowmask]                          \n"
+    "   breq    .+4                                 \n" 
     "   cpi     %[renderheight], 8                  \n" // if (renderheight >= 8) rowmask = 0xFF;
     "   brlt    .+2                                 \n"
     "   ldi     %[rowmask], 0xFF                    \n"
@@ -519,7 +520,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     "   out     %[spdr], r1                         \n" // start next read
     "                                               \n"
     "   sbrc    %[mode], %[reverseblack]            \n" // test reverse mode
-    "   com     r0                                  \n" // reverse bitmap data
+    "   eor     r0, %[rowmask]                      \n" // reverse bitmap data
     "   mov     r24, %[rowmask]                     \n" // temporary move rowmask
     "   sbrc    %[mode], %[whiteblack]              \n" // for black and white modes:
     "   mov     r24, r0                             \n" // rowmask = bitmap
@@ -613,7 +614,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     "r24", "r25"
    );
 #else
-  uint8_t lastmask = bitShiftRightMaskUInt8(height); // mask for bottom most pixels
+  uint8_t lastmask = bitShiftRightMaskUInt8(8 - height); // mask for bottom most pixels
   do
   {
     seekData(address);
@@ -626,7 +627,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     for (uint8_t c = 0; c < renderwidth; c++)
     {
       uint8_t bitmapbyte = readUnsafe();
-      if (mode & _BV(dbfReverseBlack)) bitmapbyte ^= 0xFF;
+      if (mode & _BV(dbfReverseBlack)) bitmapbyte ^= rowmask;
       uint8_t maskbyte = rowmask;
       if (mode & _BV(dbfWhiteBlack)) maskbyte = bitmapbyte;
       if (mode & _BV(dbfBlack)) bitmapbyte = 0;

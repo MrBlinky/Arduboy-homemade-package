@@ -268,17 +268,18 @@ uint16_t ArduboyTones::getNext()
 
 ISR(TIMER3_COMPA_vect)
 {
-  if (durationToggleCount != 0) {
+  long toggleCount = durationToggleCount;
+  if (toggleCount != 0) {
     if (!toneSilent) {
-      *(&TONE_PIN_PORT) ^= TONE_PIN_MASK; // toggle the pin
+      bitSet(*(&TONE_PIN_PIN), TONE_PIN); // toggle the pin
 #ifdef TONES_VOLUME_CONTROL
       if (toneHighVol) {
-        *(&TONE_PIN2_PORT) ^= TONE_PIN2_MASK; // toggle pin 2
+        bitSet(*(&TONE_PIN2_PIN), TONE_PIN2); // toggle pin 2
       }
 #endif
     }
-    if (durationToggleCount > 0) {
-      durationToggleCount--;
+    if (--toggleCount >= 0) {
+      durationToggleCount = toggleCount;
     }
   }
   else {
