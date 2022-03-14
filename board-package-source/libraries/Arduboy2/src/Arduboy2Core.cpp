@@ -194,30 +194,36 @@ void Arduboy2Core::bootPins()
 #ifdef ARDUBOY_10
 
   // Port B INPUT_PULLUP or HIGH
-  PORTB = (_BV(RED_LED_BIT) | _BV(BLUE_LED_BIT) | //RGB LED off
+  PORTB = (_BV(RED_LED_BIT) | _BV(BLUE_LED_BIT) //RGB LED off
          #ifndef AB_ALTERNATE_WIRING
-          _BV(GREEN_LED_BIT) | 
+          | _BV(GREEN_LED_BIT)
          #endif
          #ifdef SUPPORT_XY_BUTTONS
-          _BV(Y_BUTTON_BIT) | 
+          | _BV(X_BUTTON_BIT) | _BV(A_BUTTON_BIT)
+         #else 
+          | _BV(B_BUTTON_BIT)
          #endif
          #ifndef ARDUINO_AVR_MICRO
-          _BV(RX_LED_BIT) | //RX LED off for Arduboy and non Micro based Arduino
+          | _BV(RX_LED_BIT) //RX LED off for Arduboy and non Micro based Arduino
          #endif          
-          _BV(B_BUTTON_BIT)) &
   // Port B INPUT or LOW                    
-          ~(_BV(SPI_MISO_BIT) | _BV(SPI_MOSI_BIT) | _BV(SPI_SCK_BIT));
+          ) & ~(_BV(SPI_MISO_BIT) | _BV(SPI_MOSI_BIT) | _BV(SPI_SCK_BIT));
 
   // Port B outputs
-  DDRB = (_BV(RED_LED_BIT)   | _BV(BLUE_LED_BIT) |
+  DDRB = (_BV(RED_LED_BIT)   | _BV(BLUE_LED_BIT)
         #ifndef AB_ALTERNATE_WIRING
-         _BV(GREEN_LED_BIT) | 
+         | _BV(GREEN_LED_BIT)
         #endif
-         _BV(SPI_MOSI_BIT) | _BV(SPI_SCK_BIT)  | _BV(RX_LED_BIT)) &
+         | _BV(SPI_MOSI_BIT) | _BV(SPI_SCK_BIT)  | _BV(RX_LED_BIT)) & ~(
   // Port B inputs
-         ~(_BV(B_BUTTON_BIT) | _BV(SPI_MISO_BIT)
+        #ifdef SUPPORT_XY_BUTTONS
+         _BV(A_BUTTON_BIT) 
+        #else
+         _BV(B_BUTTON_BIT) 
+        #endif
+         | _BV(SPI_MISO_BIT)
          #ifdef SUPPORT_XY_BUTTONS
-          | _BV(Y_BUTTON_BIT)
+          | _BV(X_BUTTON_BIT)
          #endif
          );
 
@@ -277,17 +283,22 @@ void Arduboy2Core::bootPins()
          0);
 
   // Port E INPUT_PULLUP or HIGH
+ #ifndef SUPPORT_XY_BUTTONS
   PORTE |= _BV(A_BUTTON_BIT);
   // Port E INPUT or LOW (none)
   // Port E inputs
   DDRE &= ~(_BV(A_BUTTON_BIT));
   // Port E outputs (none)
+ #else
+  PORTE |= _BV(B_BUTTON_BIT);
+  DDRE &= ~(_BV(B_BUTTON_BIT));
+ #endif
 
   // Port F INPUT_PULLUP or HIGH
   PORTF = (_BV(LEFT_BUTTON_BIT) | _BV(RIGHT_BUTTON_BIT) |
           _BV(UP_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT)
          #ifdef SUPPORT_XY_BUTTONS
-          | _BV(X_BUTTON_BIT)  
+          | _BV(Y_BUTTON_BIT)  
          #endif
           ) &
   // Port F INPUT or LOW
@@ -299,7 +310,7 @@ void Arduboy2Core::bootPins()
          ~(_BV(LEFT_BUTTON_BIT) | _BV(RIGHT_BUTTON_BIT) |
          _BV(UP_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT) |
          #ifdef SUPPORT_XY_BUTTONS
-          _BV(X_BUTTON_BIT) | 
+          _BV(Y_BUTTON_BIT) | 
          #endif
          _BV(RAND_SEED_IN_BIT));
 
@@ -1383,7 +1394,7 @@ uint8_t Arduboy2Core::buttonsState()
               (_BV(UP_BUTTON_BIT) | _BV(RIGHT_BUTTON_BIT) |
                _BV(LEFT_BUTTON_BIT) | _BV(DOWN_BUTTON_BIT) |
               #ifdef SUPPORT_XY_BUTTONS
-               _BV(X_BUTTON_BIT) |
+               _BV(Y_BUTTON_BIT) |
               #endif              
                0));
   // A
@@ -1392,7 +1403,7 @@ uint8_t Arduboy2Core::buttonsState()
   if (bitRead(B_BUTTON_PORTIN, B_BUTTON_BIT) == 0) { buttons |= B_BUTTON; }
  #ifdef SUPPORT_XY_BUTTONS
   // Y 
-  if (bitRead(Y_BUTTON_PORTIN, Y_BUTTON_BIT) == 0) { buttons |= Y_BUTTON; }
+  if (bitRead(X_BUTTON_PORTIN, X_BUTTON_BIT) == 0) { buttons |= X_BUTTON; }
  #endif
 #elif defined(AB_DEVKIT)
   // down, left, up

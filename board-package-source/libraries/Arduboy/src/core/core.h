@@ -91,8 +91,13 @@
 #define PIN_RIGHT_BUTTON A1
 #define PIN_UP_BUTTON A0
 #define PIN_DOWN_BUTTON A3
+#ifndef SUPPORT_XY_BUTTONS
 #define PIN_A_BUTTON 7
 #define PIN_B_BUTTON 8
+#else
+#define PIN_A_BUTTON 8
+#define PIN_B_BUTTON 7
+#endif
 
 // bit values for button states
 #define LEFT_BUTTON _BV(5)

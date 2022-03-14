@@ -147,8 +147,8 @@
 #define A_BUTTON _BV(3)     /**< The A button value for functions requiring a bitmask */
 #define B_BUTTON _BV(2)     /**< The B button value for functions requiring a bitmask */
 #ifdef SUPPORT_XY_BUTTONS
- #define X_BUTTON _BV(1)
- #define Y_BUTTON _BV(0)
+ #define X_BUTTON _BV(0)
+ #define Y_BUTTON _BV(1)
 #endif
 
 #define PIN_LEFT_BUTTON A2
@@ -175,30 +175,41 @@
 #define DOWN_BUTTON_DDR DDRF
 #define DOWN_BUTTON_BIT PORTF4
 
-#define PIN_A_BUTTON 7
-#define A_BUTTON_PORT PORTE
-#define A_BUTTON_PORTIN PINE
-#define A_BUTTON_DDR DDRE
-#define A_BUTTON_BIT PORTE6
-
-#define PIN_B_BUTTON 8
-#define B_BUTTON_PORT PORTB
-#define B_BUTTON_PORTIN PINB
-#define B_BUTTON_DDR DDRB
-#define B_BUTTON_BIT PORTB4
-
-#ifdef SUPPORT_XY_BUTTONS
- #define PIN_X_BUTTON A4
- #define X_BUTTON_PORT PORTF
- #define X_BUTTON_PORTIN PINF
- #define X_BUTTON_DDR DDRF
- #define X_BUTTON_BIT PORTF1
- 
- #define PIN_Y_BUTTON 11
- #define Y_BUTTON_PORT PORTB
- #define Y_BUTTON_PORTIN PINB
- #define Y_BUTTON_DDR DDRB
- #define Y_BUTTON_BIT PORTB7
+#ifndef SUPPORT_XY_BUTTONS
+ #define PIN_A_BUTTON 7
+ #define A_BUTTON_PORT PORTE
+ #define A_BUTTON_PORTIN PINE
+ #define A_BUTTON_DDR DDRE
+ #define A_BUTTON_BIT PORTE6
+#else
+ #define PIN_A_BUTTON 8
+ #define A_BUTTON_PORT PORTB
+ #define A_BUTTON_PORTIN PINB
+ #define A_BUTTON_DDR DDRB
+ #define A_BUTTON_BIT PORTB4
+#endif
+#ifndef SUPPORT_XY_BUTTONS
+ #define PIN_B_BUTTON 8
+ #define B_BUTTON_PORT PORTB
+ #define B_BUTTON_PORTIN PINB
+ #define B_BUTTON_DDR DDRB
+ #define B_BUTTON_BIT PORTB4
+#else
+ #define PIN_B_BUTTON 7
+ #define B_BUTTON_PORT PORTE
+ #define B_BUTTON_PORTIN PINE
+ #define B_BUTTON_DDR DDRE
+ #define B_BUTTON_BIT PORTE6
+ #define PIN_X_BUTTON 11
+ #define X_BUTTON_PORT PORTB
+ #define X_BUTTON_PORTIN PINB
+ #define X_BUTTON_DDR DDRB
+ #define X_BUTTON_BIT PORTB7
+ #define PIN_Y_BUTTON A4
+ #define Y_BUTTON_PORT PORTF
+ #define Y_BUTTON_PORTIN PINF
+ #define Y_BUTTON_DDR DDRF
+ #define Y_BUTTON_BIT PORTF1
 #endif
 
 #define PIN_SPEAKER_1 5  /**< The pin number of the first lead of the speaker */
