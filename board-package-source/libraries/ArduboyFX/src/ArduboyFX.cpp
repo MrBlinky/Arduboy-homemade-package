@@ -3,6 +3,8 @@
 
 uint16_t FX::programDataPage; // program read only data location in flash memory
 uint16_t FX::programSavePage; // program read and write data location in flash memory
+Font     FX::font;
+Cursor   FX::cursor = {0,0,0,WIDTH};
 
 
 uint8_t FX::writeByte(uint8_t data)
@@ -509,7 +511,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     "   sbrs    %[height], 0                        \n"
     "   lsr     %[rowmask]                          \n"
     "   dec     %[rowmask]                          \n"
-    "   breq    .+4                                 \n" 
+    "   breq    .+4                                 \n"
     "   cpi     %[renderheight], 8                  \n" // if (renderheight >= 8) rowmask = 0xFF;
     "   brlt    .+2                                 \n"
     "   ldi     %[rowmask], 0xFF                    \n"
@@ -715,9 +717,9 @@ void FX::displayPrefetch(uint24_t address, uint8_t* target, uint16_t len, bool c
     "   rjmp	.-6                             \n"
     "   cbi     %[csport], %[csbit]             \n" // enableOLED();
     "1:                                         \n" // while (true) {
-    "   ld      r0, Z                   ;2  \   \n" // uint8_t displaydata = *ptr;
+    "   ld      r0, Z                   ;2      \n" // uint8_t displaydata = *ptr;
     "   in      r24, %[spdr]            ;1  /3  \n" // uint8_t targetdata = SPDR;
-    "   out     %[spdr], r0             ;1  \   \n" // SPDR = displaydata;
+    "   out     %[spdr], r0             ;1      \n" // SPDR = displaydata;
     "   cpse    %[clear], r1            ;1-2    \n" // if (clear) displaydata = 0;
     "   mov     r0, r1                  ;1      \n"
     "   st      Z+, r0                  ;2      \n" // *ptr++ = displaydata;
@@ -727,7 +729,7 @@ void FX::displayPrefetch(uint24_t address, uint8_t* target, uint16_t len, bool c
     "   nop                             ;1      \n"
     "   st      %a[target]+, r24        ;2  /11 \n"
     "2:                                         \n"
-    "   cpi     r30, lo8(%[end])        ;1  \   \n" // if (ptr >= Arduboy2::sBuffer + WIDTH * HEIGHT / 8) break;
+    "   cpi     r30, lo8(%[end])        ;1      \n" // if (ptr >= Arduboy2::sBuffer + WIDTH * HEIGHT / 8) break;
     "   cpc     r31, r25                ;1      \n"
     "   brcs    1b                      ;1-2/4  \n" // }
     "3:                                         \n"
@@ -758,7 +760,150 @@ void FX::display()
 
 void FX::display(bool clear)
 {
-  enableOLED();        
+  enableOLED();
   Arduboy2Base::display(clear);
   disableOLED();
 }
+
+void FX::setFont(uint24_t address, uint8_t mode)
+{
+  font.address = address;
+  font.mode = mode;
+  seekData(address);
+  font.width = readPendingUInt16();
+  font.height = readPendingLastUInt16();
+}
+
+void FX::setFontMode(uint8_t mode)
+{
+  font.mode = mode;
+}
+
+void FX::setCursor(int16_t x, int16_t y)
+{
+  cursor.x = x;
+  cursor.y = y;
+}
+
+void FX::setCursorX(int16_t x)
+{
+  cursor.x = x;
+}
+
+void FX::setCursorY(int16_t y)
+{
+  cursor.y = y;
+}
+
+void FX::setCursorRange(int16_t left, int16_t wrap)
+{
+  cursor.left = left;
+  cursor.wrap = wrap;
+}
+
+void FX::setCursorLeft(int16_t left)
+{
+  cursor.left = left;
+}
+
+void FX::setCursorWrap(int16_t wrap)
+{
+  cursor.wrap = wrap;
+}
+
+void FX::drawChar(uint8_t c)
+{
+  if (c == '\r') return;
+  uint8_t mode = font.mode;
+  int16_t x = cursor.x;
+  int16_t y = cursor.y;
+  if (c != '\n')
+  {
+    drawBitmap(x, y, font.address, c, mode);
+    if (mode & dcmProportional)
+    {
+      seekData(font.address - 256 + c);
+      x += readEnd();
+    }
+    else
+    {
+      x += font.width;
+    }
+  }
+  if ((c == '\n') || (x >= cursor.wrap))
+  {
+    x = cursor.left;
+    y += font.height;
+  }
+  setCursor(x,y);
+}
+
+void FX::drawString(const uint8_t* buffer)
+{
+  for(;;)
+  {
+    uint8_t c = *buffer++;
+    if (c) drawChar(c);
+    else break;
+  }
+}
+
+void FX::drawString(const char* str)
+{
+  FX::drawString((const uint8_t*)str);
+}
+
+void FX::drawString(uint24_t address)
+{
+  for(;;)
+  {
+    seekData(address++);
+    uint8_t c = readEnd();
+    if (c) drawChar(c);
+    else break;
+  }
+}
+
+void FX::drawNumber(int16_t n, int8_t digits)
+{
+  drawNumber((int32_t)n, digits);
+}
+
+void FX::drawNumber(uint16_t n, int8_t digits)
+{
+  drawNumber((uint32_t)n, digits);
+}
+
+void FX::drawNumber(int32_t n, int8_t digits)
+{
+  asm volatile("dbg:\n");
+  if (n < 0)
+  {
+    n = -n;
+    drawChar('-');
+  }
+  else if (digits != 0)
+  {
+    drawChar(' ');
+  }
+  drawNumber((uint32_t)n, digits);
+}
+
+void FX::drawNumber(uint32_t n, int8_t digits) //
+{
+  uint8_t buf[33]; //max 32 digits + terminator
+  uint8_t *str = &buf[sizeof(buf) - 1];
+  *str = '\0';
+  do {
+    char c = n % 10;
+    n /= 10;
+    *--str = c + '0';
+    if ((digits > 0) && (--digits == 0)) break;
+    if ((digits < 0) && (++digits == 0)) break;
+  } while(n);
+    while (digits > 0) {--digits; *--str = '0';}
+    while (digits < 0) {++digits; *--str = ' ';}
+  drawString(str);
+}
+
+

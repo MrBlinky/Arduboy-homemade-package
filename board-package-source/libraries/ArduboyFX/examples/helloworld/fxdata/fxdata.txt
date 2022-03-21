@@ -1,0 +1,5 @@
+
+image_t arduboyFont = "arduboyFont_6x8.png"
+image_t maskedFont  = "maskedFont_16x24.png"
+
+string helloWorld  = "Hello World!        This example uses the FX::drawString() function to draw text from the FX flash chip."

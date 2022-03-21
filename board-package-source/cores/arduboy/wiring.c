@@ -272,6 +272,7 @@ unsigned long micros() {
         "x" (&timer0_overflow_count)
       : "r18"
       );
+      return m;
   }
 
 void delay(unsigned long ms)
