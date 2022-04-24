@@ -78,7 +78,7 @@ Flash cart support (original design) :
 
 or
 
-Flash cart support (new design) :
+Flash cart support (new design used by Arduboy FX) :
 * 2 PORTD1/SDA flash cart chip select
 * 14 PORTB3 flash cart data in (MISO)
 
