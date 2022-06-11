@@ -270,10 +270,172 @@ arduboy-homemade.menu.contrast.highest=Highest
 arduboy-homemade.menu.contrast.highest.build.contrast=-DOLED_CONTRAST=0xFF
 
 ################################################################################
+# Arduboy FX board
+################################################################################
+
+arduboy-fx.name=Arduboy FX
+
+#Arduino Leonardo
+arduboy-fx.vid.0=0x2341
+arduboy-fx.pid.0=0x0036
+arduboy-fx.vid.1=0x2341
+arduboy-fx.pid.1=0x8036
+arduboy-fx.vid.2=0x2A03
+arduboy-fx.pid.2=0x0036
+arduboy-fx.vid.3=0x2A03
+arduboy-fx.pid.3=0x8036
+#Arduino Micro
+arduboy-fx.vid.4=0x2341
+arduboy-fx.pid.4=0x0037
+arduboy-fx.vid.5=0x2341
+arduboy-fx.pid.5=0x8037
+arduboy-fx.vid.6=0x2A03
+arduboy-fx.pid.6=0x0037
+arduboy-fx.vid.7=0x2A03
+arduboy-fx.pid.7=0x8037
+#Genuino Micro
+arduboy-fx.vid.8=0x2341
+arduboy-fx.pid.8=0x8237
+#Sparkfun Pro Micro 5V
+arduboy-fx.vid.8=0x1b4f
+arduboy-fx.pid.8=0x9205
+arduboy-fx.vid.9=0x1b4f
+arduboy-fx.pid.9=0x9206
+
+arduboy-fx.upload.tool=arduino:avrdude
+arduboy-fx.upload.protocol=avr109
+arduboy-fx.upload.maximum_size=28672
+arduboy-fx.upload.maximum_data_size=2560
+arduboy-fx.upload.speed=57600
+arduboy-fx.upload.disable_flushing=true
+arduboy-fx.upload.use_1200bps_touch=true
+arduboy-fx.upload.wait_for_upload_port=true
+
+arduboy-fx.bootloader.tool=arduino:avrdude
+arduboy-fx.bootloader.low_fuses=0xff
+arduboy-fx.bootloader.high_fuses=0xd2
+arduboy-fx.bootloader.extended_fuses=0xcb
+arduboy-fx.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
+arduboy-fx.bootloader.unlock_bits=0x3F
+arduboy-fx.bootloader.lock_bits=0x2F
+
+arduboy-fx.build.mcu=atmega32u4
+arduboy-fx.build.f_cpu=16000000L
+arduboy-fx.build.variant=arduboy
+arduboy-fx.build.board=AVR_ARDUBOY
+arduboy-fx.build.vid=0x2341
+arduboy-fx.build.pid=0x8036
+arduboy-fx.build.variant=arduboy
+arduboy-fx.build.usb_product="Arduboy"
+arduboy-fx.build.board=AVR_ARDUBOY
+arduboy-fx.build.core=arduino:arduino
+arduboy-fx.build.flash_cs=-DCART_CS_SDA
+arduboy-fx.build.extra_flags=-DARDUBOY_10 {build.flash_cs} {build.usb_flags}
+
+# Arduboy FX menu options ######################################################
+
+arduboy-fx.menu.core.arduboy-core=Arduboy optimized core
+arduboy-fx.menu.core.arduboy-core.build.core=arduboy
+
+arduboy-fx.menu.core.arduino-core=Standard Arduino core
+arduboy-fx.menu.core.arduino-core.build.core=arduino:arduino
+
+arduboy-fx.menu.boot.cathy3k=Cathy3K (starts with menu)
+arduboy-fx.menu.boot.cathy3k.upload.maximum_size=29696
+arduboy-fx.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+arduboy-fx.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
+
+arduboy-fx.menu.boot.cathy3kg=Cathy3K (starts with game)
+arduboy-fx.menu.boot.cathy3kg.upload.maximum_size=29696
+arduboy-fx.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+arduboy-fx.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-sda.hex
+
+################################################################################
+# Arduboy FX DevKit board
+################################################################################
+
+arduboy-fx-devkit.name=Arduboy FX DevKit
+
+#Arduino Leonardo
+arduboy-fx-devkit.vid.0=0x2341
+arduboy-fx-devkit.pid.0=0x0036
+arduboy-fx-devkit.vid.1=0x2341
+arduboy-fx-devkit.pid.1=0x8036
+arduboy-fx-devkit.vid.2=0x2A03
+arduboy-fx-devkit.pid.2=0x0036
+arduboy-fx-devkit.vid.3=0x2A03
+arduboy-fx-devkit.pid.3=0x8036
+#Arduino Micro
+arduboy-fx-devkit.vid.4=0x2341
+arduboy-fx-devkit.pid.4=0x0037
+arduboy-fx-devkit.vid.5=0x2341
+arduboy-fx-devkit.pid.5=0x8037
+arduboy-fx-devkit.vid.6=0x2A03
+arduboy-fx-devkit.pid.6=0x0037
+arduboy-fx-devkit.vid.7=0x2A03
+arduboy-fx-devkit.pid.7=0x8037
+#Genuino Micro
+arduboy-fx-devkit.vid.8=0x2341
+arduboy-fx-devkit.pid.8=0x8237
+#Sparkfun Pro Micro 5V
+arduboy-fx-devkit.vid.8=0x1b4f
+arduboy-fx-devkit.pid.8=0x9205
+arduboy-fx-devkit.vid.9=0x1b4f
+arduboy-fx-devkit.pid.9=0x9206
+
+arduboy-fx-devkit.upload.tool=arduino:avrdude
+arduboy-fx-devkit.upload.protocol=avr109
+arduboy-fx-devkit.upload.maximum_size=28672
+arduboy-fx-devkit.upload.maximum_data_size=2560
+arduboy-fx-devkit.upload.speed=57600
+arduboy-fx-devkit.upload.disable_flushing=true
+arduboy-fx-devkit.upload.use_1200bps_touch=true
+arduboy-fx-devkit.upload.wait_for_upload_port=true
+
+arduboy-fx-devkit.bootloader.tool=arduino:avrdude
+arduboy-fx-devkit.bootloader.low_fuses=0xff
+arduboy-fx-devkit.bootloader.high_fuses=0xd2
+arduboy-fx-devkit.bootloader.extended_fuses=0xcb
+arduboy-fx-devkit.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
+arduboy-fx-devkit.bootloader.unlock_bits=0x3F
+arduboy-fx-devkit.bootloader.lock_bits=0x2F
+
+arduboy-fx-devkit.build.mcu=atmega32u4
+arduboy-fx-devkit.build.f_cpu=16000000L
+arduboy-fx-devkit.build.variant=arduboy
+arduboy-fx-devkit.build.board=AVR_ARDUBOY
+arduboy-fx-devkit.build.vid=0x2341
+arduboy-fx-devkit.build.pid=0x8036
+arduboy-fx-devkit.build.variant=arduboy
+arduboy-fx-devkit.build.usb_product="Arduboy"
+arduboy-fx-devkit.build.board=AVR_ARDUBOY
+arduboy-fx-devkit.build.core=arduino:arduino
+arduboy-fx-devkit.build.flash_cs=-DCART_CS_RX
+arduboy-fx-devkit.build.extra_flags=-DARDUBOY_10 {build.flash_cs} {build.usb_flags}
+
+# Arduboy FX DevKit menu options ###############################################
+
+arduboy-fx-devkit.menu.core.arduboy-core=Arduboy optimized core
+arduboy-fx-devkit.menu.core.arduboy-core.build.core=arduboy
+
+arduboy-fx-devkit.menu.core.arduino-core=Standard Arduino core
+arduboy-fx-devkit.menu.core.arduino-core.build.core=arduino:arduino
+
+arduboy-fx-devkit.menu.boot.cathy3k=Cathy3K (starts with menu)
+arduboy-fx-devkit.menu.boot.cathy3k.upload.maximum_size=29696
+arduboy-fx-devkit.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+arduboy-fx-devkit.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
+
+arduboy-fx-devkit.menu.boot.cathy3kg=Cathy3K (starts with game)
+arduboy-fx-devkit.menu.boot.cathy3kg.upload.maximum_size=29696
+arduboy-fx-devkit.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+arduboy-fx-devkit.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-sda.hex
+
+################################################################################
 # Arduboy board
 ################################################################################
 
-arduboy.name=Arduboy (FX)
+arduboy.name=Arduboy
 
 #Arduino Leonardo
 arduboy.vid.0=0x2341
@@ -484,7 +646,7 @@ arduboy-devkit.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-g
 8bitcadexl.build.flash_cs=-DCART_CS_RX
 8bitcadexl.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1309 {build.flash_cs} {build.contrast} {build.usb_flags}
 
-# Arduboy menu options #########################################################
+# 8BitCADE XL menu options #####################################################
 
 #core select
 
@@ -567,7 +729,7 @@ arduboy-devkit.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-g
 8bitcadexlup.build.flash_cs=-DCART_CS_RX
 8bitcadexlup.build.extra_flags=-DARDUBOY_10 -DOLED_SSD1309 -DSUPPORT_XY_BUTTONS {build.flash_cs} {build.contrast} {build.usb_flags}
 
-# Arduboy menu options #########################################################
+# 8BitCADE XL Level UP menu options ############################################
 
 #core select
 

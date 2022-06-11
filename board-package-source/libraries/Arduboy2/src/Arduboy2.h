@@ -8,7 +8,7 @@
 #define ARDUBOY2_H
 
 #include <Arduino.h>
-#include <EEPROM.h>
+#include <avr/eeprom.h>
 #include "Arduboy2Core.h"
 #include "Arduboy2Audio.h"
 #include "Arduboy2Beep.h"

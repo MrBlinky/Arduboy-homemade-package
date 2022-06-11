@@ -901,6 +901,7 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
     "     inc  r19                    ;1            \n\t"
     "     cpi  r19,%[page_end]        ;1            \n\t"
     "     brne 1b                     ;1/2          \n\t"
+    "     lpm  r20, Z                 ;3 delay      \n\t"
     "     in    __tmp_reg__, %[spsr]                \n\t" //read SPSR to clear SPIF
     : [ptr]      "+&z" (image)
     : 
