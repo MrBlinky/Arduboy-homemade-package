@@ -412,6 +412,15 @@ void FX::writeSavePage(uint16_t page, uint8_t* buffer)
   disable();
 }
 
+void FX::waitWhileBusy()
+{
+  enable();
+  writeByte(SFC_READSTATUS1);
+  while(readByte() & 1)
+    ; // wait while BUSY status bit is set
+  disable();
+}
+
 void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8_t mode)
 {
   // read bitmap dimensions from flash
@@ -443,7 +452,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
   {
     skiptop = -y & -8; // optimized -y / 8 * 8
     if (height - skiptop <= HEIGHT) renderheight = height - skiptop;
-    else renderheight = HEIGHT + (y & 7);
+    else renderheight = HEIGHT + (-y & 7);
     skiptop >>= 3;//pixels to displayrows
   }
   else
@@ -504,11 +513,11 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     "   ror     %[mode]                             \n" // carry to mode dbfExtraRow
     "                                               \n"
     "   ldi     %[rowmask], 0x02                    \n" // rowmask = 0xFF >> (8 - (height & 7));
-    "   sbrc    %[height], 1                        \n"
+    "   sbrc    %[renderheight], 1                  \n"
     "   ldi     %[rowmask], 0x08                    \n"
-    "   sbrc    %[height], 2                        \n"
+    "   sbrc    %[renderheight], 2                  \n"
     "   swap    %[rowmask]                          \n"
-    "   sbrs    %[height], 0                        \n"
+    "   sbrs    %[renderheight], 0                  \n"
     "   lsr     %[rowmask]                          \n"
     "   dec     %[rowmask]                          \n"
     "   breq    .+4                                 \n"
