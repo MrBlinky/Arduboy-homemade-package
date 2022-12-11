@@ -80,7 +80,11 @@ void Arduboy::bootLogo()
   }
 
   delay(750);
+ #if defined(MICROCADE)
+  setRGBled(255,255,255);
+ #else
   setRGBled(0,0,0);
+ #endif
 }
 
 /* Frame management */
