@@ -827,12 +827,12 @@ microcade.menu.core.arduino-core.build.core=arduino:arduino
 microcade.menu.boot.cathy3k=Cathy3K (starts with menu)
 microcade.menu.boot.cathy3k.upload.maximum_size=29696
 microcade.menu.boot.cathy3k.bootloader.high_fuses=0xd2
-microcade.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-promicro.hex
+microcade.menu.boot.cathy3k.bootloader.file=cathy3k/microcade-bootloader-menu.hex
 
 microcade.menu.boot.cathy3kg=Cathy3K (starts with game)
 microcade.menu.boot.cathy3kg.upload.maximum_size=29696
 microcade.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
-microcade.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-promicro.hex
+microcade.menu.boot.cathy3kg.bootloader.file=cathy3k/microcade-bootloader-game.hex
 
 # Display contrast adjustment #
 
