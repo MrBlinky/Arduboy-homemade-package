@@ -769,3 +769,86 @@ arduboy-devkit.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-g
 8bitcadexlup.menu.contrast.highest.build.contrast=-DOLED_CONTRAST=0xFF
 
 ################################################################################
+# microcade board
+################################################################################
+
+microcade.name=microcade
+
+#Arduino Leonardo
+microcade.vid.0=0x2341
+microcade.pid.0=0x0036
+microcade.vid.1=0x2341
+microcade.pid.1=0x8036
+microcade.vid.2=0x2A03
+microcade.pid.2=0x0036
+microcade.vid.3=0x2A03
+microcade.pid.3=0x8036
+
+microcade.upload.tool=arduino:avrdude
+microcade.upload.protocol=avr109
+microcade.upload.maximum_size=29696
+microcade.upload.maximum_data_size=2560
+microcade.upload.speed=57600
+microcade.upload.disable_flushing=true
+microcade.upload.use_1200bps_touch=true
+microcade.upload.wait_for_upload_port=true
+
+microcade.bootloader.tool=arduino:avrdude
+microcade.bootloader.low_fuses=0xff
+microcade.bootloader.high_fuses=0xd2
+microcade.bootloader.extended_fuses=0xcb
+microcade.bootloader.file=cathy3k/arduboy3k-bootloader-menu-promicro.hex
+microcade.bootloader.unlock_bits=0x3F
+microcade.bootloader.lock_bits=0x2F
+
+microcade.build.mcu=atmega32u4
+microcade.build.f_cpu=16000000L
+microcade.build.variant=arduboy-promicro-alt
+microcade.build.board=AVR_PROMICRO -DAB_ALTERNATE_WIRING
+microcade.build.vid=0x2341
+microcade.build.pid=0x8036
+microcade.build.usb_product="microcade"
+microcade.build.core=arduino:arduino
+microcade.build.flash_cs=-DCART_CS_RX
+microcade.build.extra_flags=-DARDUBOY_10 -DMICROCADE {build.flash_cs} {build.contrast} {build.usb_flags}
+
+# microcade menu options #####################################################
+
+#core select
+
+microcade.menu.core.arduboy-core=Arduboy optimized core
+microcade.menu.core.arduboy-core.build.core=arduboy
+
+microcade.menu.core.arduino-core=Standard Arduino core
+microcade.menu.core.arduino-core.build.core=arduino:arduino
+
+#bootloader select
+
+microcade.menu.boot.cathy3k=Cathy3K (starts with menu)
+microcade.menu.boot.cathy3k.upload.maximum_size=29696
+microcade.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+microcade.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-promicro.hex
+
+microcade.menu.boot.cathy3kg=Cathy3K (starts with game)
+microcade.menu.boot.cathy3kg.upload.maximum_size=29696
+microcade.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+microcade.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-promicro.hex
+
+# Display contrast adjustment #
+
+microcade.menu.contrast.normal=Normal
+microcade.menu.contrast.normal.build.contrast=
+
+microcade.menu.contrast.dimmed=Dimmed
+microcade.menu.contrast.dimmed.build.contrast=-DOLED_CONTRAST=0x7F
+
+microcade.menu.contrast.low=Low
+microcade.menu.contrast.low.build.contrast=-DOLED_CONTRAST=0x2F
+
+microcade.menu.contrast.lowest=Lowest
+microcade.menu.contrast.lowest.build.contrast=-DOLED_CONTRAST=0x00
+
+microcade.menu.contrast.highest=Highest
+microcade.menu.contrast.highest.build.contrast=-DOLED_CONTRAST=0xFF
+
+################################################################################
