@@ -43,13 +43,13 @@
   #define CS_BIT PORTD3
 
   #define PIN_RST 2       // Pro Micro alternative display RST pin (pin 6 favoured for 2nd speaker pin)
-  #define RST_PORT PORTD 
-  #define RST_BIT PORTD1 
+  #define RST_PORT PORTD
+  #define RST_BIT PORTD1
 #else
   #define PIN_CS 12       // Display CS Arduino pin number
   #define CS_PORT PORTD   // Display CS port
   #define CS_BIT PORTD6   // Display CS physical bit number
-  
+
   #define PIN_RST 6       // Display reset Arduino pin number
   #define RST_PORT PORTD  // Display reset port
   #define RST_BIT PORTD7  // Display reset physical bit number
@@ -85,20 +85,20 @@
   #define I2C_SCL PORTD3
  #else
   #define I2C_SCL PORTD7
- #endif    
+ #endif
  #define I2C_SDA PORTD4
  //port states
  #define I2C_SDA_HIGH() I2C_PORT |=  (1 << I2C_SDA)
  #define I2C_SCL_HIGH() I2C_PORT |=  (1 << I2C_SCL)
  #define I2C_SDA_LOW()  I2C_PORT &= ~(1 << I2C_SDA)
  #define I2C_SCL_LOW()  I2C_PORT &= ~(1 << I2C_SCL)
- 
+
  //port directions
  #define I2C_SDA_AS_INPUT()  I2C_DDR &= ~(1 << I2C_SDA)
  #define I2C_SCL_AS_INPUT()  I2C_DDR &= ~(1 << I2C_SCL)
  #define I2C_SDA_AS_OUTPUT() I2C_DDR |= (1 << I2C_SDA)
  #define I2C_SCL_AS_OUTPUT() I2C_DDR |= (1 << I2C_SCL)
- 
+
  // display address, commands
  #define SSD1306_I2C_ADDR 0x3c //0x3c:default, 0x3d: alternative)
  #define SSD1306_I2C_CMD  0x00
@@ -220,7 +220,7 @@
 
 #ifdef AB_ALTERNATE_WIRING
   #define PIN_SPEAKER_2 6      //Pro Micro alternative for 2nd speaker pin
-  #define SPEAKER_2_PORT PORTD 
+  #define SPEAKER_2_PORT PORTD
   #define SPEAKER_2_DDR DDRD
   #define SPEAKER_2_BIT PORTD7
 #else
@@ -369,7 +369,7 @@
 #if defined(OLED_SH1106) || defined(OLED_SH1106_I2C)
   #define OLED_SET_COLUMN_ADDRESS_LO 0x02 //SH1106 only: 1st pixel starts on column 2
 #else
-  #define OLED_SET_COLUMN_ADDRESS_LO 0x00 
+  #define OLED_SET_COLUMN_ADDRESS_LO 0x00
 #endif
 #define OLED_SET_COLUMN_ADDRESS_HI 0x10
 
@@ -378,7 +378,7 @@
   #define WIDTH 96
 #else
   #define WIDTH 128 //The standard width of the display in pixels
-#endif    
+#endif
 #if defined(OLED_128X128)
   #define HEIGHT 128
 #elif defined(OLED_96X96) || defined(OLED_128X96) || defined(OLED_96X96_ON_128X128) || defined(OLED_128X96_ON_128X128)
@@ -586,19 +586,19 @@ class Arduboy2Core : public Arduboy2NoUSB
 
 #if defined (OLED_SSD1306_I2C) || (OLED_SSD1306_I2CX) || (OLED_SH1106_I2C)
     static void i2c_start(uint8_t mode);
-    
+
     static void inline i2c_stop() __attribute__((always_inline))
     {
       // SDA and SCL both are already low, from writing ACK bit no need to change state
       I2C_SDA_AS_INPUT(); // switch to input so SDA is pulled up externally first for stop condition
       I2C_SCL_AS_INPUT(); // pull up SCL externally
     }
-    
+
     static void i2c_sendByte(uint8_t byte);
 #endif
-    
+
 //#endif
-    
+
     /** \brief
      * Turn the display off.
      *
@@ -830,12 +830,59 @@ class Arduboy2Core : public Arduboy2NoUSB
      */
     static void sendLCDCommand(uint8_t command);
 
-    static void setRGBledRedOn();
-    static void setRGBledRedOff();
-    static void setRGBledGreenOn();
-    static void setRGBledGreenOff();
-    static void setRGBledBlueOn();
-    static void setRGBledBlueOff();
+    static void inline setRGBledRedOn()__attribute__((always_inline))
+    {
+     #ifndef LCD_ST7565
+      bitClear(RED_LED_PORT, RED_LED_BIT); // Red on
+     #else
+      bitSet(RED_LED_PORT, RED_LED_BIT); // Red on
+     #endif
+    }
+
+    static void inline setRGBledRedOff()__attribute__((always_inline))
+    {
+     #ifndef LCD_ST7565
+      bitSet(RED_LED_PORT, RED_LED_BIT); // Red off
+     #else
+      bitClear(RED_LED_PORT, RED_LED_BIT); // Red off
+     #endif
+    }
+
+    static void inline setRGBledGreenOn()__attribute__((always_inline))
+    {
+     #ifndef LCD_ST7565
+      bitClear(GREEN_LED_PORT, GREEN_LED_BIT); // Green on
+     #else
+      bitSet(GREEN_LED_PORT, GREEN_LED_BIT); // Green on
+     #endif
+    }
+
+    static void inline setRGBledGreenOff()__attribute__((always_inline))
+    {
+     #ifndef LCD_ST7565
+      bitSet(GREEN_LED_PORT, GREEN_LED_BIT); // Green off
+     #else
+      bitClear(GREEN_LED_PORT, GREEN_LED_BIT); // Green off
+     #endif
+    }
+
+    static void inline setRGBledBlueOn()__attribute__((always_inline))
+    {
+     #ifndef LCD_ST7565
+      bitClear(BLUE_LED_PORT, BLUE_LED_BIT); // Blue on
+     #else
+      bitSet(BLUE_LED_PORT, BLUE_LED_BIT); // Blue on
+     #endif
+    }
+
+    static void inline setRGBledBlueOff()__attribute__((always_inline))
+    {
+     #ifndef LCD_ST7565
+      bitSet(BLUE_LED_PORT, BLUE_LED_BIT); // Blue off
+     #else
+      bitClear(BLUE_LED_PORT, BLUE_LED_BIT); // Blue off
+     #endif
+    }
 
     /** \brief
      * Set the light output of the RGB LED.
@@ -1046,9 +1093,9 @@ class Arduboy2Core : public Arduboy2NoUSB
      */
    #ifndef ARDUBOY_CORE
     static void delayShort(uint16_t ms) __attribute__ ((noinline));
-   #else   
+   #else
     static void delayShort(uint16_t ms);
-   #endif 
+   #endif
     static void delayByte(uint8_t ms) __attribute__ ((noinline));
 
     /** \brief

@@ -194,7 +194,10 @@ void Arduboy2Core::bootPins()
 #ifdef ARDUBOY_10
 
   // Port B INPUT_PULLUP or HIGH
-  PORTB = (_BV(RED_LED_BIT) | _BV(BLUE_LED_BIT) //RGB LED off
+  PORTB = (0
+         #ifndef MICROCADE
+          | _BV(RED_LED_BIT) | _BV(BLUE_LED_BIT) //RGB LED off
+         #endif
          #ifndef AB_ALTERNATE_WIRING
           | _BV(GREEN_LED_BIT)
          #endif
@@ -231,7 +234,7 @@ void Arduboy2Core::bootPins()
   // Speaker: Not set here. Controlled by audio class
   // Port D INPUT_PULLUP or HIGH
   PORTD = (
-         #if defined(AB_ALTERNATE_WIRING)
+         #if (defined(AB_ALTERNATE_WIRING) && !defined(MICROCADE))
           _BV(GREEN_LED_BIT) |
          #endif
          #if !(defined(ARDUINO_AVR_MICRO))
@@ -1182,63 +1185,9 @@ void Arduboy2Core::flipHorizontal(bool flipped)
 
 /* RGB LED */
 
-void Arduboy2Core::setRGBledRedOn()
-{
- #ifndef LCD_ST7565
-  bitClear(RED_LED_PORT, RED_LED_BIT); // Red on
- #else
-  bitSet(RED_LED_PORT, RED_LED_BIT); // Red on        
- #endif
-}
-
-void Arduboy2Core::setRGBledRedOff()
-{
- #ifndef LCD_ST7565
-  bitSet(RED_LED_PORT, RED_LED_BIT); // Red off     
- #else
-  bitClear(RED_LED_PORT, RED_LED_BIT); // Red off
- #endif
-}
-
-void Arduboy2Core::setRGBledGreenOn()
-{
- #ifndef LCD_ST7565
-  bitClear(GREEN_LED_PORT, GREEN_LED_BIT); // Green on
- #else
-  bitSet(GREEN_LED_PORT, GREEN_LED_BIT); // Green on        
- #endif
-}
-
-void Arduboy2Core::setRGBledGreenOff()
-{
- #ifndef LCD_ST7565
-  bitSet(GREEN_LED_PORT, GREEN_LED_BIT); // Green off     
- #else
-  bitClear(GREEN_LED_PORT, GREEN_LED_BIT); // Green off
- #endif
-}
-
-void Arduboy2Core::setRGBledBlueOn()
-{
- #ifndef LCD_ST7565
-  bitClear(BLUE_LED_PORT, BLUE_LED_BIT); // Blue on
- #else
-  bitSet(BLUE_LED_PORT, BLUE_LED_BIT); // Blue on        
- #endif
-}
-
-void Arduboy2Core::setRGBledBlueOff()
-{
- #ifndef LCD_ST7565
-  bitSet(BLUE_LED_PORT, BLUE_LED_BIT); // Blue off     
- #else
-  bitClear(BLUE_LED_PORT, BLUE_LED_BIT); // Blue off
- #endif
-}
-
 void Arduboy2Core::setRGBled(uint8_t red, uint8_t green, uint8_t blue)
 {
-#ifdef LCD_ST7565
+#if defined (LCD_ST7565) || (MICROCADE)
   if ((red | green | blue) == 0) //prevent backlight off 
   {
     red   = 255;
@@ -1335,7 +1284,7 @@ void Arduboy2Core::freeRGBled()
 
 void Arduboy2Core::digitalWriteRGB(uint8_t red, uint8_t green, uint8_t blue)
 {
-#ifdef LCD_ST7565
+#if defined (LCD_ST7565) || (MICROCADE)
   if ((red & green & blue) == RGB_OFF) //prevent backlight off 
   {
     red   = RGB_ON;

@@ -86,13 +86,22 @@ void Arduboy2Base::flashlight()
 void Arduboy2Base::systemButtons()
 {
   while (pressed(B_BUTTON)) {
+   #if defined(MICROCADE)
+     setRGBledRedOff();
+     setRGBledGreenOff();
+   #endif
     setRGBledBlueOn();
     sysCtrlSound(UP_BUTTON + B_BUTTON, GREEN_LED, 0xff);
     sysCtrlSound(DOWN_BUTTON + B_BUTTON, RED_LED, 0);
     delayByte(200);
   }
-
+ #if defined(MICROCADE)
+  setRGBledRedOn();
+  setRGBledGreenOn();
+  setRGBledBlueOn();
+ #else
   setRGBledBlueOff();
+ #endif
 }
 
 void Arduboy2Base::sysCtrlSound(uint8_t buttons, uint8_t led, uint8_t eeVal)
@@ -101,7 +110,7 @@ void Arduboy2Base::sysCtrlSound(uint8_t buttons, uint8_t led, uint8_t eeVal)
     setRGBledBlueOff();
     delayByte(200);
     digitalWriteRGB(led, RGB_ON); // turn on "acknowledge" LED
-    eeprom_update_byte(eepromAudioOnOff, eeVal);
+    eeprom_update_byte((uint8_t*)eepromAudioOnOff, eeVal);
     delayShort(500);
     digitalWriteRGB(led, RGB_OFF); // turn off "acknowledge" LED
 
@@ -181,13 +190,23 @@ bool Arduboy2Base::bootLogoShell(void (&drawLogo)(int16_t))
 
   if (showLEDs) {
     setRGBledRedOn();
+   #if defined (MICROCADE)
+    setRGBledGreenOff();
+    setRGBledBlueOff();
+   #endif
   }
 
   for (int16_t y = -15; y <= 24; y++) {
     if (pressed(RIGHT_BUTTON)) {
+     #if defined(MICROCADE)
+      setRGBledRedOn();
+      setRGBledGreenOn();
+      setRGBledBlueOn();
+     #else
       setRGBledRedOff();
       setRGBledGreenOff();
       //setRGBledblueOff(); // Blue LED not turned on inside loop
+     #endif
       return false;
     }
 
@@ -209,7 +228,12 @@ bool Arduboy2Base::bootLogoShell(void (&drawLogo)(int16_t))
     setRGBledBlueOn();
   }
   delayShort(400);
+ #if !defined (MICROCADE)
   setRGBledBlueOff();
+ #else
+  setRGBledGreenOn();
+  setRGBledRedOn();
+ #endif
   return true;
 }
 
@@ -1072,21 +1096,21 @@ bool Arduboy2Base::collide(Rect rect1, Rect rect2)
 
 uint16_t Arduboy2Base::readUnitID()
 {
-  return eeprom_read_byte(eepromUnitID) |
-         (((uint16_t)(eeprom_read_byte(eepromUnitID + 1))) << 8);
+  return eeprom_read_byte((uint8_t*)eepromUnitID) |
+         (((uint16_t)(eeprom_read_byte((uint8_t*)(eepromUnitID + 1)))) << 8);
 }
 
 void Arduboy2Base::writeUnitID(uint16_t id)
 {
-  eeprom_update_byte(eepromUnitID, (uint8_t)(id & 0xff));
-  eeprom_update_byte(eepromUnitID + 1, (uint8_t)(id >> 8));
+  eeprom_update_byte((uint8_t*)eepromUnitID, (uint8_t)(id & 0xff));
+  eeprom_update_byte((uint8_t*)eepromUnitID + 1, (uint8_t)(id >> 8));
 }
 
 uint8_t Arduboy2Base::readUnitName(char* name)
 {
   char val;
   uint8_t dest;
-  uint8_t src = eepromUnitName;
+  uint8_t* src = (uint8_t*)eepromUnitName;
 
   for (dest = 0; dest < ARDUBOY_UNIT_NAME_LEN; dest++)
   {
@@ -1105,7 +1129,7 @@ uint8_t Arduboy2Base::readUnitName(char* name)
 void Arduboy2Base::writeUnitName(const char* name)
 {
   bool done = false;
-  uint8_t dest = eepromUnitName;
+  uint8_t* dest = (uint8_t*)eepromUnitName;
 
   for (uint8_t src = 0; src < ARDUBOY_UNIT_NAME_LEN; src++)
   {
@@ -1120,41 +1144,41 @@ void Arduboy2Base::writeUnitName(const char* name)
 
 bool Arduboy2Base::readShowBootLogoFlag()
 {
-  return (eeprom_read_byte(eepromSysFlags) & sysFlagShowLogoMask);
+  return (eeprom_read_byte((uint8_t*)eepromSysFlags) & sysFlagShowLogoMask);
 }
 
 void Arduboy2Base::writeShowBootLogoFlag(bool val)
 {
-  uint8_t flags = eeprom_read_byte(eepromSysFlags);
+  uint8_t flags = eeprom_read_byte((uint8_t*)eepromSysFlags);
 
   bitWrite(flags, sysFlagShowLogoBit, val);
-  eeprom_update_byte(eepromSysFlags, flags);
+  eeprom_update_byte((uint8_t*)eepromSysFlags, flags);
 }
 
 bool Arduboy2Base::readShowUnitNameFlag()
 {
-  return (eeprom_read_byte(eepromSysFlags) & sysFlagUnameMask);
+  return (eeprom_read_byte((uint8_t*)eepromSysFlags) & sysFlagUnameMask);
 }
 
 void Arduboy2Base::writeShowUnitNameFlag(bool val)
 {
-  uint8_t flags = eeprom_read_byte(eepromSysFlags);
+  uint8_t flags = eeprom_read_byte((uint8_t*)eepromSysFlags);
 
   bitWrite(flags, sysFlagUnameBit, val);
-  eeprom_update_byte(eepromSysFlags, flags);
+  eeprom_update_byte((uint8_t*)eepromSysFlags, flags);
 }
 
 bool Arduboy2Base::readShowBootLogoLEDsFlag()
 {
-  return (eeprom_read_byte(eepromSysFlags) & sysFlagShowLogoLEDsMask);
+  return (eeprom_read_byte((uint8_t*)eepromSysFlags) & sysFlagShowLogoLEDsMask);
 }
 
 void Arduboy2Base::writeShowBootLogoLEDsFlag(bool val)
 {
-  uint8_t flags = eeprom_read_byte(eepromSysFlags);
+  uint8_t flags = eeprom_read_byte((uint8_t*)eepromSysFlags);
 
   bitWrite(flags, sysFlagShowLogoLEDsBit, val);
-  eeprom_update_byte(eepromSysFlags, flags);
+  eeprom_update_byte((uint8_t*)eepromSysFlags, flags);
 }
 
 void Arduboy2Base::swapInt16(int16_t& a, int16_t& b)
@@ -1305,11 +1329,11 @@ void Arduboy2::bootLogoExtra()
     return;
   }
 
-  c = eeprom_read_byte(eepromUnitName);
+  c = eeprom_read_byte((uint8_t*)eepromUnitName);
 
   if (c != 0xFF && c != 0x00)
   {
-    uint8_t i = eepromUnitName;
+    uint8_t* i = (uint8_t*)eepromUnitName;
     cursor_x = 50 - (64 - WIDTH / 2);
     cursor_y = 56;
 
@@ -1318,7 +1342,7 @@ void Arduboy2::bootLogoExtra()
       write(c);
       c = eeprom_read_byte(++i);
     }
-    while (i < eepromUnitName + ARDUBOY_UNIT_NAME_LEN);
+    while ((uint16_t)i < eepromUnitName + ARDUBOY_UNIT_NAME_LEN);
 
     display();
     delayShort(1000);
