@@ -87,10 +87,17 @@
 #define RX_LED 17
 
 // pin values for buttons, probably shouldn't use these
+#if defined (MICROCADE)
+#define PIN_LEFT_BUTTON A1 // joystick rotated 180 degrees
+#define PIN_RIGHT_BUTTON A2
+#define PIN_UP_BUTTON A3
+#define PIN_DOWN_BUTTON A0
+#else
 #define PIN_LEFT_BUTTON A2
 #define PIN_RIGHT_BUTTON A1
 #define PIN_UP_BUTTON A0
 #define PIN_DOWN_BUTTON A3
+#endif
 #ifndef SUPPORT_XY_BUTTONS
 #define PIN_A_BUTTON 7
 #define PIN_B_BUTTON 8
@@ -100,10 +107,17 @@
 #endif
 
 // bit values for button states
+#if defined (MICROCADE)
+#define LEFT_BUTTON _BV(6)
+#define RIGHT_BUTTON _BV(5)
+#define UP_BUTTON _BV(4)
+#define DOWN_BUTTON _BV(7)
+#else
 #define LEFT_BUTTON _BV(5)
 #define RIGHT_BUTTON _BV(6)
 #define UP_BUTTON _BV(7)
 #define DOWN_BUTTON _BV(4)
+#endif
 #define A_BUTTON _BV(3)
 #define B_BUTTON _BV(2)
 

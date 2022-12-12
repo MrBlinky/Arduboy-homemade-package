@@ -909,13 +909,15 @@ void ArduboyCore::flipHorizontal(boolean flipped)
 void ArduboyCore::setRGBled(uint8_t red, uint8_t green, uint8_t blue)
 {
 #ifdef ARDUBOY_10 // RGB, all the pretty colors
- #if defined(LCD_ST7565)
+ #if defined(LCD_ST7565) || (MICROCADE)
   if ((red | green | blue) == 0) //prevent backlight off 
   {
     red   = 255;
     green = 255;
     blue  = 255;
   }
+ #endif
+ #if defined(LCD_ST7565)
   analogWrite(RED_LED, red);
   analogWrite(GREEN_LED, green);
   analogWrite(BLUE_LED, blue);

@@ -140,10 +140,17 @@
 
 // bit values for button states
 // these are determined by the buttonsState() function
+#if defined (MICROCADE)
+#define LEFT_BUTTON _BV(6)  // joystick is rotated 180 degrees
+#define RIGHT_BUTTON _BV(5)
+#define UP_BUTTON _BV(4)   
+#define DOWN_BUTTON _BV(7) 
+#else
 #define LEFT_BUTTON _BV(5)  /**< The Left button value for functions requiring a bitmask */
 #define RIGHT_BUTTON _BV(6) /**< The Right button value for functions requiring a bitmask */
 #define UP_BUTTON _BV(7)    /**< The Up button value for functions requiring a bitmask */
 #define DOWN_BUTTON _BV(4)  /**< The Down button value for functions requiring a bitmask */
+#endif
 #define A_BUTTON _BV(3)     /**< The A button value for functions requiring a bitmask */
 #define B_BUTTON _BV(2)     /**< The B button value for functions requiring a bitmask */
 #ifdef SUPPORT_XY_BUTTONS
@@ -151,6 +158,31 @@
  #define Y_BUTTON _BV(1)
 #endif
 
+#if defined (MICROCADE)
+#define PIN_LEFT_BUTTON A1
+#define LEFT_BUTTON_PORT PORTF
+#define LEFT_BUTTON_PORTIN PINF
+#define LEFT_BUTTON_DDR DDRF
+#define LEFT_BUTTON_BIT PORTF6
+
+#define PIN_RIGHT_BUTTON A2
+#define RIGHT_BUTTON_PORT PORTF
+#define RIGHT_BUTTON_PORTIN PINF
+#define RIGHT_BUTTON_DDR DDRF
+#define RIGHT_BUTTON_BIT PORTF5
+
+#define PIN_UP_BUTTON A3
+#define UP_BUTTON_PORT PORTF
+#define UP_BUTTON_PORTIN PINF
+#define UP_BUTTON_DDR DDRF
+#define UP_BUTTON_BIT PORTF4
+
+#define PIN_DOWN_BUTTON A0
+#define DOWN_BUTTON_PORT PORTF
+#define DOWN_BUTTON_PORTIN PINF
+#define DOWN_BUTTON_DDR DDRF
+#define DOWN_BUTTON_BIT PORTF7
+#else
 #define PIN_LEFT_BUTTON A2
 #define LEFT_BUTTON_PORT PORTF
 #define LEFT_BUTTON_PORTIN PINF
@@ -174,6 +206,7 @@
 #define DOWN_BUTTON_PORTIN PINF
 #define DOWN_BUTTON_DDR DDRF
 #define DOWN_BUTTON_BIT PORTF4
+#endif
 
 #ifndef SUPPORT_XY_BUTTONS
  #define PIN_A_BUTTON 7
