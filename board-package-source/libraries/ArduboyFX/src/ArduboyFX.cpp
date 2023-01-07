@@ -6,6 +6,8 @@ uint16_t FX::programSavePage; // program read and write data location in flash m
 Font     FX::font;
 Cursor   FX::cursor = {0,0,0,WIDTH};
 
+FrameControl FX::frameControl;
+
 
 uint8_t FX::writeByte(uint8_t data)
 {
@@ -124,10 +126,27 @@ void FX::writeEnable()
 void FX::seekCommand(uint8_t command, uint24_t address)
 {
   enable();
+ #ifdef ARDUINO_ARCH_AVR
+  register uint8_t cmd asm("r24") = command; //assembly optimizer for AVR platform ~saves 12 bytes
+  asm volatile(
+    "call %x2           \n"
+    "mov  r24, %C[addr] \n"
+    "call %x2           \n"
+    "mov  r24, %B[addr] \n"
+    "call %x2           \n"
+    "mov  r24, %A[addr] \n"
+    "call %x2           \n"
+    : [cmd]   "+&r" (cmd)
+    : [addr]  "r"   (address),
+      [write] "i" (writeByte)
+    :
+  );
+ #else
   writeByte(command);
   writeByte(address >> 16);
   writeByte(address >> 8);
   writeByte(address);
+ #endif
 }
 
 
@@ -158,22 +177,22 @@ void FX::seekDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t 
     "   mul     %[index], %[size]   \n"
     "   brne    .+2                 \n" //treat size 0 as size 256
     "   mov     r1, %[index]        \n"
-    "   clr     r24                 \n" //use as alternative zero reg
+    "   clr     r21                 \n" //use as alternative zero reg
     "   add     r0, %[offset]       \n"
-    "   adc     r1, r24             \n"
+    "   adc     r1, r21             \n"
     "   add     %A[address], r0     \n"
     "   adc     %B[address], r1     \n"
-    "   adc     %C[address], r24    \n"
+    "   adc     %C[address], r21    \n"
     "   clr     r1                  \n"
-    : [address] "+r" (address)
+    : [address] "+&r" (address)
     : [index]   "r"  (index),
       [offset]  "r"  (offset),
       [size]    "r"  (elementSize)
-    : "r24"
+    : "r21"
   );
-  #else
-   address += size ? index * size + offset : index * 256 + offset;
-  #endif
+ #else
+  address += size ? index * size + offset : index * 256 + offset;
+ #endif
   seekData(address);
 }
 
@@ -212,9 +231,6 @@ uint8_t FX::readPendingUInt8()
 
 uint8_t FX::readPendingLastUInt8()
 {
- #ifdef ARDUINO_ARCH_AVR
-  asm volatile("ArduboyFX_cpp_readPendingLastUInt8:\n"); // create label for calls in FX::readPendingUInt16
- #endif
   return readEnd();
 }
 
@@ -227,7 +243,7 @@ uint16_t FX::readPendingUInt16()
   ( "ArduboyFX_cpp_readPendingUInt16:       \n"
     "call ArduboyFX_cpp_readPendingUInt8    \n"
     "mov  %B[val], r24                      \n"
-    "call ArduboyFX_cpp_readPendingUInt8    \n"
+    "jmp  ArduboyFX_cpp_readPendingUInt8    \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt8)
     :
@@ -245,17 +261,17 @@ uint16_t FX::readPendingLastUInt16()
   uint16_t result asm("r24"); // we want result to be assigned to r24,r25
   asm volatile
   ( "ArduboyFX_cpp_readPendingLastUInt16:    \n"
-    "call ArduboyFX_cpp_readPendingUInt8     \n"
-    "mov  %B[val], r24                       \n"
-    "call ArduboyFX_cpp_readPendingLastUInt8 \n"
+    "call %x1           \n"
+    "mov  %B[val], r24  \n"
+    "jmp  %x2           \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt8),
-      "" (readPendingLastUInt8)
+      "" (readEnd)
     :
   );
   return result;
  #else //C++ implementation for non AVR platforms
-  return ((uint16_t)readPendingUint8() << 8) | (uint16_t)readPendingLastUInt8();
+  return ((uint16_t)readPendingUint8() << 8) | (uint16_t)readEnd();
  #endif
 }
 
@@ -289,19 +305,19 @@ uint24_t FX::readPendingLastUInt24()
   uint24_t result asm("r24"); // we want result to be assigned to r24,r25,r26
   asm volatile
   (
-    "call ArduboyFX_cpp_readPendingUInt16    \n"
-    "mov  %B[val], r24                       \n"
-    "call ArduboyFX_cpp_readPendingLastUInt8 \n"
-    "mov  %A[val], r24                       \n"
-    "mov  %C[val], r25                       \n"
+    "call %x1           \n"
+    "mov  %B[val], r24  \n"
+    "call %x2           \n"
+    "mov  %A[val], r24  \n"
+    "mov  %C[val], r25  \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt16),
-      "" (readPendingLastUInt8)
+      "" (readEnd)
     :
   );
   return result;
  #else //C++ implementation for non AVR platforms
-  return ((uint24_t)readPendingUInt16() << 8) | readPendingLastUInt8();
+  return ((uint24_t)readPendingUInt16() << 8) | readEnd();
  #endif
 }
 
@@ -678,6 +694,167 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
 #endif
 }
 
+void FX::setFrame(uint24_t frame, uint8_t repeat) //~22 bytes
+{
+ #ifdef ARDUINO_ARCH_AVR
+  FrameControl* ctrl = &frameControl;
+  asm volatile(
+    "ldi    r30, lo8(%[ctrl]) \n"
+    "ldi    r31, hi8(%[ctrl]) \n"
+    "st     z,   %A[frame]    \n" // start
+    "std    z+1, %B[frame]    \n"
+    "std    z+2, %C[frame]    \n"
+    "std    z+3, %A[frame]    \n" // current
+    "std    z+4, %B[frame]    \n"
+    "std    z+5, %C[frame]    \n"
+    "std    z+6, %A[repeat]   \n" // repeat
+    "std    z+7, %A[repeat]   \n" // count
+    :
+    : [ctrl]   ""  (ctrl),
+      [frame]  "r" (frame),
+      [repeat] "r" (repeat)
+    : //"r30", "r31"
+  );
+ #else
+  frameControl.start   = frame;
+  frameControl.current = frame;
+  frameControl.repeat  = repeat;
+  frameControl.count   = repeat;
+  #endif
+}
+
+uint8_t FX::drawFrame() // ~66 bytes
+{
+  uint24_t frame = drawFrame(frameControl.current);
+  uint8_t moreFrames;
+ #ifdef ARDUINO_ARCH_AVR
+  FrameControl* ctrl = &frameControl;
+  asm volatile(
+    "ldi    r30, lo8(%[ctrl])   \n"
+    "ldi    r31, hi8(%[ctrl])   \n"
+    "ldd    r0, z+7             \n" // frameControl.count
+    "mov    %[more], r0         \n" // moreFrames = (frame != 0) | frameControl.count;
+    "or     %[more], %A[frame]  \n"
+    "or     %[more], %B[frame]  \n"
+    "or     %[more], %C[frame]  \n"
+    "tst    r0                  \n"
+    "breq   1f                  \n" // skip frameControl.count == 0
+    "                           \n"
+    "dec    r0                  \n"
+    "std    z+7, r0             \n" // frameControl.count--
+    "rjmp   3f                  \n" // return
+    "1:                         \n"
+    "ldd    r0, z+6             \n" // frameControl.count = frameControl.repeat
+    "std    z+7, r0             \n"
+    "tst    %[more]             \n" //
+    "brne   2f                  \n" // if if moreFrames skip
+    "                           \n"
+    "ld     %A[frame], z        \n" // frame = frameControl.start
+    "ldd    %B[frame], z+1      \n"
+    "ldd    %C[frame], z+2      \n"
+    "2:                         \n"
+    "std    z+3, %A[frame]      \n" // frameControl.current = frame
+    "std    z+4, %B[frame]      \n"
+    "std    z+5, %C[frame]      \n"
+    "3:                         \n"
+    : [more]  "=&r" (moreFrames)
+    : [ctrl]  ""   (ctrl),
+      [frame] "r"  (frame)
+    : "r0", "r30", "r31"
+    );
+ #else
+  moreFrames = (frame != 0) | frameControl.count;
+  if (frameControl.count > 0)
+  {
+    frameControl.count--;
+  }
+  else
+  {
+    frameControl.count = frameControl.repeat;
+    if (!moreFrames) frame = frameControl.start;
+    frameControl.current = frame;
+  }
+ #endif
+  return moreFrames;
+}
+
+uint24_t FX::drawFrame(uint24_t address) //~94 bytes
+{
+  FrameData f;
+ #ifdef ARDUINO_ARCH_AVR
+  asm volatile (
+    "push   r6                  \n"
+    "push   r7                  \n"
+    "push   r8                  \n"
+    "push   r14                 \n"
+    "push   r16                 \n"
+    "0:                         \n"
+    "movw   r6, %A[addr]        \n" //save address for calls
+    "mov    r8, %C[addr]        \n"
+    "call   %x6                 \n"
+    "call   %x1                 \n"
+    "movw   r30, r24            \n" //temporary save x
+    "call   %x1                 \n"
+    "movw   r26, r24            \n" //temporary save y
+    "call   %x2                 \n"
+    "mov    r20, r24            \n" // bmp address
+    "movw   r18, r22            \n"
+    "call   %x3                 \n"
+    "movw   r16, r24            \n" // frame
+    "call   %x4                 \n"
+    "mov    r14, r24            \n" // mode
+    "movw   r24, r30            \n" // x
+    "movw   r22, r26            \n" // y
+    "call   %x5                 \n" // drawbitmap
+    "movw   %A[addr], r6        \n" // restore address
+    "mov    %C[addr], r8        \n"
+    "subi   %A[addr], -%[size]  \n"
+    "sbci   %B[addr], 0xFF      \n"
+    "sbci   %C[addr], 0xFF      \n"
+    "                           \n"
+    "sbrc   r14, 6              \n" // test next frame
+    "rjmp   1f                  \n" // skip end of this frame
+    "                           \n"
+    "sbrs   r14, 7              \n" // test last frame
+    "rjmp   0b                  \n" // loop not last frame
+    "                           \n"
+    "clr    %A[addr]            \n"
+    "clr    %B[addr]            \n"
+    "clr    %C[addr]            \n"
+    "1:                         \n"
+    "pop    r16                 \n"
+    "pop    r14                 \n"
+    "pop    r8                  \n"
+    "pop    r7                  \n"
+    "pop    r6                  \n"
+
+  : [addr] "+&r" (address)
+  : "" (readPendingUInt16),
+    "" (readPendingUInt24),
+    "" (readPendingUInt8),
+    "" (readEnd),
+    "" (drawBitmap),
+    "" (seekData),
+    [size] "" (sizeof(f))
+  : "r18","r19", "r20", "r21", "r25", "r26", "r27", "r30", "r31"
+  );
+  return address;
+ #else
+  seekData(address);
+  address += sizeof(f);
+  for(;;)
+  {
+    f.x = readPendingUInt16();
+    f.y = readPendingUInt16();
+    f.bmp = readPendingUInt24();
+    f.frame = readPendingUInt8();
+    f.mode = readEnd();
+    drawBitmap(f.x, f.y, f.bmp, f.frame, f.mode);
+    if (f.mode & dbmEndFrame) return address;
+    if (f.mode & dbmLastFrame) return 0;
+  }
+ #endif
+}
 
 void FX::readDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t elementSize, uint8_t* buffer, size_t length)
 {

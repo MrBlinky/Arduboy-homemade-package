@@ -1,0 +1,95 @@
+/*******************************************************************************
+ FX Data resource file.
+********************************************************************************
+
+ Run this file through the fx-data.py Python script (drag and drop) to create
+ a c-style header file that can be included with your project.
+ 
+ a .bin file will also be created containing the actual resource data. This .bin
+ file can be uploaded to the FX flash chip using the Arduino plugin or using the
+ fxdata-upload.py or uploader-gui.py (Use Upload Development data button). 
+
+ Note fxdata.txt file maybe split up into multiple parts and can be included 
+ using the include directive.
+ 
+ Data types:
+  
+ int8_t, uint8_t   values will be stored as 8-bit bytes (unsigned char)
+ 
+ int16_t, uint16_t values will be stored as 16-bit (half)words (int)
+ 
+ int24_t,uint24_t   values will be stored as 24-bit address that points to
+                    a FX data resource
+ 
+ int32_t,uint32_t   values will be stored as 32-bit long words
+ 
+ image_t            a filename with a relative path to a .bmp or .png image file
+ raw_t              a filename with a relative path to a raw file
+ 
+ to create a constant to point to a FX resource, a similar format as in C(++):
+ is used. 
+
+    image_t FXlogo   = "fx-logo.png";
+    image_t arduboyLogo = "FXSprite.png";
+  
+ when data of the same format is used the data type may be ommited. The semicolon
+ may also be ommited in all cases.
+
+    image_t FXlogo   = "FX-logo.png"
+            FxSprite = "FXSprite.png"
+ 
+ or even:
+ 
+    image_t FXlogo   = "FX-logo.png", FxSprite = "FXSprite.png"
+ 
+ When specifying multiple data make sure they are seperated by at least a space
+ (comma is optional). A data array can be simplified. For examle:
+ 
+    uint8_t tilemap[] = {
+      0, 1, 2, 3, 4, 5, 6
+    };
+ 
+ can also be written simply as:
+ 
+    uint8_t tilemap = 0 1 2 3 4 5 6
+
+  data can be commented out using // for a single line or
+  using /* */ for a block comment
+  
+ Symbols
+ 
+ For the drawFrames functions there are some predefined bitmap mode symbols:
+  
+ dbmNormal
+ dbmOverwrite
+ dbmWhite  
+ dbmReverse
+ dbmBlack
+ dbmInvert
+ dbmMasked
+
+ to mark the end of a frame _end is appended to the above symbols like
+ 
+ dbmNormal_end
+ 
+ to mark the end of the last frame in a frames list append _last to the above
+ symbols like
+ 
+ dbmNormal_last
+
+********************************************************************************
+ drawFrame example :
+*******************************************************************************/
+
+// Arduboy FX logo image:
+
+image_t ArduboyLogo = "../assets/arduboy-logo.png"
+image_t FXLogo      = "../assets/fx-logo.png"
+
+include "ArduboyLogo_Frame.txt"
+
+    ArduboyLogo_LastFrame[] = { // create a reference to last frame
+
+        int16_t  12, 24, int24_t ArduboyLogo, int8_t 0, dbmNormal
+        int16_t 100, 24, int24_t FXLogo,      int8_t 0, dbmMasked_last
+    }

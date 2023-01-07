@@ -1,0 +1,83 @@
+    ArduboyLogo_Frame[] = {
+
+        int16_t   20, -15, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -14, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -13, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -12, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -11, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -10, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -9, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -8, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -7, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -6, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -5, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -4, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -3, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -2, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, -1, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 0, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 1, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 2, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 3, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 4, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 5, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 6, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 7, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 8, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 9, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 10, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 11, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 12, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 13, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 14, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 15, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 16, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 17, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 18, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 19, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 20, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 21, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 22, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 23, int24_t ArduboyLogo, int8_t 0, dbmNormal_end
+
+        int16_t   20, 24, int24_t ArduboyLogo, int8_t 0, dbmNormal_last
+
+    }

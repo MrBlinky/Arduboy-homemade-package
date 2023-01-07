@@ -38,6 +38,8 @@ constexpr uint8_t dbfBlack        = 2; // bitmap will be blackened
 constexpr uint8_t dbfReverseBlack = 3; // reverses bitmap data
 constexpr uint8_t dbfMasked       = 4; // bitmap contains mask data
 constexpr uint8_t dbfExtraRow     = 7; // ignored (internal use)
+constexpr uint8_t dbfEndFrame     = 6; // last bitmap image of a frame
+constexpr uint8_t dbfLastFrame    = 7; // last bitmap image of the last frame
 
 // drawBitmap modes with same behaviour as Arduboy library drawBitmap modes
 constexpr uint8_t dbmBlack   = _BV(dbfReverseBlack) |   // white pixels in bitmap will be drawn as black pixels on display
@@ -62,6 +64,8 @@ constexpr uint8_t dbmReverse = _BV(dbfReverseBlack);    // White pixels in bitma
 constexpr uint8_t dbmMasked  = _BV(dbfMasked);          // The bitmap contains a mask that will determine which pixels are
                                                         // drawn and which pixels remain unchanged on display
                                                         // (same as sprites drawPlusMask)
+constexpr uint8_t dbmEndFrame = _BV(dbfEndFrame);       // last bitmap of a frame but more frames
+constexpr uint8_t dbmLastFrame = _BV(dbfLastFrame);     // last bitmap of a frame and at end of frames
 
 // Note above modes may be combined like (dbmMasked | dbmReverse)
 
@@ -131,6 +135,24 @@ struct Cursor
   int16_t left;
   int16_t wrap;
 };
+
+struct FrameControl
+{
+  uint24_t start;
+  uint24_t current;
+  uint8_t repeat;
+  uint8_t count;
+};
+
+struct FrameData
+{
+  int16_t  x;
+  int16_t  y;
+  uint24_t bmp;
+  uint8_t  frame;
+  uint8_t  mode;
+};
+
 
 class FX
 {
@@ -227,11 +249,11 @@ class FX
 
     static uint8_t readPendingUInt8() __attribute__ ((noinline));    //read a prefetched byte from the current flash location
 
-    static uint8_t readPendingLastUInt8() __attribute__ ((noinline));    //read a prefetched byte from the current flash location
+    static uint8_t readPendingLastUInt8() __attribute__ ((noinline));    //depreciated use readEnd() instead (see below)
 
-    static uint16_t readPendingUInt16() __attribute__ ((noinline)); //read a partly prefetched 16-bit word from the current flash location
+    static uint16_t readPendingUInt16() __attribute__ ((noinline)) __attribute__ ((naked)); //read a partly prefetched 16-bit word from the current flash location
 
-    static uint16_t readPendingLastUInt16() __attribute__ ((noinline)); //read a partly prefetched 16-bit word from the current flash location
+    static uint16_t readPendingLastUInt16() __attribute__ ((noinline)) __attribute__ ((naked)); //read a partly prefetched 16-bit word from the current flash location
 
     static uint24_t readPendingUInt24() ; //read a partly prefetched 24-bit word from the current flash location
 
@@ -243,9 +265,9 @@ class FX
 
     static void readBytes(uint8_t* buffer, size_t length);// read a number of bytes from the current flash location
 
-    static void readBytesEnd(uint8_t* buffer, size_t length); // read a number of bytes from the current flash location and end the read command
+    static void readBytesEnd(uint8_t* buffer, size_t length); // read a number of bytes from the current flash location and ends the read command
 
-    static uint8_t readEnd(); //read last pending byte and end read command
+    static uint8_t readEnd() __attribute__ ((noinline)); //read the last prefetched byte from the current flash location and ends the read command
 
     static void readDataBytes(uint24_t address, uint8_t* buffer, size_t length);
 
@@ -254,10 +276,16 @@ class FX
     static void eraseSaveBlock(uint16_t page);
 
     static void writeSavePage(uint16_t page, uint8_t* buffer);
-    
+
     static void waitWhileBusy(); // wait for outstanding erase or write to finish
 
     static void drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8_t mode) __attribute__((noinline));
+
+    static void setFrame(uint24_t frame, uint8_t repeat)__attribute__ ((noinline));
+
+    static uint8_t drawFrame();
+
+    static uint24_t drawFrame(uint24_t address) __attribute__((noinline)); // draw a list of bitmap images located at address
 
     static void readDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t elementSize, uint8_t* buffer, size_t length);
 
@@ -431,5 +459,7 @@ class FX
     static uint16_t programSavePage; // program read and write data area in flash memory
     static Font     font;
     static Cursor   cursor;
+
+    static FrameControl frameControl;
 };
 #endif
