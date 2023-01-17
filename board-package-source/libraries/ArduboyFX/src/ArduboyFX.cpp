@@ -800,7 +800,7 @@ uint24_t FX::drawFrame(uint24_t address) //~94 bytes
     "mov    r20, r24            \n" // bmp address
     "movw   r18, r22            \n"
     "call   %x3                 \n"
-    "movw   r16, r24            \n" // frame
+    "mov    r16, r24            \n" // frame
     "call   %x4                 \n"
     "mov    r14, r24            \n" // mode
     "movw   r24, r30            \n" // x
