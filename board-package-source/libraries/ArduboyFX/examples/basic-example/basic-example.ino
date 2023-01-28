@@ -21,10 +21,6 @@
 #include <ArduboyFX.h>      // required to access the FX external flash
 #include "fxdata/fxdata.h"  // this file contains all references to FX data
 
-//constant values
-constexpr uint8_t FXlogoWidth = 115; 
-constexpr uint8_t FXlogoHeight = 16;
-
 Arduboy2 arduboy;
 
 //assign values;

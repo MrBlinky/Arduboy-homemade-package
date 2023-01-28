@@ -32,6 +32,25 @@ void FX::begin()
 void FX::begin(uint16_t developmentDataPage)
 {
   disableOLED();
+ #ifdef ARDUINO_ARCH_AVR
+  const uint8_t* vector = FX_DATA_VECTOR_KEY_POINTER;
+  asm volatile(
+    "lpm  r18, z+                       \n"
+    "lpm  r19, z+                       \n"
+    "lpm  r21, z+                       \n"
+    "lpm  r20, z+                       \n"
+    "subi r18, 0x18                     \n"
+    "sbci r19, 0x95                     \n"
+    "brne .+2                           \n" // skip if FX_DATA_VECTOR_KEY_POINTER != FX_VECTOR_KEY_VALUE
+    "movw %A[devdata], r20              \n"
+    "sts  %[datapage]+0, %A[devdata]    \n"
+    "sts  %[datapage]+1, %B[devdata]    \n"
+    :            "+&z" (vector),
+      [devdata]  "+&r" (developmentDataPage)
+    : [datapage] "" (&programDataPage)
+    : "r18", "r19", "r20", "r21"
+   );
+ #else
   if (pgm_read_word(FX_DATA_VECTOR_KEY_POINTER) == FX_VECTOR_KEY_VALUE)
   {
     programDataPage = (pgm_read_byte(FX_DATA_VECTOR_PAGE_POINTER) << 8) | pgm_read_byte(FX_DATA_VECTOR_PAGE_POINTER + 1);
@@ -40,6 +59,7 @@ void FX::begin(uint16_t developmentDataPage)
   {
     programDataPage = developmentDataPage;
   }
+ #endif
   wakeUp();
 }
 
@@ -47,6 +67,37 @@ void FX::begin(uint16_t developmentDataPage)
 void FX::begin(uint16_t developmentDataPage, uint16_t developmentSavePage)
 {
   disableOLED();
+ #ifdef ARDUINO_ARCH_AVR
+  const uint8_t* vector = FX_DATA_VECTOR_KEY_POINTER;
+  asm volatile(
+    "lpm  r18, z+                       \n"
+    "lpm  r19, z+                       \n"
+    "lpm  r21, z+                       \n"
+    "lpm  r20, z+                       \n"
+    "subi r18, 0x18                     \n"
+    "sbci r19, 0x95                     \n"
+    "brne .+2                           \n"  // skip if FX_DATA_VECTOR_KEY_POINTER != FX_VECTOR_KEY_VALUE
+    "movw %A[devdata], r20              \n"
+    "sts  %[datapage]+0, %A[devdata]    \n"
+    "sts  %[datapage]+1, %B[devdata]    \n"
+    "lpm  r18, z+                       \n"
+    "lpm  r19, z+                       \n"
+    "lpm  r21, z+                       \n"
+    "lpm  r20, z+                       \n"
+    "subi r18, 0x18                     \n"
+    "sbci r19, 0x95                     \n"
+    "brne .+2                           \n" //  skip if FX_SAVE_VECTOR_KEY_POINTER != FX_VECTOR_KEY_VALUE
+    "movw %A[devsave], r20              \n"
+    "sts  %[savepage]+0, %A[devsave]    \n"
+    "sts  %[savepage]+1, %B[devsave]    \n"
+    :            "+&z" (vector),
+      [devdata]  "+&r" (developmentDataPage),
+      [devsave]  "+&r" (developmentSavePage)
+    : [datapage] "" (&programDataPage),
+      [savepage] "" (&programSavePage)
+    : "r18", "r19", "r20", "r21"
+   );
+ #else
   if (pgm_read_word(FX_DATA_VECTOR_KEY_POINTER) == FX_VECTOR_KEY_VALUE)
   {
     programDataPage = (pgm_read_byte(FX_DATA_VECTOR_PAGE_POINTER) << 8) | pgm_read_byte(FX_DATA_VECTOR_PAGE_POINTER + 1);
@@ -63,6 +114,7 @@ void FX::begin(uint16_t developmentDataPage, uint16_t developmentSavePage)
   {
     programSavePage = developmentSavePage;
   }
+ #endif
   wakeUp();
 }
 
@@ -207,7 +259,6 @@ void FX::seekSave(uint24_t address)
     "adc  %C[addr], r0  \n"
     :[addr] "+&r" (address)
     :[page] ""    (&programSavePage)
-    :"r24"
   );
  #else // C++ version for non AVR platforms
   address += (uint24_t)programSavePage << 8;
@@ -406,6 +457,183 @@ void FX::readSaveBytes(uint24_t address, uint8_t* buffer, size_t length)
   readBytesEnd(buffer, length);
 }
 
+uint8_t FX::loadGameState(uint8_t* gameState, size_t size) // ~54 bytes
+{
+ #ifdef ARDUINO_ARCH_AVR
+  uint8_t result asm("r24");
+  asm volatile(
+    "ldi  r22, 0        \n" //seekSave(0)
+    "ldi  r23, 0        \n"
+    "ldi  r24, 0        \n"
+    "call %x3           \n" //seekSave uses r20, r21, r22, r23, r24
+    "movw r18, r26      \n" //save size
+    "movw r20, r30      \n" //save gameState
+    "0:                 \n"
+    "ldi  r22,0         \n" //result = 0
+    "1:                 \n"
+    "call %x4           \n" //readPendingUInt16 uses r24, r25
+    "cp   r24, r18      \n"
+    "cpc  r25, r19      \n"
+    "brne 4f            \n" //if (readPendingUInt16 != size) break
+    "                   \n"
+    "movw r26, r18      \n" //restore size
+    "movw r30, r20      \n" //restore gameState
+    "ldi  r22, 0        \n" //result = 0
+    "2:                 \n" //do
+    "call %x5           \n" //  data = readPendingUint8
+    "st   z+, r24       \n" //  addr = data
+    "sbiw r26, 1        \n" //  size--
+    "brne 2b            \n" //until size == 0
+    "ldi  r22, 1        \n" //result = 1
+    "rjmp 1b            \n" //next
+    "4:                 \n"
+    "call %x6           \n" //readEnd
+    "mov  r24, r22      \n" //return result
+    : [addr] "+&z" (gameState),
+      [size] "+&x" (size),
+      [val]  "=&r"  (result)
+    :        "i"   (seekSave),
+             "i"   (readPendingUInt16),
+             "i"   (readPendingUInt8),
+             "i"   (readEnd)
+    : "r18", "r19", "r20", "r21"
+  );
+ #else
+  seekSave(0);
+  uint8_t result = 0;
+  while (readPendingUInt16() == size) // if gameState size not equal, most recent gameState has been read or there is no gameState
+  {
+    for (uint16_t i = 0; i < size; i++)
+    {
+      uint8_t data = readPendingUInt8();
+      gameState[i] = data;
+    }
+    {
+      result = 1; // signal gameState loaded
+    }
+  }
+  readEnd();
+ #endif
+  return result;
+}
+
+void FX::saveGameState(uint8_t* gameState, size_t size) // ~152 bytes locates free space in 4K save block and saves the GamesState.
+{                                                       //            if there is not enough free space, the block is erased prior to saving
+ register size_t sz asm("r18") = size;
+ #ifdef ARDUINO_ARCH_AVR
+  asm volatile(
+    "ldi  r26, 0                \n" //addr = 0
+    "ldi  r27, 0                \n"
+    "1:                         \n"
+    "movw r22, r26              \n" //uint24_t addr
+    "ldi  r24, 0                \n"
+    "call %x2                   \n" //seekSave uses r20, r21, r22, r23, r24
+    "call %x3                   \n" //readPendingLastUInt16 uses r24, r25
+    "movw r22, r26              \n" //save addr
+    "adiw r26, 2                \n" //addr += 2 for size word
+    "add  r26, r18              \n" //addr += size
+    "adc  r27, r19              \n"
+    "cp   r24, r18              \n"
+    "cpc  r25, r19              \n"
+    "breq 1b                    \n" //readPendingLastUInt16 == size
+    "                           \n"
+    "subi r24, 0xFF             \n" //if result of readPendingLastUInt16 != 0xFFFF
+    "sbci r25, 0xFF             \n"
+    "brne 2f                    \n" //erase block
+    "                           \n"
+    "subi r26, lo8(4094+1)      \n"
+    "sbci r27, hi8(4094+1)      \n"// addr < 4094+1 (last two bytes in 4K block always 0xFF)
+    "movw r26, r22              \n"// addr -= size - 2  point to start of free space
+    "brcs 3f                    \n"
+    "2:                         \n" //erase 4K save block at addr
+    "call %x4                   \n" //writeEnable
+    "ldi  r20, 0                \n"
+    "lds  r21, %[page]+0        \n"
+    "lds  r22, %[page]+1        \n"
+    "ldi  r24, %[erase]         \n" //SFC_ERASE
+    "call %x5                   \n" //seekCommand
+    "sbi  %[fxport], %[fxbit]   \n" //disable
+    "call %x6                   \n" //waitWhileBusy
+    "ldi  r26, 0                \n" //addr = 0
+    "ldi  r27, 0                \n"
+    "3:                         \n"
+    "ldi  r23, 0xFC             \n" // int8_t shiftstate = -4
+    "4:                         \n"
+    "call %x4                   \n" //writeEnable
+    "mov  r20, r26              \n" //addr
+    "lds  r21, %[page]+0        \n"
+    "add  r21, r27              \n"
+    "lds  r22, %[page]+1        \n"
+    "adc  r22, r1               \n"
+    "ldi  r24, %[write]         \n" //SFC_WRITE
+    "call %x5                   \n" //seekCommand
+    "5:                         \n"
+    "mov  r24, r19              \n"
+    "sbrc r23, 1                \n" //if (shiftstate & 3 == 0) writebyte(size >> 8)
+    "mov  r24, r18              \n" //if (shiftstate & 3 == 2) writebyte(size & 0xFF)
+    "sbrc r23, 0                \n" //else writeByte(gameState++);
+    "ld   r24, z+               \n" //saveState
+    "call %x7                   \n" //writeByte
+    "asr  r23                   \n" //shiftstate >>= 1
+    "brcc .+4                   \n" //if (shiftstate == -1) size--
+    "subi r18, 1                \n"
+    "sbci r19, 0               \n"
+    "breq 6f                    \n" //size == 0
+    "                           \n"
+    "adiw r26, 1                \n" //addr++
+    "and  r26, r26              \n"
+    "brne 5b                    \n" //while addr & 0xFF != 0 (not end of page)
+    "6:                         \n"
+    "sbi  %[fxport], %[fxbit]   \n" //disable
+    "call %x6                   \n" //waitWhileBusy
+    "cp   r18, r1               \n"
+    "cpc  r19, r1               \n"
+    "brne 4b                    \n" //while size != 0
+    :[state]  "+&z" (gameState),
+     [size]   "+&r" (sz)
+    :         ""    (seekSave),
+              ""    (readPendingLastUInt16),
+              ""    (writeEnable),
+              ""    (seekCommand),
+              ""    (waitWhileBusy),
+              ""    (writeByte),
+     [fxport] "i"   (_SFR_IO_ADDR(FX_PORT)),
+     [fxbit]  "i"   (FX_BIT),
+     [erase]  "i"   (SFC_ERASE),
+     [write]  "i"   (SFC_WRITE),
+     [page]   ""    (&programSavePage)
+    : "r20", "r21", "r22", "r23", "r24", "r25", "r26", "r27"
+  );
+ #else
+  uint16_t addr = 0;
+  for(;;) // locate end of previous gameStates
+  {
+    seekSave(addr);
+    if (readPendingLastUInt16() != size) break; //found end of previous gameStates
+    addr += size + 2;
+  }
+  if ((addr + size) > 4094) //is there enough space left? last two bytes of 4K block must always be unused (0xFF)
+  {
+    eraseSaveBlock(0); // erase save block
+    waitWhileBusy();   // wait for erase to complete
+    addr = 0;          // write saveState at the start of block
+  }
+
+  while (size)
+  {
+    writeEnable();
+    seekCommand(SFC_WRITE, (uint24_t)(programSavePage << 8) + addr);
+    do
+    {
+      writeByte(*gameState++);
+      if (--size == 0) break;
+    }
+    while ((uint8_t)++addr); // write bytes until end of a page
+    disable();               // start writing the (partial) page
+    waitWhileBusy();         // wait for page write to complete
+  }
+ #endif
+}
 
 void  FX::eraseSaveBlock(uint16_t page)
 {
@@ -1062,7 +1290,6 @@ void FX::drawNumber(uint16_t n, int8_t digits)
 
 void FX::drawNumber(int32_t n, int8_t digits)
 {
-  asm volatile("dbg:\n");
   if (n < 0)
   {
     n = -n;

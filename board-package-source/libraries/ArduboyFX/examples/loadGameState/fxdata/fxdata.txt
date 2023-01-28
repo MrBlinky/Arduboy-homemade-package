@@ -1,0 +1,4 @@
+
+    savesection     //4K block save section. Any data below will be stored in save data area
+
+    uint16_t  0xFFFF //game state end marker / start of unused space

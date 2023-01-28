@@ -231,7 +231,7 @@ class FX
 
     static void seekDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t elementSize);
 
-    static void seekSave(uint24_t address); // selects flashaddress of program save area for reading and starts the first read
+    static void seekSave(uint24_t address) __attribute__ ((noinline)); // selects flashaddress of program save area for reading and starts the first read
 
     static inline uint8_t readUnsafe() __attribute__((always_inline)) // read flash data without performing any checks and starts the next read.
     {
@@ -273,7 +273,11 @@ class FX
 
     static void readSaveBytes(uint24_t address, uint8_t* buffer, size_t length);
 
-    static void eraseSaveBlock(uint16_t page);
+    static uint8_t loadGameState(uint8_t* gameState, size_t size) __attribute__ ((noinline)); //loads GameState from program exclusive 4K save data block.
+
+    static void saveGameState(uint8_t* gameState, size_t size) __attribute__ ((noinline)); // Saves GameState in RAM to programes exclusive 4K save data block.
+
+    static void eraseSaveBlock(uint16_t page); // erases 4K flash block
 
     static void writeSavePage(uint16_t page, uint8_t* buffer);
 

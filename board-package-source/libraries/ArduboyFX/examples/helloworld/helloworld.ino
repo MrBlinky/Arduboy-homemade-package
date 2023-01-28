@@ -20,7 +20,7 @@
 
 #include <Arduboy2.h>
 #include <ArduboyFX.h>
-#include "fxdata\fxdata.h"
+#include "fxdata/fxdata.h"
 
 Arduboy2Base arduboy;
 
