@@ -1,5 +1,5 @@
 /* *****************************************************************************
- * FX gameState example v1.00 by Mr.Blinky          Jan.2023 licenced under CC0
+ * FX gameState example v1.01 by Mr.Blinky       Jan-Feb.2023 licenced under CC0
  * *****************************************************************************
  * 
  * This is a example showing how you can save and load game data to the FX flash 
@@ -22,9 +22,9 @@
  * 
  * The FX library has two functions for saving and loading game data:
  * 
- * uint8_t FX::loadGameState(uint8_t* gameState, size_t size)
+ * uint8_t FX::loadGameState(Type gameState)
  * 
- * void FX::saveGameState(uint8_t* gameState, size_t size)
+ * void FX::saveGameState(Type gameState)
  * 
  * loadGameState 
  * -------------
@@ -32,15 +32,12 @@
  * Loads previously saved game data. It returns 0 if there was no data to load
  * or 1 if the data was successfully loaded.
  * 
- * gameState is a pointer to an uint8_t array or to a structure in RAM containing
- * your game data. When using a structure for the game data, the structure must be 
- * cast to an uint8_t array by putting (uint8_t*)& in front of the structures name.
+ * gameState is an object structure in RAM to where the game data will be loaded.
+ * If the size of the object in ram differes from the size of previously saved 
+ * data, no data will be loaded.
  * 
- * size is the size of the uint8_t array or structure in RAM and is usually 
- * determined by using the sizeof() operator. 
- * 
- * When there  is no game data loaded (result 0), the contents of the gameState 
- * structure remains unchanged.
+ * When no game data loaded (result 0), the contents of the gameState structure
+ * remains unchanged.
  * 
  * saveGameState 
  * -------------
@@ -54,7 +51,7 @@
  * This process is fully transparent and you do not need to worry about it. 
  * It just explains why sometimes this function may take a bit more time then usual.
  * 
- * gameState and size are the same parameters as for the loadSaveData function.
+ * gameState is an object structure in RAM which will be saved to external flash memory.
  * 
  * initilizing FX chip when using save capabilities
  * ------------------------------------------------
@@ -135,8 +132,8 @@ void setup() {
   FX::begin(FX_DATA_PAGE, FX_SAVE_PAGE);  // Initialize FX chip. When using FX save data,
                                           // FX_SAVE_PAGE must also be passed on in FX::begin.
 
-  if (!FX::loadGameState((uint8_t*) &gameState, sizeof(gameState))) // Load saveState from the 4K FX save data block. '(uint8_t*) &' is used 
-                                                                    // here to cast a uint8_t pointer to the saveState structure. 
+  if (!FX::loadGameState(gameState)) // Load saveState from the 4K FX save data block. '(uint8_t*) &' is used 
+                                     // here to cast a uint8_t pointer to the saveState structure. 
   {
     // This code gets executed only when the function didn't load a saveState (function returned 0)
     strcpy(gameState.name, "Hello World !!!"); // copy some introductory text to saveState.name
@@ -149,7 +146,7 @@ void setup() {
     gameState.count ++;                          // increase the number of times this sketch was run.
   }
   
-  FX::saveGameState((uint8_t*) &gameState, sizeof(gameState)); //Save the game state to 4K FX save block
+  FX::saveGameState(gameState); //Save the game state to 4K FX save block
   
   arduboy.clear();
   arduboy.setCursor(0,32 - 8);

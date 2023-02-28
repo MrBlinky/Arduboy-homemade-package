@@ -1,6 +1,16 @@
 #ifndef ARDUBOYFX_H
 #define ARDUBOYFX_H
 
+// For uint8_t, uint16_t
+#include <stdint.h>
+
+// For size_t
+#include <stddef.h>
+
+// For ARDUINO_ARCH_AVR, PORTD, ...
+#include <Arduino.h>
+
+// For Arduboy2Base::sBuffer, WIDTH, HEIGHT, CS_PORT ...
 #include <Arduboy2.h>
 
 #ifdef CART_CS_RX
@@ -42,15 +52,15 @@ constexpr uint8_t dbfEndFrame     = 6; // last bitmap image of a frame
 constexpr uint8_t dbfLastFrame    = 7; // last bitmap image of the last frame
 
 // drawBitmap modes with same behaviour as Arduboy library drawBitmap modes
-constexpr uint8_t dbmBlack   = _BV(dbfReverseBlack) |   // white pixels in bitmap will be drawn as black pixels on display
-                               _BV(dbfBlack) |          // black pixels in bitmap will not change pixels on display
-                               _BV(dbfWhiteBlack);      // (same as sprites drawErase)
+constexpr uint8_t dbmBlack   = (1 << dbfReverseBlack) |   // white pixels in bitmap will be drawn as black pixels on display
+                               (1 << dbfBlack) |          // black pixels in bitmap will not change pixels on display
+                               (1 << dbfWhiteBlack);      // (same as sprites drawErase)
 
-constexpr uint8_t dbmWhite   = _BV(dbfWhiteBlack);      // white pixels in bitmap will be drawn as white pixels on display
+constexpr uint8_t dbmWhite   = (1 << dbfWhiteBlack);      // white pixels in bitmap will be drawn as white pixels on display
                                                         // black pixels in bitmap will not change pixels on display
                                                         //(same as sprites drawSelfMasked)
 
-constexpr uint8_t dbmInvert  = _BV(dbfInvert);          // when a pixel in bitmap has a different color than on display the
+constexpr uint8_t dbmInvert  = (1 << dbfInvert);          // when a pixel in bitmap has a different color than on display the
                                                         // pixel on display will be drawn as white. In all other cases the
                                                         // pixel will be drawn as black
 // additional drawBitmap modes
@@ -58,14 +68,14 @@ constexpr uint8_t dbmNormal     = 0;                    // White pixels in bitma
 constexpr uint8_t dbmOverwrite  = 0;                    // Black pixels in bitmap will be drawn as black pixels on display
                                                         // (Same as sprites drawOverwrite)
 
-constexpr uint8_t dbmReverse = _BV(dbfReverseBlack);    // White pixels in bitmap will be drawn as black pixels on display
+constexpr uint8_t dbmReverse = (1 << dbfReverseBlack);    // White pixels in bitmap will be drawn as black pixels on display
                                                         // Black pixels in bitmap will be drawn as white pixels on display
 
-constexpr uint8_t dbmMasked  = _BV(dbfMasked);          // The bitmap contains a mask that will determine which pixels are
+constexpr uint8_t dbmMasked  = (1 << dbfMasked);          // The bitmap contains a mask that will determine which pixels are
                                                         // drawn and which pixels remain unchanged on display
                                                         // (same as sprites drawPlusMask)
-constexpr uint8_t dbmEndFrame = _BV(dbfEndFrame);       // last bitmap of a frame but more frames
-constexpr uint8_t dbmLastFrame = _BV(dbfLastFrame);     // last bitmap of a frame and at end of frames
+constexpr uint8_t dbmEndFrame = (1 << dbfEndFrame);       // last bitmap of a frame but more frames
+constexpr uint8_t dbmLastFrame = (1 << dbfLastFrame);     // last bitmap of a frame and at end of frames
 
 // Note above modes may be combined like (dbmMasked | dbmReverse)
 
@@ -78,15 +88,15 @@ constexpr uint8_t dcfMasked       = 4; // character contains mask data
 constexpr uint8_t dcfProportional = 5; // use fonts width table to mimic proportional characters
 
 //draw Font character modes
-constexpr uint8_t dcmBlack   = _BV(dcfReverseBlack) |   // white pixels in character will be drawn as black pixels on display
-                               _BV(dcfBlack) |          // black pixels in character will not change pixels on display
-                               _BV(dcfWhiteBlack);      // (same as sprites drawErase)
+constexpr uint8_t dcmBlack   = (1 << dcfReverseBlack) |   // white pixels in character will be drawn as black pixels on display
+                               (1 << dcfBlack) |          // black pixels in character will not change pixels on display
+                               (1 << dcfWhiteBlack);      // (same as sprites drawErase)
 
-constexpr uint8_t dcmWhite   = _BV(dcfWhiteBlack);      // white pixels in character will be drawn as white pixels on display
+constexpr uint8_t dcmWhite   = (1 << dcfWhiteBlack);      // white pixels in character will be drawn as white pixels on display
                                                         // black pixels in character will not change pixels on display
                                                         //(same as sprites drawSelfMasked)
 
-constexpr uint8_t dcmInvert  = _BV(dcfInvert);          // when a pixel in character has a different color than on display the
+constexpr uint8_t dcmInvert  = (1 << dcfInvert);          // when a pixel in character has a different color than on display the
                                                         // pixel on display will be drawn as white. In all other cases the
                                                         // pixel will be drawn as black
 // additional drawcharacter modes
@@ -94,12 +104,12 @@ constexpr uint8_t dcmNormal     = 0;                    // White pixels in chara
 constexpr uint8_t dcmOverwrite  = 0;                    // Black pixels in character will be drawn as black pixels on display
                                                         // (Same as sprites drawOverwrite)
 
-constexpr uint8_t dcmReverse = _BV(dcfReverseBlack);    // White pixels in character will be drawn as black pixels on display
+constexpr uint8_t dcmReverse = (1 << dcfReverseBlack);    // White pixels in character will be drawn as black pixels on display
                                                         // Black pixels in character will be drawn as white pixels on display
 
-constexpr uint8_t dcmMasked  = _BV(dcfMasked);          // The character contains a mask that will determine which pixels are
+constexpr uint8_t dcmMasked  = (1 << dcfMasked);          // The character contains a mask that will determine which pixels are
 
-constexpr uint8_t dcmProportional = _BV(dcfProportional); // draw characters with variable spacing. When this mode is used a
+constexpr uint8_t dcmProportional = (1 << dcfProportional); // draw characters with variable spacing. When this mode is used a
                                                           // 256 byte width table must precede the font data
 
 // Note above modes may be combined like (dcmMasked | dcmProportional)
@@ -157,41 +167,48 @@ struct FrameData
 class FX
 {
   public:
-    static inline void enableOLED() __attribute__((always_inline)) // selects OLED display.
+    [[gnu::always_inline]]
+    static inline void enableOLED() // selects OLED display.
     {
       CS_PORT &= ~(1 << CS_BIT);
     };
 
-    static inline void disableOLED() __attribute__((always_inline)) // deselects OLED display.
+    [[gnu::always_inline]]
+    static inline void disableOLED() // deselects OLED display.
     {
       CS_PORT |=  (1 << CS_BIT);
     };
 
-    static inline void enable() __attribute__((always_inline)) // selects external flash memory and allows new commands
+    [[gnu::always_inline]]
+    static inline void enable() // selects external flash memory and allows new commands
     {
       FX_PORT  &= ~(1 << FX_BIT);
     };
 
-    static inline void disable() __attribute__((always_inline)) // deselects external flash memory and ends the last command
+    [[gnu::always_inline]]
+    static inline void disable() // deselects external flash memory and ends the last command
     {
       FX_PORT  |=  (1 << FX_BIT);
     };
 
-    static inline void wait() __attribute__((always_inline)) // wait for a pending flash transfer to complete
+    [[gnu::always_inline]]
+    static inline void wait() // wait for a pending flash transfer to complete
     {
-      while ((SPSR & _BV(SPIF)) == 0);
+      while ((SPSR & (1 << SPIF)) == 0);
     }
 
     static uint8_t writeByte(uint8_t data); // write a single byte to flash memory.
 
-    static inline void writeByteBeforeWait(uint8_t data) __attribute__((always_inline))
+    [[gnu::always_inline]]
+    static inline void writeByteBeforeWait(uint8_t data)
     {
       SPDR = data;
       asm volatile("nop\n");
       wait();
     }
 
-    static inline void writeByteAfterWait(uint8_t data) __attribute__((always_inline))
+    [[gnu::always_inline]]
+    static inline void writeByteAfterWait(uint8_t data)
     {
       wait();
       SPDR = data;
@@ -211,6 +228,10 @@ class FX
 
     static void begin(uint16_t datapage, uint16_t savepage); // Initializes flash memory. Use when program depends on both data and save data in flash memory
 
+    /// @brief Reads the JedecID of the attached flash chip.
+    /// @param id An object into which the ID will be read.
+    static void readJedecID(JedecID & id);
+
     static void readJedecID(JedecID* id);
 
     static bool detect(); //detect presence of initialized flash memory
@@ -225,35 +246,84 @@ class FX
 
     static void writeEnable();// Puts flash memory in write mode, required prior to any write command
 
+    [[gnu::noinline, gnu::naked]]
     static void seekCommand(uint8_t command, uint24_t address);// Write command and selects flash memory address. Required by any read or write command
 
-    static void seekData(uint24_t address); // selects flashaddress of program data area for reading and starts the first read
+    /// @brief selects flash address of program data for reading and starts the first read
+    /// @param address The base address of program data memory.
 
+    [[gnu::noinline]]
+    static void seekData(uint24_t address);
+
+    /// @brief Seeks an element of an array.
+    /// @tparam Type The type of the element to be read.
+    /// @param address The base address of the array.
+    /// @param index The index of the array element.
+    template<typename Type>
+    static void seekArrayElement(uint24_t address, uint8_t index)
+    {
+      // Note: By the laws of the language this should never happen.
+      // This assert exists only as a precaution against e.g. weird compiler extensions.
+      static_assert(sizeof(Type) > 0, "Cannot use a Type with a size of 0.");
+
+      seekData(address + (index * sizeof(Type)));
+    }
+
+    /// @brief Seeks a member of an object that is an element of an array.
+    /// @tparam Type The type of the elements in the array.
+    /// @param address The base address of the array.
+    /// @param index The index of the array element.
+    /// @param offset The offset of the member of the array element.
+    /// @note
+    /// It is intended that the value of `offset` be acquired using the
+    /// `offsetof` macro from `stddef.h`, as this is the safest way
+    /// to obtain the offset of an object member.
+    template<typename Type>
+    static void seekArrayElementMember(uint24_t address, uint8_t index, size_t offset)
+    {
+      // Note: By the laws of the language this should never happen.
+      // This assert exists only as a precaution against e.g. weird compiler extensions.
+      static_assert(sizeof(Type) > 0, "Cannot use a Type with a size of 0.");
+
+      seekData(address + ((index * sizeof(Type)) + offset));
+    }
+
+    [[gnu::noinline, gnu::naked]]
     static void seekDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t elementSize);
 
-    static void seekSave(uint24_t address) __attribute__ ((noinline)); // selects flashaddress of program save area for reading and starts the first read
+    [[gnu::noinline]]
+    static void seekSave(uint24_t address); // selects flashaddress of program save area for reading and starts the first read
 
-    static inline uint8_t readUnsafe() __attribute__((always_inline)) // read flash data without performing any checks and starts the next read.
+    [[gnu::always_inline]]
+    static inline uint8_t readUnsafe() // read flash data without performing any checks and starts the next read.
     {
       uint8_t result = SPDR;
       SPDR = 0;
       return result;
     };
 
-    static inline uint8_t readUnsafeEnd() __attribute__((always_inline))
+    [[gnu::always_inline]]
+    static inline uint8_t readUnsafeEnd()
     {
       uint8_t result = SPDR;
       disable();
       return result;
     };
 
-    static uint8_t readPendingUInt8() __attribute__ ((noinline));    //read a prefetched byte from the current flash location
+    [[gnu::noinline]]
+    static uint8_t readPendingUInt8();    //read a prefetched byte from the current flash location
 
-    static uint8_t readPendingLastUInt8() __attribute__ ((noinline));    //depreciated use readEnd() instead (see below)
+    /// @brief read the last prefetched byte from the current flash location and ends the read command.
+    /// This function performs the same action as readEnd()
 
-    static uint16_t readPendingUInt16() __attribute__ ((noinline)) __attribute__ ((naked)); //read a partly prefetched 16-bit word from the current flash location
+    [[gnu::noinline]]
+    static uint8_t readPendingLastUInt8();
 
-    static uint16_t readPendingLastUInt16() __attribute__ ((noinline)) __attribute__ ((naked)); //read a partly prefetched 16-bit word from the current flash location
+    [[gnu::noinline, gnu::naked]]
+    static uint16_t readPendingUInt16(); //read a partly prefetched 16-bit word from the current flash location
+
+    [[gnu::noinline, gnu::naked]]
+    static uint16_t readPendingLastUInt16(); //read a partly prefetched 16-bit word from the current flash location
 
     static uint24_t readPendingUInt24() ; //read a partly prefetched 24-bit word from the current flash location
 
@@ -263,19 +333,96 @@ class FX
 
     static uint32_t readPendingLastUInt32(); //read a partly prefetched a 32-bit word from the current flash location
 
+    /// @brief Reads an object from the current flash location.
+    /// @tparam Type The type of the object to be read.
+    /// @param object An object into which the target object will be read.
+    /// @warning
+    /// `Type` should be:
+    /// * _[trivially copyable](https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable)_
+    /// * a _[standard-layout](https://en.cppreference.com/w/cpp/language/data_members#Standard-layout)_ type
+    /// Attempting to read an object that does not meet these restrictions will result in _undefined behaviour_.
+    template<typename Type>
+    static void readObject(Type & object)
+    {
+      readBytes(reinterpret_cast<uint8_t *>(&object), sizeof(object));
+    }
+
     static void readBytes(uint8_t* buffer, size_t length);// read a number of bytes from the current flash location
 
     static void readBytesEnd(uint8_t* buffer, size_t length); // read a number of bytes from the current flash location and ends the read command
 
-    static uint8_t readEnd() __attribute__ ((noinline)); //read the last prefetched byte from the current flash location and ends the read command
+    /// @brief read the last prefetched byte from the current flash location and ends the read command
+
+    [[gnu::noinline]]
+    static uint8_t readEnd();
+
+    /// @brief Reads an object from the specified address in the game's data section.
+    /// @tparam Type The type of the object to be read.
+    /// @param address The address of the object in flash memory.
+    /// @param object An object into which the target object will be read.
+    /// @warning
+    /// `Type` should be:
+    /// * _[trivially copyable](https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable)_
+    /// * a _[standard-layout](https://en.cppreference.com/w/cpp/language/data_members#Standard-layout)_ type
+    /// Attempting to read an object that does not meet these restrictions will result in _undefined behaviour_.
+    template<typename Type>
+    static void readDataObject(uint24_t address, Type & object)
+    {
+      readDataBytes(address, reinterpret_cast<uint8_t *>(&object), sizeof(object));
+    }
 
     static void readDataBytes(uint24_t address, uint8_t* buffer, size_t length);
 
+    /// @brief Reads an object from the specified address in the game's save section.
+    /// @tparam Type The type of the object to be read.
+    /// @param address The address of the object in flash memory.
+    /// @param object An object into which the target object will be read.
+    /// @warning
+    /// `Type` should be:
+    /// * _[trivially copyable](https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable)_
+    /// * a _[standard-layout](https://en.cppreference.com/w/cpp/language/data_members#Standard-layout)_ type
+    /// Attempting to read an object that does not meet these restrictions will result in _undefined behaviour_.
+    template<typename Type>
+    static void readSaveObject(uint24_t address, Type & object)
+    {
+      readSaveBytes(address, reinterpret_cast<uint8_t *>(&object), sizeof(object));
+    }
+
     static void readSaveBytes(uint24_t address, uint8_t* buffer, size_t length);
 
-    static uint8_t loadGameState(uint8_t* gameState, size_t size) __attribute__ ((noinline)); //loads GameState from program exclusive 4K save data block.
+    /// @brief Loads a saved game state object from an exclusive 4KB save data block.
+    /// @tparam Type The type of the object to be loaded.
+    /// @param object The object into which the saved state will be loaded.
+    /// @warning
+    /// `Type` should be:
+    /// * _[trivially copyable](https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable)_
+    /// * a _[standard-layout](https://en.cppreference.com/w/cpp/language/data_members#Standard-layout)_ type
+    /// Attempting to read an object that does not meet these restrictions will result in _undefined behaviour_.
+    template<typename Type>
+    static uint8_t loadGameState(Type & object)
+    {
+      return loadGameState((uint8_t*)(&object), sizeof(object));
+    }
 
-    static void saveGameState(uint8_t* gameState, size_t size) __attribute__ ((noinline)); // Saves GameState in RAM to programes exclusive 4K save data block.
+    [[gnu::noinline]]
+    static uint8_t loadGameState(uint8_t* gameState, size_t size); //loads GameState from program exclusive 4K save data block.
+
+    /// @brief Saves a game state object into an exclusive 4KB save data block.
+    /// @tparam Type The type of the object to be saved.
+    /// @param object The object to be saved.
+    /// @warning
+    /// `Type` should be:
+    /// * _[trivially copyable](https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable)_
+    /// * a _[standard-layout](https://en.cppreference.com/w/cpp/language/data_members#Standard-layout)_ type
+    /// Attempting to read an object that does not meet these restrictions will result in _undefined behaviour_.
+    template<typename Type>
+    static void saveGameState(const Type & object)
+    {
+      saveGameState(reinterpret_cast<const uint8_t *>(&object), sizeof(object));
+    }
+
+    [[gnu::noinline]]
+    static void saveGameState(const uint8_t* gameState, size_t size); // Saves GameState in RAM to programes exclusive 4K save data block.
 
     static void eraseSaveBlock(uint16_t page); // erases 4K flash block
 
@@ -283,13 +430,16 @@ class FX
 
     static void waitWhileBusy(); // wait for outstanding erase or write to finish
 
-    static void drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8_t mode) __attribute__((noinline));
+    [[gnu::noinline]]
+    static void drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8_t mode);
 
-    static void setFrame(uint24_t frame, uint8_t repeat)__attribute__ ((noinline));
+    [[gnu::noinline]]
+    static void setFrame(uint24_t frame, uint8_t repeat);
 
     static uint8_t drawFrame();
 
-    static uint24_t drawFrame(uint24_t address) __attribute__((noinline)); // draw a list of bitmap images located at address
+    [[gnu::noinline]]
+    static uint24_t drawFrame(uint24_t address); // draw a list of bitmap images located at address
 
     static void readDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t elementSize, uint8_t* buffer, size_t length);
 
@@ -350,7 +500,8 @@ class FX
 
     /* general optimized functions */
 
-    static inline uint16_t multiplyUInt8 (uint8_t a, uint8_t b) __attribute__((always_inline))
+    [[gnu::always_inline]]
+    static inline uint16_t multiplyUInt8 (uint8_t a, uint8_t b)
     {
      #ifdef ARDUINO_ARCH_AVR
       uint16_t result;
@@ -369,7 +520,8 @@ class FX
      #endif
     }
 
-    static inline uint8_t bitShiftLeftUInt8(uint8_t bit) __attribute__((always_inline)) //fast (1 << (bit & 7))
+    [[gnu::always_inline]]
+    static inline uint8_t bitShiftLeftUInt8(uint8_t bit) //fast (1 << (bit & 7))
     {
      #ifdef ARDUINO_ARCH_AVR
       uint8_t result;
@@ -391,7 +543,8 @@ class FX
      #endif
     }
 
-    static inline uint8_t bitShiftRightUInt8(uint8_t bit) __attribute__((always_inline)) //fast (0x80 >> (bit & 7))
+    [[gnu::always_inline]]
+    static inline uint8_t bitShiftRightUInt8(uint8_t bit) //fast (0x80 >> (bit & 7))
     {
      #ifdef ARDUINO_ARCH_AVR
       uint8_t result;
@@ -413,7 +566,8 @@ class FX
      #endif
     }
 
-    static inline uint8_t bitShiftLeftMaskUInt8(uint8_t bit) __attribute__((always_inline)) //fast (0xFF << (bit & 7) & 0xFF)
+    [[gnu::always_inline]]
+    static inline uint8_t bitShiftLeftMaskUInt8(uint8_t bit) //fast (0xFF << (bit & 7) & 0xFF)
     {
      #ifdef ARDUINO_ARCH_AVR
       uint8_t result;
@@ -436,7 +590,8 @@ class FX
      #endif
     }
 
-    static inline uint8_t bitShiftRightMaskUInt8(uint8_t bit) __attribute__((always_inline)) //fast (0xFF >> (bit & 7))
+    [[gnu::always_inline]]
+    static inline uint8_t bitShiftRightMaskUInt8(uint8_t bit) //fast (0xFF >> (bit & 7))
     {
      #ifdef ARDUINO_ARCH_AVR
       uint8_t result;
@@ -458,6 +613,46 @@ class FX
       return 0xFF >> (bit & 7);
      #endif
     }
+
+    [[gnu::always_inline]]
+    static inline int16_t fastDiv8(int16_t i)
+    {
+     #ifdef ARDUINO_ARCH_AVR
+      asm volatile(
+        "asr  %B[i] \n"
+        "ror  %A[i] \n"
+        "asr  %B[i] \n"
+        "ror  %A[i] \n"
+        "asr  %B[i] \n"
+        "ror  %A[i] \n"
+      : [i] "+r" (i)
+      :     "0" (i)
+      );
+      return i;
+     #else
+      return i >> 3;
+     #endif
+    };
+
+    [[gnu::always_inline]]
+    static inline uint16_t fastDiv8(uint16_t i)
+    {
+     #ifdef ARDUINO_ARCH_AVR
+      asm volatile(
+        "lsr  %B[i] \n"
+        "ror  %A[i] \n"
+        "lsr  %B[i] \n"
+        "ror  %A[i] \n"
+        "lsr  %B[i] \n"
+        "ror  %A[i] \n"
+      : [i] "+r" (i)
+      :     "0"  (i)
+      );
+      return i;
+     #else
+      return i >> 3;
+     #endif
+    };
 
     static uint16_t programDataPage; // program read only data area in flash memory
     static uint16_t programSavePage; // program read and write data area in flash memory

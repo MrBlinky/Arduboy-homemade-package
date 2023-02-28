@@ -11,8 +11,15 @@ FrameControl FX::frameControl;
 
 uint8_t FX::writeByte(uint8_t data)
 {
-  writeByteBeforeWait(data);
-  return SPDR;
+  SPDR = data;
+  asm volatile("nop\n");
+  uint8_t result;
+  do
+  {
+    result = SPDR; //reading data here saves 1 extra cycle
+  }
+  while ((SPSR & (1 << SPIF)) == 0);
+  return result;
 }
 
 
@@ -33,8 +40,9 @@ void FX::begin(uint16_t developmentDataPage)
 {
   disableOLED();
  #ifdef ARDUINO_ARCH_AVR
-  const uint8_t* vector = FX_DATA_VECTOR_KEY_POINTER;
-  asm volatile(
+  const uint8_t* vector = (const uint8_t*)FX_DATA_VECTOR_KEY_POINTER;
+  asm volatile
+  (
     "lpm  r18, z+                       \n"
     "lpm  r19, z+                       \n"
     "lpm  r21, z+                       \n"
@@ -68,8 +76,9 @@ void FX::begin(uint16_t developmentDataPage, uint16_t developmentSavePage)
 {
   disableOLED();
  #ifdef ARDUINO_ARCH_AVR
-  const uint8_t* vector = FX_DATA_VECTOR_KEY_POINTER;
-  asm volatile(
+  const uint8_t* vector = (const uint8_t*)FX_DATA_VECTOR_KEY_POINTER;
+  asm volatile
+  (
     "lpm  r18, z+                       \n"
     "lpm  r19, z+                       \n"
     "lpm  r21, z+                       \n"
@@ -116,6 +125,16 @@ void FX::begin(uint16_t developmentDataPage, uint16_t developmentSavePage)
   }
  #endif
   wakeUp();
+}
+
+void FX::readJedecID(JedecID & id)
+{
+  enable();
+  writeByte(SFC_JEDEC_ID);
+  id.manufacturer = readByte();
+  id.device = readByte();
+  id.size = readByte();
+  disable();
 }
 
 void FX::readJedecID(JedecID* id)
@@ -180,14 +199,15 @@ void FX::seekCommand(uint8_t command, uint24_t address)
   enable();
  #ifdef ARDUINO_ARCH_AVR
   register uint8_t cmd asm("r24") = command; //assembly optimizer for AVR platform ~saves 12 bytes
-  asm volatile(
+  asm volatile
+  (
     "call %x2           \n"
     "mov  r24, %C[addr] \n"
     "call %x2           \n"
     "mov  r24, %B[addr] \n"
     "call %x2           \n"
     "mov  r24, %A[addr] \n"
-    "call %x2           \n"
+    "jmp  %x2           \n"
     : [cmd]   "+&r" (cmd)
     : [addr]  "r"   (address),
       [write] "i" (writeByte)
@@ -204,20 +224,25 @@ void FX::seekCommand(uint8_t command, uint24_t address)
 
 void FX::seekData(uint24_t address)
 {
+  uint24_t abs_address = address;
  #ifdef ARDUINO_ARCH_AVR
-  asm volatile( // assembly optimizer for AVR platform
-    "lds  r0, %[page]+0 \n"
-    "add  %B[addr], r0  \n"
-    "lds  r0, %[page]+1 \n"
-    "adc  %C[addr], r0  \n"
-    :[addr] "+&r" (address)
-    :[page] ""    (&programDataPage)
+  asm volatile
+  (
+    "mov  %A[abs], %A[addr]  \n"
+    "lds  %B[abs], %[page]+0 \n"
+    "add  %B[abs], %B[addr]  \n"
+    "lds  %C[abs], %[page]+1 \n"
+    "adc  %C[abs], %C[addr]  \n"
+    :
+     [abs]  "=r" (abs_address)
+    :[page] ""   (&programDataPage),
+     [addr] "r"  (address)
     :
   );
  #else // C++ version for non AVR platforms
-  address += (uint24_t)programDataPage << 8;
+  abs_address = address + (uint24_t)programDataPage << 8;
  #endif
-  seekCommand(SFC_READ, address);
+  seekCommand(SFC_READ, abs_address);
   SPDR = 0;
 }
 
@@ -225,7 +250,8 @@ void FX::seekData(uint24_t address)
 void FX::seekDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t elementSize)
 {
  #ifdef ARDUINO_ARCH_AVR
-  asm volatile (
+  asm volatile
+  (
     "   mul     %[index], %[size]   \n"
     "   brne    .+2                 \n" //treat size 0 as size 256
     "   mov     r1, %[index]        \n"
@@ -236,43 +262,49 @@ void FX::seekDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t 
     "   adc     %B[address], r1     \n"
     "   adc     %C[address], r21    \n"
     "   clr     r1                  \n"
-    : [address] "+&r" (address)
+    "   jmp     %x4                 \n" //seekData
+    :
     : [index]   "r"  (index),
       [offset]  "r"  (offset),
-      [size]    "r"  (elementSize)
+      [size]    "r"  (elementSize),
+      [address] "r"  (address),
+                ""   (seekData)
     : "r21"
   );
  #else
   address += size ? index * size + offset : index * 256 + offset;
- #endif
   seekData(address);
+ #endif
 }
 
 
 void FX::seekSave(uint24_t address)
 {
  #ifdef ARDUINO_ARCH_AVR
-  asm volatile( // assembly optimizer for AVR platform
-    "lds  r0, %[page]+0 \n"
-    "add  %B[addr], r0  \n"
-    "lds  r0, %[page]+1 \n"
-    "adc  %C[addr], r0  \n"
-    :[addr] "+&r" (address)
-    :[page] ""    (&programSavePage)
+  uint24_t abs_address = address;
+  asm volatile
+  (
+    "mov  %A[abs], %A[addr]  \n"
+    "lds  %B[abs], %[page]+0 \n"
+    "add  %B[abs], %B[addr]  \n"
+    "lds  %C[abs], %[page]+1 \n"
+    "adc  %C[abs], %C[addr]  \n"
+    :
+     [abs]  "=r" (abs_address)
+    :[page] ""    (&programSavePage),
+     [addr] "r"   (address)
+    :
   );
  #else // C++ version for non AVR platforms
-  address += (uint24_t)programSavePage << 8;
+  abs_address = address + (uint24_t)programSavePage << 8;
  #endif
-  seekCommand(SFC_READ, address);
+  seekCommand(SFC_READ, abs_address);
   SPDR = 0;
 }
 
 
 uint8_t FX::readPendingUInt8()
 {
- #ifdef ARDUINO_ARCH_AVR
-  asm volatile("ArduboyFX_cpp_readPendingUInt8:\n"); // create label for calls in FX::readPendingUInt16
- #endif
   wait();
   uint8_t result = SPDR;
   SPDR = 0;
@@ -282,7 +314,8 @@ uint8_t FX::readPendingUInt8()
 
 uint8_t FX::readPendingLastUInt8()
 {
-  return readEnd();
+  wait();                 // wait for a pending read to complete
+  return readUnsafeEnd(); // read last byte and disable flash
 }
 
 
@@ -291,10 +324,10 @@ uint16_t FX::readPendingUInt16()
  #ifdef ARDUINO_ARCH_AVR // Assembly implementation for AVR platform
   uint16_t result asm("r24"); // we want result to be assigned to r24,r25
   asm volatile
-  ( "ArduboyFX_cpp_readPendingUInt16:       \n"
-    "call ArduboyFX_cpp_readPendingUInt8    \n"
-    "mov  %B[val], r24                      \n"
-    "jmp  ArduboyFX_cpp_readPendingUInt8    \n"
+  (
+    "call %x1           \n"
+    "mov  %B[val], r24  \n"
+    "jmp  %x1           \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt8)
     :
@@ -311,7 +344,7 @@ uint16_t FX::readPendingLastUInt16()
  #ifdef ARDUINO_ARCH_AVR // Assembly implementation for AVR platform
   uint16_t result asm("r24"); // we want result to be assigned to r24,r25
   asm volatile
-  ( "ArduboyFX_cpp_readPendingLastUInt16:    \n"
+  (
     "call %x1           \n"
     "mov  %B[val], r24  \n"
     "jmp  %x2           \n"
@@ -333,11 +366,11 @@ uint24_t FX::readPendingUInt24()
   uint24_t result asm("r24"); // we want result to be assigned to r24,r25,r26
   asm volatile
   (
-    "call ArduboyFX_cpp_readPendingUInt16   \n"
-    "mov  %B[val], r24                      \n"
-    "call ArduboyFX_cpp_readPendingUInt8    \n"
-    "mov  %A[val], r24                      \n"
-    "mov  %C[val], r25                      \n"
+    "call %x1           \n"
+    "mov  %B[val], r24  \n"
+    "call %x2           \n"
+    "mov  %A[val], r24  \n"
+    "mov  %C[val], r25  \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt16),
       "" (readPendingUInt8)
@@ -379,9 +412,9 @@ uint32_t FX::readPendingUInt32()
   uint32_t result asm("r24"); // we want result to be assigned to r24,r25,r26,r27
   asm volatile
   (
-    "call ArduboyFX_cpp_readPendingUInt16   \n"
-    "movw  %C[val], r24                     \n"
-    "call ArduboyFX_cpp_readPendingUInt16   \n"
+    "call %x1           \n"
+    "movw  %C[val], r24 \n"
+    "call %x1           \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt16)
     :
@@ -399,11 +432,12 @@ uint32_t FX::readPendingLastUInt32()
   uint32_t result asm("r24"); // we want result to be assigned to r24,r25,r26,r27
   asm volatile
   (
-    "call ArduboyFX_cpp_readPendingUInt16       \n"
-    "movw  %C[val], r24                         \n"
-    "call ArduboyFX_cpp_readPendingLastUInt16   \n"
+    "call %x1           \n"
+    "movw  %C[val], r24 \n"
+    "call %x2           \n"
     : [val] "=&r" (result)
-    : "" (readPendingUInt16)
+    : "" (readPendingUInt16),
+      "" (readPendingLastUInt16)
     :
   );
   return result;
@@ -415,16 +449,52 @@ uint32_t FX::readPendingLastUInt32()
 
 void FX::readBytes(uint8_t* buffer, size_t length)
 {
+ #ifdef ARDUINO_ARCH_AVR
+  asm volatile(
+    "1:              \n"
+    "call %x2        \n"
+    "st z+,r24       \n"
+    "subi %A[len], 1 \n"
+    "sbci %B[len], 0 \n"
+    "brne 1b         \n"
+    :      "+&z" (buffer),
+     [len] "+&d" (length)
+    : ""    (readPendingUInt8)
+    : "r24"
+  );
+ #else
   for (size_t i = 0; i < length; i++)
   {
     buffer[i] = readPendingUInt8();
   }
+ #endif
 }
 
 
 void FX::readBytesEnd(uint8_t* buffer, size_t length)
 {
-  for (size_t i = 0; i <= length; i++)
+#ifdef ARDUINO_ARCH_AVR
+  asm volatile(
+    "1:                 \n"
+    "subi %A[len], 1    \n"
+    "sbci %B[len], 0    \n"
+    "breq 2f            \n"
+    "                   \n"
+    "call %x2           \n"
+    "st   z+, r24       \n"
+    "rjmp 1b            \n"
+    "2:                 \n"
+    "call %x3           \n"
+    "st   z, r24        \n"
+
+    :      "+&z" (buffer),
+     [len] "+&d" (length)
+    : ""    (readPendingUInt8),
+      ""    (readEnd)
+    : "r24"
+  );
+ #else
+   for (size_t i = 0; i <= length; i++)
   {
     if ((i+1) != length)
     buffer[i] = readPendingUInt8();
@@ -434,6 +504,7 @@ void FX::readBytesEnd(uint8_t* buffer, size_t length)
       break;
     }
   }
+ #endif
 }
 
 
@@ -517,7 +588,7 @@ uint8_t FX::loadGameState(uint8_t* gameState, size_t size) // ~54 bytes
   return result;
 }
 
-void FX::saveGameState(uint8_t* gameState, size_t size) // ~152 bytes locates free space in 4K save block and saves the GamesState.
+void FX::saveGameState(const uint8_t* gameState, size_t size) // ~152 bytes locates free space in 4K save block and saves the GamesState.
 {                                                       //            if there is not enough free space, the block is erased prior to saving
  register size_t sz asm("r18") = size;
  #ifdef ARDUINO_ARCH_AVR
@@ -697,7 +768,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     skiptop = -y & -8; // optimized -y / 8 * 8
     if (height - skiptop <= HEIGHT) renderheight = height - skiptop;
     else renderheight = HEIGHT + (-y & 7);
-    skiptop >>= 3;//pixels to displayrows
+    skiptop = fastDiv8(skiptop); // pixels to displayrows
   }
   else
   {
@@ -705,7 +776,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     if (y + height > HEIGHT) renderheight = HEIGHT - y;
     else renderheight = height;
   }
-  uint24_t offset = (uint24_t)(frame * ((height+7) / 8) + skiptop) * width + skipleft;
+  uint24_t offset = (uint24_t)(frame * (fastDiv8(height+(uint16_t)7)) + skiptop) * width + skipleft;
   if (mode & dbmMasked)
   {
     offset += offset; // double for masked bitmaps
@@ -874,20 +945,20 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
   {
     seekData(address);
     address += width;
-    mode &= ~(_BV(dbfExtraRow));
-    if (yshift != 1 && displayrow < (HEIGHT / 8 - 1)) mode |= _BV(dbfExtraRow);
+    mode &= ~((1 << dbfExtraRow));
+    if (yshift != 1 && displayrow < (HEIGHT / 8 - 1)) mode |= (1 << dbfExtraRow);
     uint8_t rowmask = 0xFF;
     if (renderheight < 8) rowmask = lastmask;
     wait();
     for (uint8_t c = 0; c < renderwidth; c++)
     {
       uint8_t bitmapbyte = readUnsafe();
-      if (mode & _BV(dbfReverseBlack)) bitmapbyte ^= rowmask;
+      if (mode & (1 << dbfReverseBlack)) bitmapbyte ^= rowmask;
       uint8_t maskbyte = rowmask;
-      if (mode & _BV(dbfWhiteBlack)) maskbyte = bitmapbyte;
-      if (mode & _BV(dbfBlack)) bitmapbyte = 0;
+      if (mode & (1 << dbfWhiteBlack)) maskbyte = bitmapbyte;
+      if (mode & (1 << dbfBlack)) bitmapbyte = 0;
       uint16_t bitmap = multiplyUInt8(bitmapbyte, yshift);
-      if (mode & _BV(dbfMasked))
+      if (mode & (1 << dbfMasked))
       {
         wait();
         uint8_t tmp = readUnsafe();
@@ -898,12 +969,12 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
       {
         uint8_t pixels = bitmap;
         uint8_t display = Arduboy2Base::sBuffer[displayoffset];
-        if ((mode & _BV(dbfInvert)) == 0) pixels ^= display;
+        if ((mode & (1 << dbfInvert)) == 0) pixels ^= display;
         pixels &= mask;
         pixels ^= display;
         Arduboy2Base::sBuffer[displayoffset] = pixels;
       }
-      if (mode & _BV(dbfExtraRow))
+      if (mode & (1 << dbfExtraRow))
       {
         uint8_t display = Arduboy2Base::sBuffer[displayoffset + WIDTH];
         uint8_t pixels = bitmap >> 8;
@@ -1318,5 +1389,3 @@ void FX::drawNumber(uint32_t n, int8_t digits) //
     while (digits < 0) {++digits; *--str = ' ';}
   drawString(str);
 }
-
-
