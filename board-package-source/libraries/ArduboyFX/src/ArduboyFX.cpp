@@ -415,6 +415,7 @@ uint32_t FX::readPendingUInt32()
     "call %x1           \n"
     "movw  %C[val], r24 \n"
     "call %x1           \n"
+    "movw  %A[val], r24 \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt16)
     :
@@ -435,6 +436,7 @@ uint32_t FX::readPendingLastUInt32()
     "call %x1           \n"
     "movw  %C[val], r24 \n"
     "call %x2           \n"
+    "movw  %A[val], r24 \n"
     : [val] "=&r" (result)
     : "" (readPendingUInt16),
       "" (readPendingLastUInt16)
