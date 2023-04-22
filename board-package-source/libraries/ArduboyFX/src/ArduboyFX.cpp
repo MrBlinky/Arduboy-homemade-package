@@ -250,6 +250,7 @@ void FX::seekData(uint24_t address)
 void FX::seekDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t elementSize)
 {
  #ifdef ARDUINO_ARCH_AVR
+  register uint24_t addr asm("r22") = address;
   asm volatile
   (
     "   mul     %[index], %[size]   \n"
@@ -258,21 +259,20 @@ void FX::seekDataArray(uint24_t address, uint8_t index, uint8_t offset, uint8_t 
     "   clr     r21                 \n" //use as alternative zero reg
     "   add     r0, %[offset]       \n"
     "   adc     r1, r21             \n"
-    "   add     %A[address], r0     \n"
-    "   adc     %B[address], r1     \n"
-    "   adc     %C[address], r21    \n"
+    "   add     %A[addr], r0        \n"
+    "   adc     %B[addr], r1        \n"
+    "   adc     %C[addr], r21       \n"
     "   clr     r1                  \n"
     "   jmp     %x4                 \n" //seekData
-    :
+    : [addr]    "+r"  (addr)
     : [index]   "r"  (index),
       [offset]  "r"  (offset),
       [size]    "r"  (elementSize),
-      [address] "r"  (address),
                 ""   (seekData)
     : "r21"
   );
  #else
-  address += size ? index * size + offset : index * 256 + offset;
+  address += elementSize ? index * elementSize + offset : index * 256 + offset;
   seekData(address);
  #endif
 }
@@ -648,9 +648,9 @@ void FX::saveGameState(const uint8_t* gameState, size_t size) // ~152 bytes loca
     "ld   r24, z+               \n" //saveState
     "call %x7                   \n" //writeByte
     "asr  r23                   \n" //shiftstate >>= 1
-    "brcc .+4                   \n" //if (shiftstate == -1) size--
+    "brcc .+6                   \n" //if (shiftstate == -1) size--
     "subi r18, 1                \n"
-    "sbci r19, 0               \n"
+    "sbci r19, 0                \n"
     "breq 6f                    \n" //size == 0
     "                           \n"
     "adiw r26, 1                \n" //addr++
@@ -1141,10 +1141,10 @@ uint24_t FX::drawFrame(uint24_t address) //~94 bytes
   );
   return address;
  #else
-  seekData(address);
-  address += sizeof(f);
   for(;;)
   {
+    seekData(address);
+    address += sizeof(f);
     f.x = readPendingUInt16();
     f.y = readPendingUInt16();
     f.bmp = readPendingUInt24();
