@@ -13,9 +13,12 @@
 // For Arduboy2Base::sBuffer, WIDTH, HEIGHT, CS_PORT ...
 #include <Arduboy2.h>
 
-#ifdef CART_CS_RX
+#if defined (CART_CS_RX)
   #define FX_PORT PORTD
   #define FX_BIT PORTD2
+#elif defined (CART_CS_HWB)
+  #define FX_PORT PORTE
+  #define FX_BIT PORTE2
 #else
   #define FX_PORT PORTD
   #define FX_BIT PORTD1
@@ -47,6 +50,7 @@ constexpr uint8_t dbfInvert       = 1; // bitmap is exclusive or-ed with display
 constexpr uint8_t dbfBlack        = 2; // bitmap will be blackened
 constexpr uint8_t dbfReverseBlack = 3; // reverses bitmap data
 constexpr uint8_t dbfMasked       = 4; // bitmap contains mask data
+constexpr uint8_t dbfFlip         = 5; // mirror bitmap
 constexpr uint8_t dbfExtraRow     = 7; // ignored (internal use)
 constexpr uint8_t dbfEndFrame     = 6; // last bitmap image of a frame
 constexpr uint8_t dbfLastFrame    = 7; // last bitmap image of the last frame
@@ -61,6 +65,10 @@ constexpr uint8_t dbmWhite   = (1 << dbfWhiteBlack);      // white pixels in bit
                                                         //(same as sprites drawSelfMasked)
 
 constexpr uint8_t dbmInvert  = (1 << dbfInvert);          // when a pixel in bitmap has a different color than on display the
+                                                        // pixel on display will be drawn as white. In all other cases the
+                                                        // pixel will be drawn as black
+
+constexpr uint8_t dbmFlip  = (1 << dbfFlip);            // when a pixel in bitmap has a different color than on display the
                                                         // pixel on display will be drawn as white. In all other cases the
                                                         // pixel will be drawn as black
 // additional drawBitmap modes

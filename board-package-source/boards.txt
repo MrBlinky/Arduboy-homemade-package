@@ -252,6 +252,11 @@ arduboy-homemade.menu.flashselect.rx.build.flash_cs=-DCART_CS_RX
 arduboy-homemade.menu.flashselect.rx.build.flashselect=
 arduboy-homemade.menu.flashselect.rx.bootloader_flashselect=
 
+arduboy-homemade.menu.flashselect.hwb=Port E2/HWB
+arduboy-homemade.menu.flashselect.hwb.build.flash_cs=-DCART_CS_HWB
+arduboy-homemade.menu.flashselect.hwb.build.flashselect=-hwb
+arduboy-homemade.menu.flashselect.hwb.bootloader_flashselect=
+
 # Display contrast adjustment #
 
 arduboy-homemade.menu.contrast.normal=Normal
@@ -321,11 +326,10 @@ arduboy-fx.bootloader.lock_bits=0x2F
 
 arduboy-fx.build.mcu=atmega32u4
 arduboy-fx.build.f_cpu=16000000L
-arduboy-fx.build.variant=arduboy
+arduboy-fx.build.variant=arduboy-fx
 arduboy-fx.build.board=AVR_ARDUBOY
 arduboy-fx.build.vid=0x2341
 arduboy-fx.build.pid=0x8036
-arduboy-fx.build.variant=arduboy
 arduboy-fx.build.usb_manufacturer="Arduboy Inc"
 arduboy-fx.build.usb_product="Arduboy"
 arduboy-fx.build.board=AVR_ARDUBOY
@@ -403,11 +407,10 @@ arduboy-fx-devkit.bootloader.lock_bits=0x2F
 
 arduboy-fx-devkit.build.mcu=atmega32u4
 arduboy-fx-devkit.build.f_cpu=16000000L
-arduboy-fx-devkit.build.variant=arduboy
+arduboy-fx-devkit.build.variant=arduboy-fx
 arduboy-fx-devkit.build.board=AVR_ARDUBOY
 arduboy-fx-devkit.build.vid=0x2341
 arduboy-fx-devkit.build.pid=0x8036
-arduboy-fx-devkit.build.variant=arduboy
 arduboy-fx-devkit.build.usb_manufacturer="Arduboy Inc"
 arduboy-fx-devkit.build.usb_product="Arduboy"
 arduboy-fx-devkit.build.board=AVR_ARDUBOY
@@ -432,6 +435,87 @@ arduboy-fx-devkit.menu.boot.cathy3kg=Cathy3K (starts with game)
 arduboy-fx-devkit.menu.boot.cathy3kg.upload.maximum_size=29696
 arduboy-fx-devkit.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
 arduboy-fx-devkit.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-sda.hex
+
+################################################################################
+# Arduboy mini board
+################################################################################
+
+arduboy-mini.name=Arduboy mini
+
+#Arduino Leonardo
+arduboy-mini.vid.0=0x2341
+arduboy-mini.pid.0=0x0036
+arduboy-mini.vid.1=0x2341
+arduboy-mini.pid.1=0x8036
+arduboy-mini.vid.2=0x2A03
+arduboy-mini.pid.2=0x0036
+arduboy-mini.vid.3=0x2A03
+arduboy-mini.pid.3=0x8036
+#Arduino Micro
+arduboy-mini.vid.4=0x2341
+arduboy-mini.pid.4=0x0037
+arduboy-mini.vid.5=0x2341
+arduboy-mini.pid.5=0x8037
+arduboy-mini.vid.6=0x2A03
+arduboy-mini.pid.6=0x0037
+arduboy-mini.vid.7=0x2A03
+arduboy-mini.pid.7=0x8037
+#Genuino Micro
+arduboy-mini.vid.8=0x2341
+arduboy-mini.pid.8=0x8237
+#Sparkfun Pro Micro 5V
+arduboy-mini.vid.8=0x1b4f
+arduboy-mini.pid.8=0x9205
+arduboy-mini.vid.9=0x1b4f
+arduboy-mini.pid.9=0x9206
+
+arduboy-mini.upload.tool=arduino:avrdude
+arduboy-mini.upload.protocol=avr109
+arduboy-mini.upload.maximum_size=29696
+arduboy-mini.upload.maximum_data_size=2560
+arduboy-mini.upload.speed=57600
+arduboy-mini.upload.disable_flushing=true
+arduboy-mini.upload.use_1200bps_touch=true
+arduboy-mini.upload.wait_for_upload_port=true
+
+arduboy-mini.bootloader.tool=arduino:avrdude
+arduboy-mini.bootloader.low_fuses=0xff
+arduboy-mini.bootloader.high_fuses=0xd2
+arduboy-mini.bootloader.extended_fuses=0xcb
+arduboy-mini.bootloader.file=cathy3k/arduboymini-bootloader-menu.hex
+arduboy-mini.bootloader.unlock_bits=0x3F
+arduboy-mini.bootloader.lock_bits=0x2F
+
+arduboy-mini.build.mcu=atmega32u4
+arduboy-mini.build.f_cpu=16000000L
+arduboy-mini.build.variant=arduboy-mini
+arduboy-mini.build.board=AVR_ARDUBOY
+arduboy-mini.build.vid=0x2341
+arduboy-mini.build.pid=0x8036
+arduboy-mini.build.usb_manufacturer="Arduboy Inc"
+arduboy-mini.build.usb_product="Arduboy"
+arduboy-mini.build.board=AVR_ARDUBOY
+arduboy-mini.build.core=arduino:arduino
+arduboy-mini.build.flash_cs=-DCART_CS_HWB
+arduboy-mini.build.extra_flags=-DARDUBOY_10 {build.flash_cs} {build.usb_flags}
+
+# Arduboy mini menu options ######################################################
+
+arduboy-mini.menu.core.arduboy-core=Arduboy optimized core
+arduboy-mini.menu.core.arduboy-core.build.core=arduboy
+
+arduboy-mini.menu.core.arduino-core=Standard Arduino core
+arduboy-mini.menu.core.arduino-core.build.core=arduino:arduino
+
+arduboy-mini.menu.boot.cathy3k=Cathy3K (starts with menu)
+arduboy-mini.menu.boot.cathy3k.upload.maximum_size=29696
+arduboy-mini.menu.boot.cathy3k.bootloader.high_fuses=0xd2
+arduboy-mini.menu.boot.cathy3k.bootloader.file=cathy3k/arduboymini-bootloader-menu.hex
+
+arduboy-mini.menu.boot.cathy3kg=Cathy3K (starts with game)
+arduboy-mini.menu.boot.cathy3kg.upload.maximum_size=29696
+arduboy-mini.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
+arduboy-mini.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboymini-bootloader-game.hex
 
 ################################################################################
 # Arduboy board

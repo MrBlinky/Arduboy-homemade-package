@@ -787,6 +787,7 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
   address += offset + 4; // skip non rendered pixels, width, height
   int8_t displayrow = (y >> 3) + skiptop;
   uint16_t displayoffset = displayrow * WIDTH + x + skipleft;
+  if (mode & dbmFlip) displayoffset += renderwidth - 1;
   uint8_t yshift = bitShiftLeftUInt8(y); //shift by multiply
 #ifdef ARDUINO_ARCH_AVR
   uint8_t rowmask;
@@ -893,15 +894,20 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
     "   st      %a[buffer], %B[bitmap]              \n"
     "5: ;render_next:                               \n"
     "   clr     r1                                  \n" // restore zero reg
-    "   subi    %A[buffer], lo8(%[displaywidth]-1)  \n"
-    "   sbci    %B[buffer], hi8(%[displaywidth]-1)  \n"
+    "   sbrc    %[mode], 5                          \n" // flip mode:
+    "   subi    %A[buffer], lo8(%[displaywidth]+1)  \n" // buffer -= WIDTH + 1
+    "   sbrs    %[mode], 5                          \n" // else
+    "   subi    %A[buffer], lo8(%[displaywidth]-1)  \n" // buffer -= WIDTH - 1
+    "   sbc     %B[buffer], r1                      \n"
     "   dec     r25                                 \n"
     "   brne    2b ;render_column                   \n" // for (c < renderheigt) loop
     "                                               \n"
-    "   subi    %A[buffer], lo8(-%[displaywidth])   \n" // buffer += WIDTH - renderwidth
-    "   sbci    %B[buffer], hi8(-%[displaywidth])   \n"
-    "   sub     %A[buffer], %[renderwidth]          \n"
-    "   sbc     %B[buffer], r1                      \n"
+    "   mov     r24, %[renderwidth]                 \n"
+    "   sbrs    %[mode], 5                          \n" // flip:    + renderwidth + WIDTH
+    "   neg     r24                                 \n" // no flip: - renderwidth + WIDTH
+    "   subi    r24, lo8(-%[displaywidth])          \n"
+    "   add     %A[buffer], r24                     \n" // buffer += WIDTH +/- renderwidth
+    "   adc     %B[buffer], r1                      \n"
     "   subi    %[renderheight], 8                  \n" // reinderheight -= 8
     "   inc     %[displayrow]                       \n" // displayrow++
     "   in      r0, %[spsr]                         \n" // clear SPI status
