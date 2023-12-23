@@ -991,9 +991,10 @@ void FX::drawBitmap(int16_t x, int16_t y, uint24_t address, uint8_t frame, uint8
         pixels ^= display;
         Arduboy2Base::sBuffer[displayoffset + WIDTH] = pixels;
       }
-      displayoffset++;
+      (mode & (1 << dbfFlip)) ? displayoffset-- : displayoffset++;
     }
-    displayoffset += WIDTH - renderwidth;
+    displayoffset += WIDTH;
+    (mode & (1 << dbfFlip)) ?  displayoffset += renderwidth : displayoffset -= renderwidth;
     displayrow ++;
     renderheight -= 8;
     readEnd();
