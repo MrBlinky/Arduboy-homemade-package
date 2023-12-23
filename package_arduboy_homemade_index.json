@@ -460,8 +460,8 @@
           },
           "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.4.0.zip",
           "archiveFileName": "arduboy-homemade-1.4.0.zip",
-          "checksum": "SHA-256:27e8e6fb9e60aa422766af81bd74203421e84e8f10e65020c6697193e0ebf4b7",
-          "size": "1405966",
+          "checksum": "SHA-256:a07bb220f61f5cce6922fe7f354ca162dfa43c10a4c47307954d68959a2d63ee",
+          "size": "1385746",
           "boards": [
             {"name": "Arduboy production"},
             {"name": "Arduboy DevKit"},
