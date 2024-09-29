@@ -7,6 +7,7 @@ menu.display=Display
 menu.contrast=Display contrast
 menu.boot=Bootloader
 menu.flashselect=Flash select
+menu.rtc=RealTimeClock
 
 ################################################################################
 # Arduboy homemade board
@@ -320,7 +321,9 @@ arduboy-fx.bootloader.tool=arduino:avrdude
 arduboy-fx.bootloader.low_fuses=0xff
 arduboy-fx.bootloader.high_fuses=0xd2
 arduboy-fx.bootloader.extended_fuses=0xcb
-arduboy-fx.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
+arduboy-fx.bootloader.sub=cathy3k/
+arduboy-fx.bootloader.file=arduboy3k-bootloader-
+arduboy-fx.bootloader.app=menu-sda.hex
 arduboy-fx.bootloader.unlock_bits=0x3F
 arduboy-fx.bootloader.lock_bits=0x2F
 
@@ -348,12 +351,22 @@ arduboy-fx.menu.core.arduino-core.build.core=arduino:arduino
 arduboy-fx.menu.boot.cathy3k=Cathy3K (starts with menu)
 arduboy-fx.menu.boot.cathy3k.upload.maximum_size=29696
 arduboy-fx.menu.boot.cathy3k.bootloader.high_fuses=0xd2
-arduboy-fx.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
+arduboy-fx.menu.boot.cathy3k.bootloader.app=menu-sda.hex
 
 arduboy-fx.menu.boot.cathy3kg=Cathy3K (starts with game)
 arduboy-fx.menu.boot.cathy3kg.upload.maximum_size=29696
 arduboy-fx.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
-arduboy-fx.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-sda.hex
+arduboy-fx.menu.boot.cathy3kg.bootloader.app=game-sda.hex
+
+arduboy-fx.menu.rtc.none=None
+arduboy-fx.menu.rtc.none.bootloader.sub=cathy3k/
+arduboy-fx.menu.rtc.none.bootloader.file=arduboy3k-bootloader-
+arduboy-fx.menu.rtc.ds3231=DS3231
+arduboy-fx.menu.rtc.ds3231.bootloader.sub=cathy3k-rtc/
+arduboy-fx.menu.rtc.ds3231.bootloader.file=arduboy3k-bootloader-ds3231-
+arduboy-fx.menu.rtc.rv3028=RV3028
+arduboy-fx.menu.rtc.rv3028.bootloader.sub=cathy3k-rtc/
+arduboy-fx.menu.rtc.rv3028.bootloader.file=arduboy3k-bootloader-rv3028-
 
 ################################################################################
 # Arduboy FX DevKit board
@@ -401,7 +414,9 @@ arduboy-fx-devkit.bootloader.tool=arduino:avrdude
 arduboy-fx-devkit.bootloader.low_fuses=0xff
 arduboy-fx-devkit.bootloader.high_fuses=0xd2
 arduboy-fx-devkit.bootloader.extended_fuses=0xcb
-arduboy-fx-devkit.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
+arduboy-fx-devkit.bootloader.sub=cathy3k/
+arduboy-fx-devkit.bootloader.file=arduboy3k-bootloader-
+arduboy-fx-devkit.bootloader.app=menu.hex
 arduboy-fx-devkit.bootloader.unlock_bits=0x3F
 arduboy-fx-devkit.bootloader.lock_bits=0x2F
 
@@ -429,12 +444,22 @@ arduboy-fx-devkit.menu.core.arduino-core.build.core=arduino:arduino
 arduboy-fx-devkit.menu.boot.cathy3k=Cathy3K (starts with menu)
 arduboy-fx-devkit.menu.boot.cathy3k.upload.maximum_size=29696
 arduboy-fx-devkit.menu.boot.cathy3k.bootloader.high_fuses=0xd2
-arduboy-fx-devkit.menu.boot.cathy3k.bootloader.file=cathy3k/arduboy3k-bootloader-menu-sda.hex
+arduboy-fx-devkit.menu.boot.cathy3k.bootloader.app=menu.hex
 
 arduboy-fx-devkit.menu.boot.cathy3kg=Cathy3K (starts with game)
 arduboy-fx-devkit.menu.boot.cathy3kg.upload.maximum_size=29696
 arduboy-fx-devkit.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
-arduboy-fx-devkit.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboy3k-bootloader-game-sda.hex
+arduboy-fx-devkit.menu.boot.cathy3kg.bootloader.app=game.hex
+
+arduboy-fx-devkit.menu.rtc.none=None
+arduboy-fx-devkit.menu.rtc.none.bootloader.sub=cathy3k/
+arduboy-fx-devkit.menu.rtc.none.bootloader.file=arduboy3k-bootloader-
+arduboy-fx-devkit.menu.rtc.ds3231=DS3231
+arduboy-fx-devkit.menu.rtc.ds3231.bootloader.sub=cathy3k-rtc/
+arduboy-fx-devkit.menu.rtc.ds3231.bootloader.file=arduboy3k-bootloader-ds3231-
+arduboy-fx-devkit.menu.rtc.rv3028=RV3028
+arduboy-fx-devkit.menu.rtc.rv3028.bootloader.sub=cathy3k-rtc/
+arduboy-fx-devkit.menu.rtc.rv3028.bootloader.file=arduboy3k-bootloader-rv3028-
 
 ################################################################################
 # Arduboy mini board
@@ -482,7 +507,9 @@ arduboy-mini.bootloader.tool=arduino:avrdude
 arduboy-mini.bootloader.low_fuses=0xff
 arduboy-mini.bootloader.high_fuses=0xd2
 arduboy-mini.bootloader.extended_fuses=0xcb
-arduboy-mini.bootloader.file=cathy3k/arduboymini-bootloader-menu.hex
+arduboy-mini.bootloader.sub=cathy3k/
+arduboy-mini.bootloader.file=arduboymini-bootloader-
+arduboy-mini.bootloader.app=menu.hex
 arduboy-mini.bootloader.unlock_bits=0x3F
 arduboy-mini.bootloader.lock_bits=0x2F
 
@@ -510,12 +537,22 @@ arduboy-mini.menu.core.arduino-core.build.core=arduino:arduino
 arduboy-mini.menu.boot.cathy3k=Cathy3K (starts with menu)
 arduboy-mini.menu.boot.cathy3k.upload.maximum_size=29696
 arduboy-mini.menu.boot.cathy3k.bootloader.high_fuses=0xd2
-arduboy-mini.menu.boot.cathy3k.bootloader.file=cathy3k/arduboymini-bootloader-menu.hex
+arduboy-mini.menu.boot.cathy3k.bootloader.app=menu.hex
 
 arduboy-mini.menu.boot.cathy3kg=Cathy3K (starts with game)
 arduboy-mini.menu.boot.cathy3kg.upload.maximum_size=29696
 arduboy-mini.menu.boot.cathy3kg.bootloader.high_fuses=0xd2
-arduboy-mini.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboymini-bootloader-game.hex
+arduboy-mini.menu.boot.cathy3kg.bootloader.app=game.hex
+
+arduboy-mini.menu.rtc.none=None
+arduboy-mini.menu.rtc.none.bootloader.sub=cathy3k/
+arduboy-mini.menu.rtc.none.bootloader.file=arduboymini-bootloader-
+arduboy-mini.menu.rtc.ds3231=DS3231
+arduboy-mini.menu.rtc.ds3231.bootloader.sub=cathy3k-rtc/
+arduboy-mini.menu.rtc.ds3231.bootloader.file=arduboymini-bootloader-ds3231-
+arduboy-mini.menu.rtc.rv3028=RV3028
+arduboy-mini.menu.rtc.rv3028.bootloader.sub=cathy3k-rtc/
+arduboy-mini.menu.rtc.rv3028.bootloader.file=arduboymini-bootloader-rv3028-
 
 ################################################################################
 # Arduboy board
