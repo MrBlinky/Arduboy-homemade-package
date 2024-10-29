@@ -22,6 +22,8 @@
 
 #include "../arduboy-leonardo/pins_arduino.h"
 
+#define OLED_CS 8
+
 #undef LED_BUILTIN
 
 #define LED_BUILTIN 17
