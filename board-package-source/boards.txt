@@ -73,8 +73,8 @@ arduboy-homemade.menu.based_on.leonardo.build.pid=0x8036
 arduboy-homemade.menu.based_on.leonardo.build.variant=arduboy-leonardo
 arduboy-homemade.menu.based_on.leonardo.build.usb_product="ABL{usb_product_postfix}"
 arduboy-homemade.menu.based_on.leonardo.org_bootloader_file=caterina/Caterina-Leonardo.hex
-arduboy-homemade.menu.based_on.leonardo.c3k_bootloader_file={bootloader_dir}arduboy3k-bootloader-menu{bootloader_display}{bootloader_flashselect}.hex
-arduboy-homemade.menu.based_on.leonardo.c3kg_bootloader_file={bootloader_dir}arduboy3k-bootloader-game{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.leonardo.c3k_bootloader_file={bootloader_dir}arduboy3k-bootloader{bootloader_rtc}-menu{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.leonardo.c3kg_bootloader_file={bootloader_dir}arduboy3k-bootloader{bootloader_rtc}-game{bootloader_display}{bootloader_flashselect}.hex
 
 # micro #
 arduboy-homemade.menu.based_on.micro=Arduino/Genuino Micro
@@ -84,8 +84,8 @@ arduboy-homemade.menu.based_on.micro.build.pid=0x8037
 arduboy-homemade.menu.based_on.micro.build.variant=arduboy-micro
 arduboy-homemade.menu.based_on.micro.build.usb_product="ABM{usb_product_postfix}"
 arduboy-homemade.menu.based_on.micro.org_bootloader_file=caterina/Caterina-Micro.hex
-arduboy-homemade.menu.based_on.micro.c3k_bootloader_file={bootloader_dir}arduboy3k-bootloader-menu-micro{bootloader_display}{bootloader_flashselect}.hex
-arduboy-homemade.menu.based_on.micro.c3kg_bootloader_file={bootloader_dir}arduboy3k-bootloader-game-micro{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.micro.c3k_bootloader_file={bootloader_dir}arduboy3k-bootloader{bootloader_rtc}-menu-micro{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.micro.c3kg_bootloader_file={bootloader_dir}arduboy3k-bootloader{bootloader_rtc}-game-micro{bootloader_display}{bootloader_flashselect}.hex
 
 # (SparkFun) Pro Micro 5V #
 arduboy-homemade.menu.based_on.promicro=Pro Micro 5V - Standard wiring
@@ -98,8 +98,8 @@ arduboy-homemade.menu.based_on.promicro.build.variant=arduboy-promicro
 arduboy-homemade.menu.based_on.promicro.build.usb_product="ABP{usb_product_postfix}"
 arduboy-homemade.menu.based_on.promicro.build.board=AVR_PROMICRO
 arduboy-homemade.menu.based_on.promicro.org_bootloader_file=caterina/Caterina-promicro16.hex
-arduboy-homemade.menu.based_on.promicro.c3k_bootloader_file={bootloader_dir}arduboy3k-bootloader-menu{bootloader_display}{bootloader_flashselect}.hex
-arduboy-homemade.menu.based_on.promicro.c3kg_bootloader_file={bootloader_dir}arduboy3k-bootloader-game{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.promicro.c3k_bootloader_file={bootloader_dir}arduboy3k-bootloader{bootloader_rtc}-menu{bootloader_display}{bootloader_flashselect}.hex
+arduboy-homemade.menu.based_on.promicro.c3kg_bootloader_file={bootloader_dir}arduboy3k-bootloader{bootloader_rtc}-game{bootloader_display}{bootloader_flashselect}.hex
 
 arduboy-homemade.menu.based_on.promicro_alt=Pro Micro 5V - Alternate wiring
 #arduboy-homemade.menu.based_on.promicro_alt.build.vid=0x1b4f
