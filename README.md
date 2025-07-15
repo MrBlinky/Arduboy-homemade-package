@@ -9,9 +9,9 @@ Arduino IDE board package for Arduboy and homemade versions with the following a
 * Start Arduino IDE and press **CTRL + comma** to select properties.
 * Copy and paste the URL below in **Additional Boards Manager URLs:** text box and click on **OK**
 ```
-https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/package_arduboy_homemade_index.json
+https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/main/package_arduboy_homemade_index.json
 ```
-![preferences](https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/images/preferences.png)
+![preferences](https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/main/images/preferences.png)
 After this:
 * Go to **Tools > Boards > Board manager**
 * In the text box type **homemade** or **Arduboy homemade**
@@ -19,7 +19,7 @@ After this:
 
 You can now select **Arduboy, Arduboy DevKit** and **Homemade Arduboy boards** from the Tools menu.
 
-![menu](https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/master/images/menu.gif)
+![menu](https://raw.githubusercontent.com/MrBlinky/Arduboy-homemade-package/main/images/menu.gif)
 
 ## Libraries
 
@@ -86,7 +86,7 @@ Flash cart support (new design used by Arduboy FX) :
 When using serial flash with the Pro Micro standard wiring, OLED_CS (chip select) cannot be grounded (always active).
 In this case a simple circuit with a general purpose PNP transistor and two resistors or a single inverter chip like the 74LVC1G04 can be used to deactive OLED_CS while CART_CS is active.
 
-[schematic](https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/images/transistor-cs-driver.png)
+[schematic](https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/images/transistor-cs-driver.png)
 
 (*****)
 support for I2C displays has been added. When using an I2C display the SDA pin should be connected to pin 4 PORTD4 and the SCL pin to pin 6 PORTD7 unless you're using a Pro Micro with the alternate wiring scherme. In that case SCL pin should be connected to pin 1/TXO PORTD3.
