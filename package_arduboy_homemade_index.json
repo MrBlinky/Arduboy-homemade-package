@@ -18,7 +18,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homebrew-1.2.0.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homebrew-1.2.0.zip",
           "archiveFileName": "arduboy-homebrew-1.2.0.zip",
           "checksum": "SHA-256:0ac9ba429cd8ce01807a34b16f8b09513b6d83d42eaaedc75ec8320163e9c445",
           "size": "798690",
@@ -40,7 +40,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homebrew-1.2.1.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homebrew-1.2.1.zip",
           "archiveFileName": "arduboy-homebrew-1.2.1.zip",
           "checksum": "SHA-256:8bb978e45cf0b7de971e76d9b876fe0833bfb2162efb54e2125bb016c9890198",
           "size": "796699",
@@ -172,7 +172,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.2.7a.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.2.7a.zip",
           "archiveFileName": "arduboy-homemade-1.2.7a.zip",
           "checksum": "SHA-256:635ccc75c3a2c23c656ea960372d850c1ae6eb68a1f3ea15c7231e024829b931",
           "size": "1002733",
@@ -194,7 +194,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.2.8.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.2.8.zip",
           "archiveFileName": "arduboy-homemade-1.2.8.zip",
           "checksum": "SHA-256:f2eabf2e4385c88ea89f1c256627920d61fe51765fe48d9a18d6363ceb04cdf2",
           "size": "1002888",
@@ -216,7 +216,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.2.9.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.2.9.zip",
           "archiveFileName": "arduboy-homemade-1.2.9.zip",
           "checksum": "SHA-256:c04b01d3b0bd6cff89067c73b0407b12ecb142fa1e8145be7bdeeba9329f9463",
           "size": "1274735",
@@ -238,7 +238,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.0.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.0.zip",
           "archiveFileName": "arduboy-homemade-1.3.0.zip",
           "checksum": "SHA-256:521b41a1959ac8ed6cee870c2e81de6b51de8f92584ec38487ac6f86cfa71513",
           "size": "1320635",
@@ -260,7 +260,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.1.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.1.zip",
           "archiveFileName": "arduboy-homemade-1.3.1.zip",
           "checksum": "SHA-256:b713b328efb48e92d567bb445d9f21e713706ccd3eb81519fa4fbaef7cb6250c",
           "size": "1321824",
@@ -282,7 +282,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.2.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.2.zip",
           "archiveFileName": "arduboy-homemade-1.3.2.zip",
           "checksum": "SHA-256:939e5eafe7ff646e3007b6e566bd69f81abd6c7a84a9347c1f60048698b077e9",
           "size": "1322502",
@@ -304,7 +304,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.3.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.3.zip",
           "archiveFileName": "arduboy-homemade-1.3.3.zip",
           "checksum": "SHA-256:ac6f4f87a049af4e27ae962cce5906fb48445816b16c00e95891ee4b71cbdcfe",
           "size": "1322538",
@@ -326,7 +326,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.4.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.4.zip",
           "archiveFileName": "arduboy-homemade-1.3.4.zip",
           "checksum": "SHA-256:ee12591516c7d860246f4332ad5acc26c4a967d6ec068a07ccd1b813cceb3a37",
           "size": "1339178",
@@ -348,7 +348,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.5.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.5.zip",
           "archiveFileName": "arduboy-homemade-1.3.5.zip",
           "checksum": "SHA-256:6ec920760ecf8e1850ad9c8d713d222fba9cc7dae60dde4f466bbfee2b00dc4f",
           "size": "1339300",
@@ -370,7 +370,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.6.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.6.zip",
           "archiveFileName": "arduboy-homemade-1.3.6.zip",
           "checksum": "SHA-256:1430f3c358094aff232659696be877e73d1071ce8011c04a2f6d46d5d269f688",
           "size": "1356284",
@@ -392,7 +392,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.7.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.7.zip",
           "archiveFileName": "arduboy-homemade-1.3.7.zip",
           "checksum": "SHA-256:494a4e5a3c4ee165645dc6c362211dc65dae4af4f3aaf0e8ddb28942af6767d5",
           "size": "1362750",
@@ -414,7 +414,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.8a.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.8a.zip",
           "archiveFileName": "arduboy-homemade-1.3.8.zip",
           "checksum": "SHA-256:80e60ba5b3510f0b832d6a13a7215a7d1a6f0980d1a4c2ebafe634d009011f22",
           "size": "1385083",
@@ -436,7 +436,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.3.9.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.3.9.zip",
           "archiveFileName": "arduboy-homemade-1.3.9.zip",
           "checksum": "SHA-256:a4304ea8370d34baf6edfaee07ca76a034e28975c740c6faa2fe86d5d4f0948f",
           "size": "1375245",
@@ -458,7 +458,7 @@
           "help": {
             "online": "http://community.arduboy.com/"
           },
-          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/master/board-package/arduboy-homemade-1.4.0.zip",
+          "url": "https://github.com/MrBlinky/Arduboy-homemade-package/raw/main/board-package/arduboy-homemade-1.4.0.zip",
           "archiveFileName": "arduboy-homemade-1.4.0.zip",
           "checksum": "SHA-256:a07bb220f61f5cce6922fe7f354ca162dfa43c10a4c47307954d68959a2d63ee",
           "size": "1385746",
