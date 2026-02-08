@@ -294,6 +294,82 @@ arduboy-homemade.menu.rtc.rv3028.bootloader_rtc=-rv3028
 arduboy-homemade.menu.rtc.rv3028.bootloader_dir=cathy3k-rtc/
 
 ################################################################################
+# Arduboy FX-C board
+################################################################################
+
+arduboy-fxc.name=Arduboy FX-C
+
+#Arduino Leonardo
+arduboy-fxc.vid.0=0x2341
+arduboy-fxc.pid.0=0x0036
+arduboy-fxc.vid.1=0x2341
+arduboy-fxc.pid.1=0x8036
+arduboy-fxc.vid.2=0x2A03
+arduboy-fxc.pid.2=0x0036
+arduboy-fxc.vid.3=0x2A03
+arduboy-fxc.pid.3=0x8036
+#Arduino Micro
+arduboy-fxc.vid.4=0x2341
+arduboy-fxc.pid.4=0x0037
+arduboy-fxc.vid.5=0x2341
+arduboy-fxc.pid.5=0x8037
+arduboy-fxc.vid.6=0x2A03
+arduboy-fxc.pid.6=0x0037
+arduboy-fxc.vid.7=0x2A03
+arduboy-fxc.pid.7=0x8037
+#Genuino Micro
+arduboy-fxc.vid.8=0x2341
+arduboy-fxc.pid.8=0x8237
+#Sparkfun Pro Micro 5V
+arduboy-fxc.vid.8=0x1b4f
+arduboy-fxc.pid.8=0x9205
+arduboy-fxc.vid.9=0x1b4f
+arduboy-fxc.pid.9=0x9206
+
+arduboy-fxc.upload.tool=arduino:avrdude
+arduboy-fxc.upload.protocol=avr109
+arduboy-fxc.upload.maximum_size=29696
+arduboy-fxc.upload.maximum_data_size=2560
+arduboy-fxc.upload.speed=57600
+arduboy-fxc.upload.disable_flushing=true
+arduboy-fxc.upload.use_1200bps_touch=true
+arduboy-fxc.upload.wait_for_upload_port=true
+
+arduboy-fxc.bootloader.tool=arduino:avrdude
+arduboy-fxc.bootloader.low_fuses=0xff
+arduboy-fxc.bootloader.high_fuses=0xd2
+arduboy-fxc.bootloader.extended_fuses=0xcb
+arduboy-fxc.bootloader.unlock_bits=0x3F
+arduboy-fxc.bootloader.lock_bits=0x2F
+
+arduboy-fxc.build.mcu=atmega32u4
+arduboy-fxc.build.f_cpu=16000000L
+arduboy-fxc.build.variant=arduboy-fxc
+arduboy-fxc.build.board=AVR_ARDUBOY
+arduboy-fxc.build.vid=0x2341
+arduboy-fxc.build.pid=0x8036
+arduboy-fxc.build.usb_manufacturer="Arduboy Inc"
+arduboy-fxc.build.usb_product="Arduboy"
+arduboy-fxc.build.board=AVR_ARDUBOY
+arduboy-fxc.build.core=arduino:arduino
+arduboy-fxc.build.flash_cs=-DCART_CS_HWB
+arduboy-fxc.build.extra_flags=-DARDUBOY_10 {build.flash_cs} {build.usb_flags}
+
+# Arduboy FX-C menu options ######################################################
+
+arduboy-fxc.menu.core.arduboy-core=Arduboy optimized core
+arduboy-fxc.menu.core.arduboy-core.build.core=arduboy
+
+arduboy-fxc.menu.core.arduino-core=Standard Arduino core
+arduboy-fxc.menu.core.arduino-core.build.core=arduino:arduino
+
+arduboy-fxc.menu.boot.cathy3k=Cathy3K (starts with menu)
+arduboy-fxc.menu.boot.cathy3k.bootloader.file=cathy3k/arduboymini-bootloader{bootloader_rtc}-menu.hex
+
+arduboy-fxc.menu.boot.cathy3kg=Cathy3K (starts with game)
+arduboy-fxc.menu.boot.cathy3kg.bootloader.file=cathy3k/arduboymini-bootloader{bootloader_rtc}-game.hex
+
+################################################################################
 # Arduboy FX board
 ################################################################################
 
