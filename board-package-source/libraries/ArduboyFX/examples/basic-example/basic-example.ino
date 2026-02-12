@@ -5,14 +5,14 @@
  * This is a basic example that shows how you can draw a image from FX external
  * flash memory. It will draw the Arduboy FX logo and move it around the screen.
  * 
-* Before this example sketch is uploaded and run on the Arduboy FX, make sure 
+ * Before this example sketch is uploaded and run on the Arduboy FX, make sure 
  * the fxdata this sketch has been build and uploaded to the Arduboy FX. 
  * 
  * If the Arduboy FX Arduino plugin has been installed you can simply choose the 
  * 'Build and upload Arduboy FX data' from the Arduino IDE Tools menu.
  * 
  * Alternatively the fxdata.txt script file can be build using the fxdata-build.py 
- * Phyton script and the fxdata.bin file can be uploaded using the uploader-gui.py, 
+ * Python script and the fxdata.bin file can be uploaded using the uploader-gui.py, 
  * fxdata-upload.py or flash-writer.py Python script using the -d switch.
  * 
  ******************************************************************************/
